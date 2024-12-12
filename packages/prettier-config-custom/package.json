@@ -1,0 +1,15 @@
+{
+	"name": "prettier-config-custom",
+	"version": "0.0.0",
+	"main": "index.js",
+	"license": "MIT",
+	"dependencies": {
+		"eslint-config-turbo": "^2.1.1"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"devDependencies": {
+		"eslint-plugin-unicorn": "^55.0.0"
+	}
+}

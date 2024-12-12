@@ -1,0 +1,16 @@
+{
+	"hello": "¡Hola, {name}!",
+	"language": "Idioma",
+	"description": "Es un mundo maravilloso, ¿verdad?",
+	"about": "About",
+	"login-title": "Ingrese a su cuenta",
+	"email-address": "Dirección de correo electrónico",
+	"password": "Contraseña",
+	"remember-me": "Acuérdate de mí",
+	"sign-in": "iniciar sesión",
+	"help": "Ayuda",
+	"login-help-description": "Para fines de demostración, esta aplicación viene con credenciales predefinidas que puede utilizar para iniciar sesión: ",
+	"with": "con",
+	"required-login-field": "Se requiere dirección de correo electrónico y contraseña.",
+	"currency": "EUR"
+}

@@ -1,0 +1,101 @@
+$prefix: "eacc";
+$header-height: 6rem;
+$radius: 0.4rem;
+$shadow: rgba(82, 63, 105, 0.2);
+
+// $text-color: #333;
+$text-color: rgba(0, 0, 0, 0.88);
+$scrollbar-color: #aab7cf;
+$nav-shadow: rgba(1, 41, 112, 0.1);
+$bg-nav-dark: #333;
+
+$border-color: rgba(5, 5, 5, 0.1); // #e6e6e6 같음
+
+$color-dark: #212529;
+$color-primary: #6146e5;
+$color-secondary: #666;
+$color-success: #32b96f;
+$color-warning: #ffa900;
+$color-error: #eb6365;
+$color-info: #267ac7;
+$color-primary-active: #d5cdff;
+
+$color-row-active: #d7cdff;
+$color-nav-active: #f3a52f;
+$color-tab-active: #f3a52f;
+
+$color-disabled: #777;
+
+// List of size keywords
+// xs, sm, md, lg, xl, none
+$sizes: xs, sm, md, lg, xl, none;
+// List of properties
+// m (margin) p (padding)
+$properties: m, p;
+// List of directions
+//a(all) t (top) b (bottom) r (right) l (left) x (left&right) y (top & bottom)
+$directions: t, b, r, l, x, y, a;
+
+@function size($keyword) {
+	@if $keyword == "xs" {
+		@return 0.5rem;
+	} @else if $keyword == "sm" {
+		@return 1rem;
+	} @else if $keyword == "md" {
+		@return 1.5rem;
+	} @else if $keyword == "lg" {
+		@return 2rem;
+	} @else if $keyword == "xl" {
+		@return 3rem;
+	} @else if $keyword == "none" {
+		@return 0;
+	}
+}
+
+@function type($property) {
+	@if $property == "m" {
+		@return "margin";
+	} @else if $property == "p" {
+		@return "padding";
+	}
+}
+
+@mixin spacing($property, $direction, $size) {
+	@if $direction == "a" {
+		#{$property}-left: size($size) !important;
+		#{$property}-right: size($size) !important;
+		#{$property}-top: size($size) !important;
+		#{$property}-bottom: size($size) !important;
+	} @else if $direction == "t" {
+		#{$property}-top: size($size) !important;
+	} @else if $direction == "b" {
+		#{$property}-bottom: size($size) !important;
+	} @else if $direction == "r" {
+		#{$property}-right: size($size) !important;
+	} @else if $direction == "l" {
+		#{$property}-left: size($size) !important;
+	} @else if $direction == "x" {
+		#{$property}-left: size($size) !important;
+		#{$property}-right: size($size) !important;
+	} @else if $direction == "y" {
+		#{$property}-top: size($size) !important;
+		#{$property}-bottom: size($size) !important;
+	}
+}
+
+@mixin trigger-arrow($color: rgba(255, 255, 255, 0.6)) {
+	&:after {
+		content: "";
+		width: 2rem;
+		height: 2rem;
+		background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="#{$color}"><path d="M480-371.69 267.69-584 296-612.31l184 184 184-184L692.31-584 480-371.69Z"/></svg>')
+			50% 50% no-repeat;
+		background-size: contain;
+		transition: 0.3s ease-out;
+	}
+	&[class*="open"] {
+		&:after {
+			transform: rotate(180deg);
+		}
+	}
+}

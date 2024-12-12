@@ -1,0 +1,16 @@
+{
+	"hello": "Hello, {name}!",
+	"language": "Language",
+	"description": "This is a wonderful world isn't it?",
+	"about": "About",
+	"login-title": "Login to your account",
+	"email-address": "E-mail Address",
+	"password": "Password",
+	"remember-me": "Remember Me",
+	"sign-in": "Sign-in",
+	"help": "Help",
+	"login-help-description": "For demo purpose, this application comes with predefined credentials you can use to login: ",
+	"with": "with",
+	"required-login-field": "Email address and password are required",
+	"currency": "USD"
+}

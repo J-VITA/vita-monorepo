@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ko" data-bs-theme="">
+
+<!-- [include] head -->
+
+<head data-include-file="../include/head.html" class="head-wrap includeJs"><meta charset="UTF-8"></head>
+<!-- //[include] head -->
+
+<body>
+
+  <!-- [include] top -->
+  <header data-include-file="../include/top.html" id="header" class="includeJs header fixed-top d-flex align-items-center">
+
+  </header>
+  <!-- [include] top -->
+
+  <!-- //[include] sidebar -->
+  <div data-include-file="../include/sidebar.html" class="sidebar-wrap includeJs"></div>
+  <!-- //[include] sidebar -->
+
+  <main id="main" class="main">
+    <div class="pagetitle">
+      <h1 class="">경비규정관리</h1>
+    </div>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html"><i class="bi bi-house-door"></i></a></li>
+        <li class="breadcrumb-item">기준정보관리</li>
+        <li class="breadcrumb-item active">경비규정관리</li>
+      </ol>
+    </nav>
+    <section class="section regulation-expense">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-header">
+              <div class="d-sm-flex justify-content-between align-items-center">
+                <span>
+                  <span class="material-symbols-outlined">help</span> 
+                  경비기본규정과 전표입력항목설정 및 부가기능을 관리합니다.  
+                </span>
+              </div> 
+             </div>
+            <div class="card-body">
+              <!--  Tabs -->
+              <ul class="nav nav-underline" id="borderedTab" role="tablist" style="border-bottom: 1px solid #d7d7d7;">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#bordered-home" type="button" role="tab" aria-controls="home" aria-selected="true"> 기본설정</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#bordered-profile"  type="button" role="tab" aria-controls="profile" aria-selected="false"> 입력항목관리</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="tab-standard-regulation3" data-bs-toggle="tab"   data-bs-target="#bordered-profile2" type="button" role="tab" aria-controls="profile" aria-selected="false"> 부가기능관리</button>
+                </li>
+              </ul>
+              <!--탭컨텐츠시작-->
+              <div class="tab-content mt-3 mx-3" id="borderedTabContent">
+                <!--1.기본설정-->
+                <div class="tab-pane fade show active mt-5" id="bordered-home" role="tabpanel" aria-labelledby="home-tab">
+                  <div class="row gx-5">
+                    <div class="col-lg-6 bd-right-dashed">
+                      <div class="row  mb-5">
+                        <label class="col-sm-2">회계마감시 제한사항 설정</label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked="" data-bs-toggle="collapse" data-bs-target="#collapseOne5" aria-expanded="true" aria-controls="collapseOne5">
+                            <label class=" form-check-label ms-3 text-secondary" for="">회계 마감시 사용자들의 액션을 제한합니다. </label>
+                          </div>
+                          <div id="collapseOne5" class="accordion-collapse collapse show">
+                            <div class="box-standard-option">
+                              <form class="row gy-2 gx-3 align-items-center">
+                                <div class="col-auto text-dark  bold">제한설정</div>
+                                <div class="col-auto">
+                                  <select class="form-select form-select-sm" id="">
+                                    <option value="1">마감된 월의 지출등록 제한</option>
+                                    <option selected="" value="2">마감된 월의 결재상신 제한</option>
+                                  </select>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <div class="row   mb-5">
+                        <label class="col-sm-2">전자결재 상신기간 설정 </label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked="" data-bs-toggle="collapse" data-bs-target="#collapseOne3">
+                            <label class="form-check-label ms-3 text-secondary" for="">전표 결재 상신이 가능한 기간을 설정합니다.</label>
+                          </div>
+                          <div id="collapseOne3" class="accordion-collapse collapse show">
+                            <div class="box-standard-option">
+                              <form class="row gy-2 gx-3 align-items-center">
+                                <div class="col-auto bold">시작일</div>
+                                <div class="col-auto">
+                                  <select class="form-select form-select-sm" id="">
+                                    <option>1일</option>
+                                    <option value="1">2일</option>
+                                    <option value="2">3일</option>
+                                    <option value="3">...</option>
+                                    <option value="4">28일</option>
+                                    <option value="5">말일</option>
+                                  </select>
+                                </div>
+                                <div class="col-auto bold">종료일</div>
+                                <div class="col-auto">
+                                  <select class="form-select form-select-sm" id="">
+                                    <option>1일</option>
+                                    <option value="1">2일</option>
+                                    <option value="2">3일</option>
+                                    <option value="3">...</option>
+                                    <option value="4">28일</option>
+                                    <option value="5">말일</option>
+                                  </select>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6 bd-right-dashed">
+                      <div class="row  mb-5">
+                        <label class="col-sm-2">계정과목/비용항목 입력방식</label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked="" data-bs-toggle="collapse" data-bs-target="#collapseOne2" aria-expanded="true" aria-controls="collapseOne2">
+                            <label class="form-check-label ms-3 text-secondary" for="">계정과목/비용항목 입력방식을 설정할 수
+                              있습니다.</label>
+                          </div>
+                          <div id="collapseOne2" class="accordion-collapse collapse show">
+                            <div class="box-standard-option">
+                              <form class="row gy-2 gx-3 align-items-center">
+                                <div class="col-auto text-dark bold">입력방식</div>
+                                <div class="col-auto">
+                                  <div class="col-sm-12 mt-1">
+                                    <div class="form-check-inline">
+                                      <input class="form-check-input" type="radio" name="inlineRadioOptions7" id="inlineRadio555" value="option1" checked="">
+                                      <label class="form-check-label" for="inlineRadio555">계정과목 &gt; 비용항목 </label>
+                                    </div>
+                                    <div class="form-check form-check-inline ms-2">
+                                      <input class="form-check-input" type="radio" name="inlineRadioOptions7" id="inlineRadio666" value="option2">
+                                      <label class="form-check-label" for="inlineRadio666">비용항목 &gt; 계정과목 </label>
+                                    </div>
+                                  </div>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <div class="row  mb-5">
+                        <label class="col-sm-2">전표 자동확정설정</label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked">
+                            <label class=" form-check-label ms-3 text-secondary" for="">지출결의서 결재문서가 완료되는 시점에 자동 전표확정 처리됩니다. </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6 bd-right-dashed">
+                      <div class="row  mb-5">
+                        <label class="col-sm-2">회계 마감 알림설정</label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked">
+                            <label class=" form-check-label ms-3 text-secondary" for="">해당월에 회계처리가 마감될때마다 사용자 전체에게 알림이 발생합니다. </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+
+                      <div class="row  mb-5">
+                        <label class="col-sm-2">메뉴얼 등록 </label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" data-bs-toggle="collapse" data-bs-target="#collapseOne6">
+                            <label class="form-check-label ms-3 text-secondary" for="">회사내 자체 경비규정 메뉴얼을 업로드하면 임직원들이 지출입력화면에서 다운로드 가능합니다. </label>
+                          </div>
+                          <div id="collapseOne6" class="accordion-collapse collapse">
+                            <div class="box-standard-option">
+                              <form class="row gy-2 gx-3 align-items-center">
+                                <div class="div-upload mt-3">
+                                  <form action="#" id="dropzone01" class="dropzone dz-clickable" method="post" enctype="multipart/form-data">
+                                    <div class="d-flex justify-content-center flex-column align-items-center align-self-center" data-dz-message="">
+                                      <span class="material-icons-outlined fs-modal-icon mb-1 text-secondary">cloud_upload</span>
+                                      <p>여기에 파일을 드래그하거나 클릭해 업로드하세요</p>
+                                    </div>
+                                  </form>
+                                </div>
+                                <span class="badge badge-lg bg-light text-dark mt-2">
+                                  <span class="material-icons-outlined text-secondary">description</span>
+                                  일진씨앤에스 지출메뉴얼.xlsx
+                                  <span class="badge badge-close text-secondary">
+                                    <span class="material-symbols-outlined delete">close</span>
+                                  </span>
+                                </span>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!--//1.기본설정-->
+
+                <!--2.입력항목관리-->
+                <div class="tab-pane fade mt-5" id="bordered-profile" role="tabpanel" aria-labelledby="profile-tab">
+                  <!-- <h5 class="card-title">경비입력관련</h5> -->
+                  <div class="row gx-5">
+                    <div class="col-lg-6 bd-right-dashed">
+                      <div class="row  mb-5">
+                        <label class="col-sm-2"> 개인경비 영수증 필수 등록</label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked">
+                            <label class=" form-check-label ms-3 text-secondary" for="">  개인경비 지출작성시 영수증 사진을 필수로 등록해야
+                              됩니다.</label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <div class="row  mb-5">
+                        <label class="col-sm-2">개인경비 상호명 필수 입력 </label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked">
+                            <label class=" form-check-label ms-3 text-secondary" for="">  개인카드/현금 지출 작성시 상호명(거래처)을 필수 입력해야합니다. </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6 bd-right-dashed">
+                      <div class="row  mb-5">
+                        <label class="col-sm-2">출장명 입력 사용 </label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked">
+                            <label class=" form-check-label ms-3 text-secondary" for=""> 지출 작성 시, ‘출장명’을 입력할 수 있습니다.</label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <div class="row  mb-5">
+                        <label class="col-sm-2">참석자 입력사용 </label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked">
+                            <label class=" form-check-label ms-3 text-secondary" for=""> 지출 작성시 참석자를 입력할 수 있습니다.<br/> 등록된 참석자 명단은 참석자관리? 에서 관리할 수 있습니다.  </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6 bd-right-dashed">
+                      <div class="row  mb-5">
+                        <label class="col-sm-2">전표 분할입력 사용 </label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked=""
+                              data-bs-toggle="collapse" data-bs-target="#collapseOne11">
+                            <label class=" form-check-label ms-3 text-secondary" for="">법인카드/세금계산서 사용내역을 작성 시 계정 및 사용자를 분할하여 작성할 수 있습니다. </label>
+                          </div>
+                          <div id="collapseOne11" class="accordion-collapse collapse show">
+                            <div class="box-standard-option">
+                              <form class="row gy-2 gx-3 align-items-center">
+                                <div class="col-auto text-dark bold">수정권한</div>
+                                <div class="col-auto">
+                                  <select class="form-select form-select-sm" id="">
+                                    <option value="1">최초작성자만 가능</option>
+                                    <option value="2">포함된 사용자 전체</option>
+                                  </select>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <div class="row  mb-5">
+                        <label class="col-sm-2">출금/지급 예정일 표시 여부 </label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked="" data-bs-toggle="collapse" data-bs-target="#collapseOne12">
+                            <label class=" form-check-label ms-3 text-secondary" for=""> 지출 작성시 비용이 실제 지급될 날짜를 사용자가 미리 확인할 수 있습니다. </label>
+                          </div>
+                          <div id="collapseOne12" class="accordion-collapse collapse show">
+                            <div class="box-standard-option">
+                              <form class="row gy-2 gx-3 align-items-center">
+                                <div class="col-auto text-dark bold">개인경비 표시날짜</div>
+                                <div class="col-auto">
+                                  <select class="form-select form-select-sm ms-2" id="">
+                                    <option value="1">익월</option>
+                                    <option value="2">당월</option>
+                                  </select>
+                                </div>
+                                <div class="col-auto">
+                                  <select class="form-select form-select-sm" id="">
+                                    <option value="1">1일</option>
+                                    <option value="2">2일</option>
+                                    <option value="3">...</option>
+                                    <option value="4">28일</option>
+                                    <option value="5">말일</option>
+                                  </select>
+                                </div>
+                              </form>
+                              <form class="row gy-2 gx-3 align-items-center mt-2">
+                                <div class="col-auto text-dark bold">법인카드 표시날짜</div>
+                                <div class="col-auto">
+                                  <select class="form-select form-select-sm ms-2" id="">
+                                    <option value="1">익월</option>
+                                    <option value="2">당월</option>
+                                  </select>
+                                </div>
+                                <div class="col-auto">
+                                  <select class="form-select form-select-sm" id="">
+                                    <option value="1">1일</option>
+                                    <option value="2">2일</option>
+                                    <option value="3">...</option>
+                                    <option value="4">28일</option>
+                                    <option value="5">말일</option>
+                                  </select>
+                                </div>
+                              </form>
+                              <form class="row gy-2 gx-3 align-items-center mt-2">
+                                <div class="col-auto text-dark bold">세금계산서 표시날짜</div>
+                                <div class="col-auto">
+                                  <select class="form-select form-select-sm" id="">
+                                    <option value="1">익월</option>
+                                    <option value="2">당월</option>
+                                  </select>
+                                </div>
+                                <div class="col-auto">
+                                  <select class="form-select form-select-sm" id="">
+                                    <option value="1">1일</option>
+                                    <option value="2">2일</option>
+                                    <option value="3">...</option>
+                                    <option value="4">28일</option>
+                                    <option value="5">말일</option>
+                                  </select>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!--//2.입력항목관리-->
+
+                <!--3.부가기능관리-->
+                <div class="tab-pane fade mt-5" id="bordered-profile2" role="tabpanel" aria-labelledby="profile-tab">
+                  <div class="row gx-5">
+                    <div class="col-lg-6 bd-right-dashed">
+                      <div class="row mb-5">
+                        <label class="col-sm-2"> 프로젝트 관리 </label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked="" data-bs-toggle="collapse" data-bs-target="#collapseOne66" aria-expanded="true"  aria-controls="collapseOne66">
+                            <label class=" form-check-label ms-3 text-secondary" for=""> 기준정보관리 > 프로젝트관리 메뉴가 활성화됩니다.
+                              <br />프로젝트별로 지출을 관리하고 사용현황을 추적할 수 있습니다.</label>
+                          </div>
+                          <div id="collapseOne66" class="accordion-collapse collapse show">
+                            <div class="box-standard-option">
+                              <form class="row gy-2 gx-3 align-items-center">
+                                <div class="col-auto text-dark bold">프로젝트명 입력여부</div>
+                                <div class="col-auto">
+                                  <div class="form-check col-form-label">
+                                    <input class="form-check-input" type="checkbox" id="inlineFormCheck">
+                                    <label class="form-check-label" for="inlineFormCheck">필수입력</label>
+                                  </div>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <div class="row  mb-5">
+                        <label class="col-sm-2"> 코스트센터 관리</label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked="" data-bs-toggle="collapse" data-bs-target="#collapseOne2" aria-expanded="true" aria-controls="collapseOne2">
+                            <label class=" form-check-label ms-3 text-secondary" for=""> 기준정보관리 > 코스트센터관리 메뉴가 활성화됩니다.
+                              <br />코스트센터에 대해 관리가 가능하며, 사용자는 지출작성시 코스트센터를 입력 할 수 있습니다.</label>
+                          </div>
+                          <div id="collapseOne2" class="accordion-collapse collapse show">
+                            <div class="box-standard-option">
+                              <form class="row gy-2 gx-3 align-items-center">
+                                <div class="col-auto text-dark bold">코스트센터명 입력여부</div>
+                                <div class="col-auto">
+                                  <div class="form-check col-form-label">
+                                    <input class="form-check-input" type="checkbox" id="inlineFormCheck2">
+                                    <label class="form-check-label" for="inlineFormCheck2">필수입력</label>
+                                  </div>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6 bd-right-dashed">
+                      <div class="row  mb-5">
+                        <label class="col-sm-2"> 일비관리</label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked">
+                            <label class=" form-check-label ms-3 text-secondary" for=""> 기준정보관리 > 일비관리 메뉴가 활성화
+                              됩니다.</label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <div class="row  mb-5">
+                        <label class="col-sm-2"> 출장거리관리</label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked">
+                            <label class=" form-check-label ms-3 text-secondary" for=""> 기준정보관리 > 출장거리관리 메뉴가 활성화 됩니다.</label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6 bd-right-dashed">
+                      <div class="row  mb-5">
+                        <label class="col-sm-2"> 유류비 단가관리</label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked">
+                            <label class=" form-check-label ms-3 text-secondary" for=""> 기준정보관리 > 유류단가관리 메뉴가 활성화됩니다. 거리에 따라 리터당 금액을 자동산출 할 수 있습니다.</label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <div class="row  mb-5">
+                        <label class="col-sm-2"> 경조금지급 관리</label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked">
+                            <label class=" form-check-label ms-3 text-secondary" for=""> 기준정보관리 > 경조금지급관리 메뉴가 활성화 됩니다.</label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6 bd-right-dashed">
+                      <div class="row  mb-5">
+                        <label class="col-sm-2"> ERP코드 매핑관리</label>
+                        <div class="col-sm-10">
+                          <div class="form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked">
+                            <label class=" form-check-label ms-3 text-secondary" for=""> 시스템설정 > ERP코드매핑관리 메뉴가 활성화 됩니다. <br />회사에서 사용중이거나 필요한 ERP종류를 선택할 수 있습니다.</label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!--//3.부가기능관리-->
+              </div>
+            </div>
+          </div>
+        </div>
+    </section>
+  </main>
+  <!-- End #main -->
+  </div>
+
+
+
+
+  <!--html include js-->
+  <script src="../../../assets/js/common.js"></script>
+  <!--html include js-->
+
+  <!--부트스트랩 JS Files -->
+  <script src="../../../assets/js//bootstrap.bundle.min.js"></script>
+  <!--  Main JS File -->
+  <script src="../../../assets/js/main.js"></script>
+
+</body>
+
+</html>

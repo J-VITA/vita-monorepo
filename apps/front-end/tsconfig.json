@@ -1,0 +1,10 @@
+{
+	// https://nuxt.com/docs/guide/concepts/typescript
+	"extends": "./.nuxt/tsconfig.json",
+	"compilerOptions": {
+		"types": ["ant-design-vue", "ant-design-vue/typings/global", "@iwx/ui"],
+		"verbatimModuleSyntax": false,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true
+	}
+}

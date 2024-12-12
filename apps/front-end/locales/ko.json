@@ -1,0 +1,16 @@
+{
+	"hello": "안녕하세요, {name}!",
+	"language": "언어",
+	"description": "정말 멋진 세상이지 않나요?",
+	"about": "대해서",
+	"login-title": "계정 로그인",
+	"email-address": "E-mail주소",
+	"password": "비밀번호",
+	"remember-me": "기억하기",
+	"sign-in": "로그인",
+	"help": "도움말",
+	"login-help-description": "데모 목적으로 이 애플리케이션에는 로그인에 사용할 수 있는 사전 정의된 자격 증명이 함께 제공됩니다.",
+	"with": "함께",
+	"required-login-field": "E-mail와 비밀번호는 필수 입력 입니다.",
+	"currency": "KRW"
+}

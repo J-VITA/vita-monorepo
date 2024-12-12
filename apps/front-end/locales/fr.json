@@ -1,0 +1,16 @@
+{
+	"hello": "Bonjour, {name}!",
+	"language": "Langue",
+	"description": "Nous vivons dans un monde merveilleux, n'est-ce pas ?",
+	"about": "à propos",
+	"login-title": "Connectez-vous à votre compte",
+	"email-address": "adresse e-mail",
+	"password": "mot de passe",
+	"remember-me": "souviens-toi de moi",
+	"sign-in": "se connecter",
+	"help": "aide",
+	"login-help-description": "Pour fins de démonstration, cette application vient avec des informations d'identification prédéfinies que vous pouvez utiliser pour démarrer la session :",
+	"with": "avec",
+	"required-login-field": "L'adresse e-mail et le mot de passe sont requis",
+	"currency": "EUR"
+}

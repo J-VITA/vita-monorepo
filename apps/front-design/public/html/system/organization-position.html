@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ko" data-bs-theme="">
+
+<!-- [include] head -->
+
+<head data-include-file="../include/head.html" class="head-wrap includeJs"><meta charset="UTF-8"></head>
+<!-- //[include] head -->
+
+<body>
+  <!-- [include] top -->
+  <header data-include-file="../include/top.html" id="header" class="includeJs header fixed-top d-flex align-items-center"></header>
+  <!-- [include] top -->
+
+  <!-- //[include] sidebar -->
+  <div data-include-file="../include/sidebar-dark.html" class="sidebar-wrap includeJs"></div>
+  <!-- //[include] sidebar -->
+
+  <main id="main" class="main">
+    <div class="pagetitle">
+      <h1 class="">직위관리</h1>
+    </div>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="index.html"><i class="bi bi-house-door"></i></a></li>
+          <li class="breadcrumb-item">시스템설정</li>
+          <li class="breadcrumb-item">조직관리</li>
+          <li class="breadcrumb-item active">직위관리</li>
+        </ol>
+      </nav>
+      <section class="section">
+        <div class="row">
+          <div class="col-md-12"> 
+            <div class="card">
+              <div class="card-header">
+                <div class="d-sm-flex justify-content-between align-items-center">
+                  <span class=""> <span class="material-symbols-outlined">help</span> 직위정보를 만들고, 사용자에 직위를 추가할 수 있습니다.
+                  </span>
+                </div>
+              </div> 
+              <div class="card-body"> 
+                <section class="section">
+                  <div class="row">
+                    <!--직위 -->
+                    <div class="col-md-3">
+                      <div class="d-sm-flex justify-content-between align-items-center mb-2">
+                        <h6 class="bold"></h6> 
+                        <div class="d-flex flex-wrap">
+                          <div class="btn-group btn-group-xs">
+                            <button type="button" class="btn btn-outline-secondary"> <span
+                                class="material-symbols-outlined">keyboard_arrow_up </span></button>
+                            <button type="button" class="btn btn-outline-secondary"> <span
+                                class="material-symbols-outlined">keyboard_arrow_down </span></button>
+                          </div> 
+                          <button type="button" class="btn btn-sm btn-primary ms-2" data-bs-toggle="modal"
+                            data-bs-target="#modal-system-position-add">
+                            <i class="bi bi-plus-circle"></i> 직위추가
+                          </button>
+                        </div>
+                      </div> 
+                      <!--직위추가팝업-->
+                      <div class="modal fade" id="modal-system-position-add" tabindex="-1">
+                        <div class="modal-dialog modal-md">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h5 class="modal-title">직위추가</h5>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body"> 
+                              <div class="row mb-3">
+                                <label for="inputText" class="col-sm-2 col-form-label">직위명</label>
+                                <div class="col-sm-10">
+                                  <input type="text" class="form-control form-control-sm"
+                                    placeholder="직위를 입력하세요 (ex.사장, 부장, 과장)">
+                                </div>
+                              </div>
+                              <div class="row mb-3">
+                                <label for="inputText" class="col-sm-2 col-form-label">정렬순위</label>
+                                <div class="col-sm-10">
+                                  <select class="form-select form-select-sm" aria-label="Default select example">
+                                    <option value="1">선택하세요</option>
+                                    <option value="1">1순위</option>
+                                    <option value="2">2순위</option>
+                                    <option value="3">3순위</option>
+                                    <option value="3">4순위</option>
+                                    <option value="3">..</option>
+                                  </select>
+                                </div>
+                              </div>
+                              <div class="row mb-3">
+                                <label for="inputText" class="col-sm-2 col-form-label">코드</label>
+                                <div class="col-sm-10">
+                                  <input type="text" class="form-control form-control-sm" placeholder="">
+                                </div>
+                              </div> 
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-outline-secondary"
+                                data-bs-dismiss="modal">닫기</button>
+                              <button type="button" class="btn btn-primary">확인</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <!--//직위추가팝업--> 
+                      <!--직위테이블-->
+                      <div class="div-contents-border"> 
+                        <table class="table table-data">
+                          <thead class="table-light">
+                            <tr>
+                              <th scope="col">직위</th>
+                              <th scope="col">사용자수</th>
+                              <th scope="col">기능</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr class="td-option">
+                              <td>사장</td>
+                              <td>1</td>
+                              <td>
+                                <span class="material-symbols-outlined">edit</span> 
+                                <span class="material-symbols-outlined">delete</span>
+                              </td>
+                            </tr>
+                            <tr class="td-option active">
+                              <td>부사장</td>
+                              <td>3</td>
+                              <td>
+                                <span class="material-symbols-outlined">edit</span> 
+                                <span class="material-symbols-outlined">delete</span>
+                                </td>
+                            </tr>
+                            <tr class="td-option">
+                              <td>상무</td>
+                              <td>3</td>
+                              <td>
+                                <span class="material-symbols-outlined">edit</span> 
+                                <span class="material-symbols-outlined">delete</span>
+                              </td>
+                            </tr>
+                            <tr class="td-option">
+                              <td>부장</td>
+                              <td>7</td>
+                              <td>
+                                <span class="material-symbols-outlined">edit</span> 
+                                <span class="material-symbols-outlined">delete</span>
+                              </td>
+                            </tr>
+                            <tr class="td-option">
+                              <td>과장</td>
+                              <td>9</td>
+                              <td>
+                                <span class="material-symbols-outlined">edit</span> 
+                                <span class="material-symbols-outlined">delete</span>
+                              </td>
+                            </tr>
+                            <tr class="td-option">
+                              <td>대리</td>
+                              <td>15</td>
+                              <td>
+                                <span class="material-symbols-outlined">edit</span> 
+                                <span class="material-symbols-outlined">delete</span>
+                              </td>
+                            </tr>
+                            <tr class="td-option">
+                              <td>사원</td>
+                              <td>17</td>
+                              <td>
+                                <span class="material-symbols-outlined">edit</span> 
+                                <span class="material-symbols-outlined">delete</span>
+                               </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <!--//직위테이블-->
+                    </div>
+                    <!--// -->
+
+                    <!--사용자정보-->
+                    <div class="col-md-9">
+                      <div class="d-sm-flex justify-content-between align-items-center mb-2">
+                        <h6 class="bold">사용자정보</h6>
+                        <div class="d-flex flex-wrap">
+                          <button type="button" class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#modal-system-position-change">
+                            <span class="material-icons-outlined"> cached</span> 직위변경
+                          </button>
+                          <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modal-system-position-useradd">
+                            <i class="bi bi-person-plus-fill"></i> 사용자추가
+                          </button>
+                        </div>
+                      </div> 
+                      <div class="div-contents-border">
+                        <table class="table table-data">
+                          <thead class="table-light">
+                            <tr>
+                              <th scope="col" style="width: 4%">
+                                <input class="form-check-input" type="checkbox" id="">
+                              </th>
+                              <th scope="col">직위</th>
+                              <th scope="col">부서</th>
+                              <th scope="col">이름</th>
+                              <th scope="col">직책</th>
+                              <th scope="col">이메일</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr class="">
+                              <td><input class="form-check-input" type="checkbox" id=""></td>
+                              <td>부사장</td>
+                              <td>전략기획팀</td>
+                              <td>나우용</td>
+                              <td>팀장</td>
+                              <td>nyy@iljin.co.kr</td>
+                            </tr>
+                            <tr>
+                              <td><input class="form-check-input" type="checkbox" id=""></td>
+                              <td>부사장</td>
+                              <td>전략기획팀</td>
+                              <td>김문수</td>
+                              <td>팀원</td>
+                              <td>123123123@iljin.co.kr</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+  </main><!-- End #main -->
+
+
+  <!--사용자추가 팝업-->
+  <div class="modal fade" id="modal-system-position-useradd" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">사용자 추가</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-4">
+              <div class="d-sm-flex justify-content-between align-items-center mb-2">
+                <h6 class="bold">조직도</h6>
+              </div>
+              <!--트리시작-->
+              <div class="div-contents-border">
+                <div id="treeview2" class="treeview">
+                  <ul class="list-group">
+                    <li class="list-group-item">
+                      <input type="text" class="form-control form-control-sm" value="" placeholder="검색">
+                    </li>
+                  </ul>
+                  <ul class="list-group">
+                    <li class="list-group-item node-treeview2">
+                      <span class="indent"></span>
+                      <span class="material-icons">arrow_drop_down </span>
+                      <span class="material-icons text-warning"> folder </span> 일진전기
+                    </li>
+                    <li class="list-group-item node-treeview2 node-selected" >
+                      <span class="indent"></span>
+                      <span class="indent"></span>
+                      <span class="material-icons">arrow_drop_down </span>
+                      <input class="form-check-input" type="checkbox" id="">
+                      <span class="material-icons text-warning"> folder </span> 전략기획팀
+                    </li>
+                    <li class="list-group-item node-treeview2 node-selected">
+                      <span class="indent"></span>
+                      <span class="indent"></span>
+                      <span class="indent"></span>
+                      <span class="indent"></span>
+                      <input class="form-check-input" type="checkbox" id=""> 김만수 이사
+                    </li>
+                    <li class="list-group-item node-treeview2 node-selected">
+                      <span class="indent"></span>
+                      <span class="indent"></span>
+                      <span class="indent"></span>
+                      <span class="indent"></span>
+                      <input class="form-check-input" type="checkbox" id=""> 나하우 부장
+                    </li>
+                    <li class="list-group-item node-treeview2 node-selected">
+                      <span class="indent"></span>
+                      <span class="indent"></span>
+                      <span class="material-icons">arrow_right</span>
+                      <input class="form-check-input" type="checkbox" id="">
+                      <span class="material-icons text-warning"> folder </span> 재무회계팀
+                    </li>
+                    <li class="list-group-item node-treeview2 node-selected">
+                      <span class="indent"></span>
+                      <span class="indent"></span>
+                      <span class="material-icons">arrow_right</span>
+                      <input class="form-check-input" type="checkbox" id="">
+                      <span class="material-icons text-warning"> folder </span> 영업팀
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <!--//트리-->
+            </div>
+            <!--버튼영역-->
+            <div class="col-md-2 vam">
+              <button type="button" class="btn btn-sm btn-outline-primary" style="width: -webkit-fill-available;"> 추가 
+                <span class="material-icons-outlined"> chevron_right </span>
+              </button>
+            </div>
+            <!--//버튼영역-->
+            <!--선택된사용자-->
+            <div class="col-md-6">
+              <div class="d-sm-flex justify-content-between align-items-center mb-2">
+                <h6 class="bold">선택된사용자</h6>
+              </div>
+              <div class="div-popup-border-padding">
+                <span class="badge badge-lg bg-light text-dark">홍길동 과장
+                  <span class="badge badge-close text-secondary"><span
+                      class="material-symbols-outlined delete">close</span></span>
+                </span>
+                <span class="badge badge-lg bg-light text-dark">김만수 이사
+                  <span class="badge badge-close text-secondary"><span
+                      class="material-symbols-outlined delete">close</span></span>
+                </span>
+                <span class="badge badge-lg bg-light text-dark">{경영지원팀+}
+                  <span class="badge badge-close text-secondary"><span
+                      class="material-symbols-outlined delete">close</span></span>
+                </span>
+              </div>
+            </div>
+            <!--//선택된사용자-->
+          </div>
+        </div>
+        <div class="modal-footer tc">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">취소</button>
+          <button type="button" class="btn btn-primary">확인</button>
+        </div>
+      </div>
+    </div>
+  </div><!-- //사용자추가-->
+
+
+  <!--직위변경 팝업-->
+  <div class="modal fade" id="modal-system-position-change" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">직위변경</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <!--선택된사용자-->
+            <div class="col-md-7">
+              <div class="d-sm-flex justify-content-between align-items-center mb-2">
+                <h6 class="bold">사용자</h6>
+              </div>
+              <div class="div-popup-border-padding">
+                <span class="badge badge-lg bg-light text-dark">홍길동 과장
+                  <span class="badge badge-close text-secondary"><span
+                      class="material-symbols-outlined delete">close</span></span>
+                </span>
+                <span class="badge badge-lg bg-light text-dark">김만수 이사
+                  <span class="badge badge-close text-secondary"><span
+                      class="material-symbols-outlined delete">close</span></span>
+                </span>
+              </div>
+            </div>
+            <!--//선택된사용자-->
+
+            <div class="col-5">
+              <div class="d-sm-flex justify-content-between align-items-center mb-2">
+                <h6 class="bold">변경할 직위선택</h6>
+              </div>
+              <div class="div-contents-border">
+                <table class="table table-data">
+                  <thead>
+                    <tr>
+                      <th scope="col">직위</th>
+                      <th scope="col">사용자수</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>사장</td>
+                      <td>1</td>
+                    </tr>
+                    <tr class="active">
+                      <td>부사장</td>
+                      <td>3</td>
+                    </tr>
+                    <tr>
+                      <td>상무</td>
+                      <td>3</td>
+                    </tr>
+                    <tr>
+                      <td>부장</td>
+                      <td>7</td>
+                    </tr>
+                    <tr>
+                      <td>과장</td>
+                      <td>9</td>
+                    </tr>
+                    <tr>
+                      <td>대리</td>
+                      <td>15</td>
+                    </tr>
+                    <tr>
+                      <td>사원</td>
+                      <td>17</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer tc">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">취소</button>
+          <button type="button" class="btn btn-primary">확인</button>
+        </div>
+      </div>
+    </div>
+  </div><!-- //직위변경-->
+</div>
+
+
+
+
+  <!--html include js-->
+  <script src="../../../assets/js/common.js"></script>
+  <!--html include js-->
+
+  <!--부트스트랩 JS Files -->
+  <script src="../../../assets/js//bootstrap.bundle.min.js"></script>
+  <!--  Main JS File -->
+  <script src="../../../assets/js/main.js"></script>
+
+
+
+
+</body>
+
+
+</html>

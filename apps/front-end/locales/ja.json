@@ -1,0 +1,16 @@
+{
+	"hello": "こんにちは、{name} ！",
+	"language": "言語",
+	"description": "素晴らしい世界だね。",
+	"about": "ついて",
+	"login-title": "あなたのアカウントにログイン",
+	"email-address": "電子メールアドレス",
+	"password": "パスワード",
+	"remember-me": "ID保存",
+	"sign-in": "サインイン",
+	"help": "ヘルプ",
+	"login-help-description": "デモの目的で、このアプリケーションにはログインに使用できる事前定義された資格情報が付属しています。",
+	"with": "と",
+	"required-login-field": "メールアドレスとパスワードが必要です",
+	"currency": "JPY"
+}

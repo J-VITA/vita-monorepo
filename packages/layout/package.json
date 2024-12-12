@@ -1,0 +1,24 @@
+{
+	"name": "layout",
+	"version": "0.0.1",
+	"private": true,
+	"main": "./index.ts",
+	"types": "./index.ts",
+	"scripts": {
+		"lint": "eslint ."
+	},
+	"dependencies": {
+		"@element-plus/icons-vue": "^2.3.1",
+		"element-plus": "^2.7.3",
+		"elements": "*",
+		"eslint-config-turbo": "^2.1.1"
+	},
+	"devDependencies": {
+		"eslint-config-custom": "*",
+		"eslint-plugin-unicorn": "^55.0.0",
+		"prettier": "^3.2.5",
+		"prettier-config-custom": "*",
+		"tsconfig": "*",
+		"vue": "^3.5.3"
+	}
+}

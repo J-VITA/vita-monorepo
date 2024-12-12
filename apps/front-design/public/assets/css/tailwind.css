@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.va-tabs__container.va-tabs__container--left {
+	border-bottom: solid 1px #9da6ad;
+}
