@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="ko" data-bs-theme="light">
+
+<!-- [include] head -->
+
+<head data-include-file="../include/head.html" class="head-wrap includeJs"><meta charset="UTF-8"></head>
+<!-- //[include] head -->
+
+<body>
+  <!-- [include] top -->
+  <header data-include-file="../include/top.html" id="header" class="includeJs header fixed-top d-flex align-items-center"> </header>
+  <!-- [include] top -->
+
+  <!-- //[include] sidebar -->
+  <div data-include-file="../include/sidebar.html" class="sidebar-wrap includeJs"></div>
+  <!-- //[include] sidebar -->
+
+<main id="main" class="main">
+  <div class="d-sm-flex justify-content-between align-items-center">
+    <div>
+      <div class="pagetitle">
+        <h1>결재작성</h1>
+      </div>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="index.html"><i class="bi bi-house-door"></i></a></li>
+          <li class="breadcrumb-item">전자결재</li>
+          <li class="breadcrumb-item active">결재작성</li>
+        </ol>
+      </nav>
+    </div> 
+    <div>
+      <button type="button" class="btn btn-md btn-outline-danger ms-2" data-bs-toggle="modal" data-bs-target="#modal-approval-budget-cancel" >
+        <span class="material-symbols-outlined"> arrow_back</span> 취소
+      </button>
+      <button type="button" class="btn btn-md btn-secondary ms-2" data-bs-toggle="modal" data-bs-target="#modal-approval-budget-save">
+        <span class="material-symbols-outlined"> save_as</span> 임시저장
+      </button>
+      <button type="button" class="btn btn-md btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#modal-approval-budget-send" >
+        <span class="material-symbols-outlined"> edit_square</span> 결재상신
+      </button>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="bold">예산신청서</h5>
+            <div class="row gx-1">
+              <div class="col-xxl-8 div-contents-border-padding mb-3">
+                <h6 class="txt-approval-subtitle">제목</h6>
+                <form class="needs-validation" novalidate="">
+                  <div class="row g-3">
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="title" placeholder="문서제목을 입력하세요" value="" required="">
+                    </div>
+                    <div class="col-sm-2 vam">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="gridCheck2">
+                        <label class="form-check-label text-reset" for="gridCheck2">
+                          긴급문서 
+                        </label>
+                        <span class="material-icons-outlined text-secondary" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="긴급문서에 체크할 경우 결재자 화면에서 '문서제목[긴급]'으로 강조되어 표기됩니다. ."> help</span>
+                      </div>
+                    </div>
+                    <div class="col-12 mt-4">
+                      <div class="d-sm-flex justify-content-between align-items-center">
+                        <h6 class="txt-approval-subtitle">결재선</h6>
+                        <div class="d-flex flex-wrap mb-2">
+                          <div>
+                            <select class="form-select form-select-sm" id="">
+                              <option>개인결재선 선택</option>
+                              <option value="1">개인경비 결재선</option>
+                              <option value="2">예산신청 결재선</option>
+                              <option value="2">경조사신청 결재선</option>
+                            </select>
+                          </div>
+                          <button  class="btn btn-sm btn-outline-primary ms-2" type="button"  data-bs-toggle="modal" data-bs-target="#modal-approval-line">
+                            <span class="material-symbols-outlined">add_circle</span> 결재선 추가
+                          </button> 
+                        </div>
+                      </div> 
+                      <!--결재라인-->
+                      <div> 
+                          <table class="table table-bordered table-approval-line">
+                            <colgroup>
+                                <col style="width: 12.5%">
+                                <col style="width: 12.5%">
+                                <col style="width: 12.5%">
+                                <col style="width: 12.5%">
+                                <col style="width: 12.5%">
+                                <col style="width: 12.5%">
+                                <col style="width: 12.5%">
+                                <col style="width: 12.5%">
+                            </colgroup>
+                            <tbody>
+                            <!--결재-->
+                            <tr>
+                                <th rowspan="3">결재</th>
+                                <th><span>홍길동<br>대리</span></th>
+                                <th><span>박지우<br>대리</span></th>
+                                <th><span>성우건<br>과장</span></th>
+                                <th><span></span></th>
+                                <th><span></span></th>
+                                <th><span></span></th>
+                                <th><span></span></th>
+                            </tr>
+                            <tr>
+                                <td class="tc">
+                                  <div class="circle border-primary text-primary">기안</div>
+                                </td> 
+                                <td></td> 
+                                <td></td> 
+                                <td class="empty" rowspan="2"><span class="id-sSign"></span></td>
+                                <td class="empty" rowspan="2"><span class="id-sSign"></span></td>
+                                <td class="empty" rowspan="2"><span class="id-sSign"></span></td>
+                                <td class="empty" rowspan="2"><span class="id-sSign"></span></td>
+                            </tr>
+                            <tr>
+                                <td class="fs12">2024-06-13</td>
+                                <td></td> 
+                                <td></td> 
+                            </tr>
+                            <!--합의-->
+                            <tr>
+                              <th rowspan="3">합의</th>
+                              <th><span>홍길동<br>대리</span></th>
+                              <th><span>김건우<br>과장</span></th>
+                              <th><span>김모이<br>과장</span></th>
+                              <th><span></span></th>
+                              <th><span></span></th>
+                              <th><span></span></th>
+                              <th><span></span></th>
+                          </tr>
+                          <tr>
+                              <td></td> 
+                              <td></td> 
+                              <td></td> 
+                              <td class="empty" rowspan="2"><span class="id-sSign"></span></td>
+                              <td class="empty" rowspan="2"><span class="id-sSign"></span></td>
+                              <td class="empty" rowspan="2"><span class="id-sSign"></span></td>
+                              <td class="empty" rowspan="2"><span class="id-sSign"></span></td>
+                          </tr>
+                          <tr>
+                              <td></td> 
+                              <td></td> 
+                              <td></td> 
+                          </tr>
+                          <!--수신-->
+                          <tr>
+                            <th rowspan="3">수신</th>
+                            <th><span>김성인<br>대리</span></th>
+                            <th><span>심형우<br>이사</span></th>
+                            <th><span></span></th>
+                            <th><span></span></th>
+                            <th><span></span></th>
+                            <th><span></span></th>
+                            <th><span></span></th>
+                          </tr>
+                          <tr>
+                              <td></td> 
+                              <td></td> 
+                              <td class="empty" rowspan="2"><span class="id-sSign"></span></td>
+                              <td class="empty" rowspan="2"><span class="id-sSign"></span></td>
+                              <td class="empty" rowspan="2"><span class="id-sSign"></span></td>
+                              <td class="empty" rowspan="2"><span class="id-sSign"></span></td>
+                              <td class="empty" rowspan="2"><span class="id-sSign"></span></td>
+                          </tr>
+                          <tr>
+                              <td></td>
+                          </tr> 
+                            <tr>
+                                <th>참조</th>
+                                <td class="tl" colspan="7">김선비 과장, 홍길순 부장</td>
+                            </tr>
+                            </tbody>
+                        </table> 
+                      </div>
+                      <!--결재라인-->
+                    </div> 
+
+                    <!--예산신청-예산전용-->
+                    <div class="col-12 mt-5">
+                      <div class="d-sm-flex justify-content-between align-items-center">
+                        <h6 class="txt-approval-subtitle">예산신청목록
+                          <span class="material-icons-outlined text-secondary" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="예산전용은 타계정과목의 예산금액을 다른계정으로 넘겨주는 것을 의미합니다. 예산증액은 예산금액을 단순히 늘리는걸 의미합니다. 예산이월은 과거 미사용 예산을 이월시키는걸 의미합니다."> help</span>
+                        </h6>
+                        <div class="d-flex flex-wrap mb-2 ">
+                          <button  class="btn btn-sm btn-outline-primary ms-2 dropdown-toggle" type="button" id="dropdown-system-userlist-add" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="material-symbols-outlined">add_circle</span> 예산신청 추가
+                          </button> 
+                          <ul class="dropdown-menu pd0" aria-labelledby="dropdown-system-userlist-add">
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modal-approval-budget-add">
+                              <span class="material-symbols-outlined">autorenew</span> 예산전용</a>
+                            </li>
+                            <li>
+                              <hr class="dropdown-divider">
+                            </li>
+                            </li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modal-approval-budget-add2">
+                                <span class="material-symbols-outlined">paid</span> 예산증액</a>
+                            </li>
+                            <li>
+                              <hr class="dropdown-divider">
+                            </li>
+                            </li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modal-approval-budget-add3">
+                                <span class="material-symbols-outlined">forward</span> 예산이월</a>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                      <table class="table table-data">
+                        <thead class="table-light">
+                          <tr>
+                            <th scope="col">신청유형</th>
+                            <th scope="col">신청금액</th>
+                            <th scope="col">받는 예산년월</th>
+                            <th scope="col">받는 대상</th>
+                            <th scope="col">받는 계정/항목명</th>
+                            <th scope="col">기능</th>
+                          </tr>
+                        </thead>
+                        <tbody>  
+                          <tr>
+                            <td>예산전용</td>
+                            <td class="tr bold">290,000</td>
+                            <td>2025-02</td>
+                            <td>경영지원팀</td>
+                            <td>식비 &gt; 복리후생비[판관비]</td>
+                            <td class="tr">
+                              <span class="material-symbols-outlined ms-1 td-option" data-bs-toggle="modal">file_download</span>
+                              <span class="material-symbols-outlined ms-1 td-option" data-bs-toggle="modal" data-bs-target="#modal-approval-budget-add">edit</span>
+                              <span class="material-symbols-outlined ms-1 td-option" data-bs-toggle="modal" data-bs-target="#modal-approval-budget-delete">delete_outline</span>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>예산증액</td>
+                            <td class="tr bold">290,000</td>
+                            <td>2025-02</td>
+                            <td>경영지원팀</td>
+                            <td>회의비 &gt; 복리후생비[판관비]</td>
+                            <td class="tr">
+                              <span class="material-symbols-outlined ms-1 td-option" data-bs-toggle="modal">file_download</span>
+                              <span class="material-symbols-outlined ms-1 td-option" data-bs-toggle="modal" data-bs-target="#modal-approval-budget-add">edit</span>
+                              <span class="material-symbols-outlined ms-1 td-option" data-bs-toggle="modal" data-bs-target="#modal-approval-budget-delete">delete_outline</span>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>예산이월</td>
+                            <td class="tr bold">300,000</td>
+                            <td>2025-02</td>
+                            <td>경영지원팀</td>
+                            <td>회의비 &gt; 복리후생비[판관비]</td>
+                            <td class="tr">
+                              <span class="material-symbols-outlined td-option" data-bs-toggle="modal" data-bs-target="#modal-approval-budget-add">edit</span>
+                              <span class="material-symbols-outlined td-option" data-bs-toggle="modal" data-bs-target="#modal-approval-budget-delete">delete_outline</span>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <!--//지출상세-->
+                    <div class="col-12">
+                      <h6 class="txt-approval-subtitle">내용</h6>
+                      <textarea class="form-control form-control-sm" rows="6" placeholder="내용을 입력해주세요"></textarea>
+                    </div>
+                  </div>
+                </form>
+              </div>
+              
+              <div class="col-xxl-4 order-md-last gx-5">
+                <h4 class="d-flex justify-content-between align-items-center">
+                  <h6 class="txt-approval-subtitle">문서정보</h6>
+                </h4>
+                <table class="table table-light mb-4">
+                  <thead>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th style="width:25%">기안자</th>
+                      <td>홍길동</td>
+                    </tr>
+                    <tr>
+                      <th>부서</th>
+                      <td>전략기획팀</td>
+                    </tr>
+                    <tr>
+                      <th>기안일</th>
+                      <td>2024-04-13</td>
+                    </tr>
+                    <tr>
+                      <th>문서번호</th>
+                      <td></td>
+                    </tr> 
+                  </tbody>
+                </table>
+                  <!--첨부파일-->
+                <div class="d-sm-flex justify-content-between align-items-center gx-5">
+                  <h6 class="txt-approval-subtitle">첨부파일</h6>
+                  <div class="d-flex flex-wrap mb-2"> 
+                    <button class="btn btn-sm btn-outline-primary ms-2" type="button"  type="file" id="formFile">
+                      <span class="material-symbols-outlined">add_circle</span>  추가
+                    </button> 
+                  </div>
+                </div>
+                <table class="table table-light mb-4">
+                  <thead>
+                    <th>파일명</th>
+                    <th class="tc" style="width:95px">기능</th>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="td-option">
+                        <span class="mt-2">                         
+                          <span class="material-icons-outlined  text-secondary"> attach_file </span>
+                            행사외주인건비사용금액.pdf
+                          </span>
+                      </td>
+                      <td class="tr">
+                      <span class="material-symbols-outlined ms-1 td-option" data-bs-toggle="modal">file_download</span>
+                      <span class="material-symbols-outlined ms-1 td-option" data-bs-toggle="modal" data-bs-target="#modal-approval-budget-delete">delete_outline</span>
+                    </td>
+                    </tr>
+                    <tr>
+                    <td class="td-option">
+                        <span class="mt-2">                         
+                        <span class="material-icons-outlined  text-secondary"> attach_file</span>
+                            행사외주인건비사용금액.pdf
+                          </span>
+                    </td>
+                    <td class="tr">
+                      <span class="material-symbols-outlined ms-1 td-option" data-bs-toggle="modal">file_download</span>
+                      <span class="material-symbols-outlined ms-1 td-option" data-bs-toggle="modal" data-bs-target="#modal-approval-budget-delete">delete_outline</span>
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+                
+                <!--관련문서-->
+                <div class="d-sm-flex justify-content-between align-items-center gx-5">
+                  <h6 class="txt-approval-subtitle">관련문서</h6>
+                  <div class="d-flex flex-wrap mb-2"> 
+                    <button class="btn btn-sm btn-outline-primary ms-2" type="button" data-bs-toggle="modal" data-bs-target="#modal-approval-document">
+                      <span class="material-symbols-outlined">add_circle</span>  추가
+                    </button> 
+                  </div>
+                </div>
+                <table class="table table-light">
+                  <thead>
+                    <th>파일명</th>
+                    <th class="tc" style="width:95px">기능</th>
+                  </thead>
+                  <tbody> 
+                    <tr>
+                      <td class="td-option">
+                          <span class="mt-2">                         
+                            <span class="material-symbols-outlined">description</span>
+                            지출결의서_신규 거래처 등록 신청서  등록 신청서  등록 신청서
+                          </span>
+                      </td>
+                      <td class="tr">
+                        <span class="material-symbols-outlined ms-1 td-option" data-bs-toggle="modal" data-bs-target="#modal-approval--">find_in_page</span>
+                        <span class="material-symbols-outlined ms-1 td-option" data-bs-toggle="modal" data-bs-target="#modal-approval-budget-delete">delete_outline</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="td-option">
+                          <span class="mt-2">                         
+                            <span class="material-symbols-outlined"> description  </span>
+                            지출결의서_신규 거래처 
+                          </span>
+                      </td>
+                      <td class="tr">
+                        <span class="material-symbols-outlined ms-1 td-option" data-bs-toggle="modal" data-bs-target="#modal-approval--">find_in_page</span>
+                        <span class="material-symbols-outlined ms-1 td-option" data-bs-toggle="modal" data-bs-target="#modal-approval-budget-delete">delete_outline</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<!-- End #main -->
+
+<!--예산전용신청 모달-->
+<div class="modal fade" id="modal-approval-budget-add" aria-labelledby="modal-toggle" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">예산전용신청</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="col-12 row"> 
+          <!--주는계정-->
+          <div class="col-6 bd-right-dashed gx-4">
+            <h6 class="bold mb-3">주는 대상(From)</h6>
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">예산년월</label> 
+                <div class="col-auto">
+                  <input type="month" class="form-control form-control-sm">
+                </div> 
+            </div> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">부서</label>
+              <div class="col-sm-9">
+                <select class="form-select form-select-sm" id="">
+                  <option>경영지원팀</option>
+                  <option value="1"></option>
+                  <option value="2"></option>
+                </select>
+              </div>
+            </div> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">계정항목</label>
+              <div class="col-sm-9">
+                <select class="form-select form-select-sm" id="">
+                  <option>식대 &gt; 복리후생비[판관비]</option>
+                  <option value="1"></option>
+                  <option value="2"></option>
+                </select>
+              </div>
+            </div> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">예산잔액</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control form-control-sm tr" onkeyup="inputNumberFormat(this);" disabled="" value="300,000">                      
+              </div>
+            </div>
+          </div> 
+          <!--//주는계정-->
+          <!--받는계정-->
+          <div class="col-6 gx-4">
+            <h6 class="bold mb-3">받는 대상(To)</h6>
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">예산년월</label> 
+                <div class="col-auto">
+                  <input type="month" class="form-control form-control-sm">
+                </div> 
+            </div> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">부서</label>
+              <div class="col-sm-9">
+                <select class="form-select form-select-sm" id="">
+                  <option>경영지원팀</option>
+                  <option value="1"></option>
+                  <option value="2"></option>
+                </select>
+              </div>
+            </div> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">계정항목</label>
+              <div class="col-sm-9">
+                <select class="form-select form-select-sm" id="">
+                  <option>회의비 &gt; 복리후생비[판관비]</option>
+                  <option value="1"></option>
+                  <option value="2"></option>
+                </select>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">예산잔액</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control form-control-sm tr" onkeyup="inputNumberFormat(this);" disabled="" value="2,000">
+              </div>
+            </div>
+          </div>  
+          <!--//받는계정--> 
+        </div> 
+        <hr/>
+        <!--신청금액/파일첨부-->
+        <div class="col-12 row"> 
+          <div class="col-12 gx-4 mt-3"> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-2 col-form-label width100">신청금액 </label>
+              <div class="col-sm-10">
+                <input type="text" class="form-control form-control-sm tr is-invalid" onkeyup="inputNumberFormat(this);" value="350,000">
+                <div class="invalid-feedback">주는 계정의 예산잔액이 부족합니다.</div>
+              </div>
+            </div>
+          </div>  
+          <div class="col-12 gx-4 mt-3"> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-2 col-form-label width100">신청사유 </label>
+              <div class="col-sm-10">
+                <textarea class="form-control form-control-sm" rows="5" placeholder="신청사유를 입력해주세요"></textarea>
+              </div>
+            </div>
+          </div>  
+          <div class="col-12 gx-4 mt-3"> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-2 col-form-label width100">파일첨부 </label>
+              <div class="col-sm-9">
+                <button type="button" class="btn btn-sm btn-light">
+                  <span class="material-symbols-outlined">upload_file</span> 파일추가
+                </button>
+                <span class="badge badge-lg bg-light text-dark mt-2">
+                  <span class="material-icons-outlined text-secondary">attach_file</span>
+                  행사외주인건비사용금액.pdf
+                  <span class="badge badge-close text-secondary">
+                    <span class="material-symbols-outlined delete">close</span>
+                  </span>
+                </span>
+              </div>
+            </div>
+          </div> 
+        </div>
+        <!--//신청금액/파일첨부--> 
+      </div>
+      <div class="modal-footer tc">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">취소</button>
+        <button type="submit" class="btn btn-primary" data-bs-dismiss="modal" id="toastbtn">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- //예산전용신청-->
+
+
+
+<!--예산이월신청 모달-->
+<div class="modal fade" id="modal-approval-budget-add3" aria-labelledby="modal-toggle" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">예산이월신청</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="col-12 row"> 
+          <!--주는계정-->
+          <div class="col-6 bd-right-dashed gx-4">
+            <h6 class="bold mb-3">주는 대상(From)</h6>
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">년월</label> 
+                <div class="col-auto">
+                  <input type="month" class="form-control form-control-sm">
+                </div> 
+            </div> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">부서</label>
+              <div class="col-sm-9">
+                <select class="form-select form-select-sm" id="" disabled>
+                  <option>경영지원팀</option> 
+                </select>
+              </div>
+            </div> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">계정항목</label>
+              <div class="col-sm-9">
+                <select class="form-select form-select-sm" id="">
+                  <option>식대 &gt; 복리후생비[판관비]</option>
+                  <option value="1"></option>
+                  <option value="2"></option>
+                </select>
+              </div>
+            </div> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">예산잔액</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control form-control-sm tr" onkeyup="inputNumberFormat(this);" disabled="" value="300,000">                      
+              </div>
+            </div>
+          </div> 
+          <!--//주는계정-->
+          <!--받는계정-->
+          <div class="col-6 gx-4">
+            <h6 class="bold mb-3">받는 대상(To)</h6>
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">년월</label> 
+                <div class="col-auto">
+                  <input type="month" class="form-control form-control-sm">
+                </div> 
+            </div> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">부서</label>
+              <div class="col-sm-9">
+                <select class="form-select form-select-sm" id="" disabled>
+                  <option>경영지원팀</option> 
+                </select>
+              </div>
+            </div> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">계정항목</label>
+              <div class="col-sm-9">
+                <select class="form-select form-select-sm" id="">
+                  <option>식대 &gt; 복리후생비[판관비]</option>
+                  <option value="1"></option>
+                  <option value="2"></option>
+                </select>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">예산잔액</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control form-control-sm tr" onkeyup="inputNumberFormat(this);" disabled="" value="2,000">
+              </div>
+            </div>
+          </div>  
+          <!--//받는계정--> 
+        </div> 
+        <hr/>
+        <!--신청금액/파일첨부-->
+        <div class="col-12 row"> 
+          <div class="col-12 gx-4 mt-3"> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-2 col-form-label width100">신청금액 </label>
+              <div class="col-sm-10">
+                <input type="text" class="form-control form-control-sm tr is-invalid" onkeyup="inputNumberFormat(this);" value="350,000">
+                <div class="invalid-feedback">주는 계정의 예산잔액이 부족합니다.</div>
+              </div>
+            </div>
+          </div>  
+          <div class="col-12 gx-4 mt-3"> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-2 col-form-label width100">신청사유 </label>
+              <div class="col-sm-10">
+                <textarea class="form-control form-control-sm" rows="5" placeholder="신청사유를 입력해주세요"></textarea>
+              </div>
+            </div>
+          </div>  
+          <div class="col-12 gx-4 mt-3"> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-2 col-form-label width100">파일첨부 </label>
+              <div class="col-sm-9">
+                <button type="button" class="btn btn-sm btn-light">
+                  <span class="material-symbols-outlined">upload_file</span> 파일추가
+                </button>
+                <span class="badge badge-lg bg-light text-dark mt-2">
+                  <span class="material-icons-outlined  text-secondary"> attach_file</span>
+                  행사외주인건비사용금액.pdf
+                  <span class="badge badge-close text-secondary">
+                    <span class="material-symbols-outlined delete">close</span>
+                  </span>
+                </span>
+              </div>
+            </div>
+          </div> 
+        </div>
+        <!--//신청금액/파일첨부--> 
+      </div>
+      <div class="modal-footer tc">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">취소</button>
+        <button type="submit" class="btn btn-primary" data-bs-dismiss="modal" id="toastbtn">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- //예산이월신청-->
+
+
+<!--예산증액신청 모달-->
+<div class="modal fade" id="modal-approval-budget-add2" aria-labelledby="modal-toggle" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">예산증액신청</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="col-12 row">  
+          <!--받는계정-->
+          <div class="col-6 gx-4"> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">년월</label> 
+                <div class="col-auto">
+                  <input type="month" class="form-control form-control-sm">
+                </div> 
+            </div> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">부서</label>
+              <div class="col-sm-9">
+                <select class="form-select form-select-sm" id="">
+                  <option>경영지원팀</option>
+                  <option value="1"></option>
+                  <option value="2"></option>
+                </select>
+              </div>
+            </div> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">계정항목</label>
+              <div class="col-sm-9">
+                <select class="form-select form-select-sm" id="">
+                  <option>식대 &gt; 복리후생비[판관비]</option>
+                  <option value="1"></option>
+                  <option value="2"></option>
+                </select>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-3 col-form-label">예산잔액</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control form-control-sm tr" onkeyup="inputNumberFormat(this);" disabled="" value="2,000">
+              </div>
+            </div>
+          </div>  
+          <!--//받는계정--> 
+        </div> 
+        <hr/>
+        <!--신청금액/파일첨부-->
+        <div class="col-12 row"> 
+          <div class="col-12 gx-4 mt-3"> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-2 col-form-label width100">신청금액 </label>
+              <div class="col-sm-10">
+                <input type="text" class="form-control form-control-sm tr is-invalid" onkeyup="inputNumberFormat(this);" value="350,000">
+                <div class="invalid-feedback">주는 계정의 예산잔액이 부족합니다.</div>
+              </div>
+            </div>
+          </div>  
+          <div class="col-12 gx-4 mt-3"> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-2 col-form-label width100">신청사유 </label>
+              <div class="col-sm-10">
+                <textarea class="form-control form-control-sm" rows="5" placeholder="신청사유를 입력해주세요"></textarea>
+              </div>
+            </div>
+          </div>  
+          <div class="col-12 gx-4 mt-3"> 
+            <div class="row mb-3">
+              <label for="inputText" class="col-sm-2 col-form-label width100">파일첨부 </label>
+              <div class="col-sm-9">
+                <button type="button" class="btn btn-sm btn-light">
+                  <span class="material-symbols-outlined">upload_file</span> 파일추가
+                </button>
+                <span class="badge badge-lg bg-light text-dark mt-2">
+                  <span class="material-icons-outlined text-secondary">attach_file</span>
+                  행사외주인건비사용금액.pdf
+                  <span class="badge badge-close text-secondary">
+                    <span class="material-symbols-outlined delete">close</span>
+                  </span>
+                </span>
+              </div>
+            </div>
+          </div> 
+        </div>
+        <!--//신청금액/파일첨부--> 
+      </div>
+      <div class="modal-footer tc">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">취소</button>
+        <button type="submit" class="btn btn-primary" data-bs-dismiss="modal" id="toastbtn">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- //예산증액신청--> 
+
+<!--취소 모달-->
+<div class="modal fade" id="modal-approval-budget-cancel" tabindex="-1">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">취소</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="modal-icon">
+            <span class="material-icons-outlined fs-modal-icon text-danger"> cancel </span>
+            <h6 class="bold">입력중인 내용은 삭제됩니다. 계속하시겠습니까?<h6> 
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">닫기</button>
+        <button type="button" class="btn btn-danger">확인</button>
+      </div>
+    </div>
+  </div>
+</div> 
+<!--//취소 모달-->
+
+<!--임시저장 모달-->
+<div class="modal fade" id="modal-approval-budget-save" tabindex="-1">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">임시저장</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="modal-icon">
+            <span class="material-icons-outlined fs-modal-icon text-success"> task_alt </span>
+            <h6 class="bold">임시저장함에 저장되었습니다.</h6>             
+          </div>
+        </div> 
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary">저장함 이동</button>
+        <button type="button" class="btn btn-primary"  data-bs-dismiss="modal">확인</button>
+      </div>
+    </div>
+  </div>
+</div> 
+<!--//임시저장 모달-->
+
+<!--결재상신 모달-->
+<div class="modal fade" id="modal-approval-budget-send" tabindex="-1">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">결재상신</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="modal-icon">
+            <span class="material-icons-outlined fs-modal-icon text-warning"> help_outline </span>
+            <h6 class="bold">결재를 상신하겠습니까?</h6>  
+          </div>
+        </div>
+        <div class="row"> 
+          <div class="mb-3 col-12">
+              <label for="inputText" class="col-sm-2 col-form-label width100">상신의견 </label>
+              <textarea class="form-control form-control-sm" rows="3" placeholder="의견을 입력해주세요"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">취소</button>
+        <button type="button" class="btn btn-primary">상신</button>
+      </div>
+    </div>
+  </div>
+</div> 
+<!--//결재상신 모달-->
+
+
+<!--결재선추가 모달-->
+<div class="modal fade" id="modal-approval-line" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">결재선 추가</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body"> 
+        <div class="row">
+          <div class="col-4">
+            <div class="d-sm-flex justify-content-between align-items-center">
+              <h6 class="bold">조직도</h6>
+            </div>
+            <!--트리시작-->
+            <div class="div-contents-border" style="height:500px">
+              <div id="treeview2" class="treeview">
+                <ul class="list-group">
+                  <li class="list-group-item">
+                    <input type="text" class="form-control form-control-sm" value="" placeholder="검색">
+                  </li>
+                </ul>
+                <ul class="list-group">
+                  <li class="list-group-item node-treeview2">
+                    <span class="indent"></span>
+                    <span class="material-icons">arrow_drop_down </span>
+                    <span class="material-icons text-warning"> folder </span> 일진전기
+                  </li>
+                  <li class="list-group-item node-treeview2 node-selected">
+                    <span class="indent"></span>
+                    <span class="indent"></span>
+                    <span class="material-icons">arrow_drop_down </span>
+                    <span class="material-icons text-warning"> folder </span> 전략기획팀
+                  </li>
+                  <li class="list-group-item node-treeview2 node-selected active">
+                    <span class="indent"></span>
+                    <span class="indent"></span>
+                    <span class="indent"></span>
+                    <span class="indent"></span>
+                    <span class="material-symbols-outlined">person</span>김만수 이사
+                  </li>
+                  <li class="list-group-item node-treeview2 node-selected">
+                    <span class="indent"></span>
+                    <span class="indent"></span>
+                    <span class="indent"></span>
+                    <span class="indent"></span> 
+                    <span class="material-symbols-outlined">person</span>나하우 부장
+                  </li>
+                  <li class="list-group-item node-treeview2 node-selected">
+                    <span class="indent"></span>
+                    <span class="indent"></span>
+                    <span class="material-icons">arrow_right</span>
+                    <span class="material-icons text-warning"> folder </span> 재무회계팀
+                  </li>
+                  <li class="list-group-item node-treeview2 node-selected">
+                    <span class="indent"></span>
+                    <span class="indent"></span>
+                    <span class="material-icons">arrow_right</span>
+                    <span class="material-icons text-warning"> folder </span> 영업팀
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <!--//트리-->
+          </div>
+          <!--버튼영역-->
+          <div class="col-md-2 vam">
+            <div class="row gy-3 gx-1">
+              <button type="button" class="btn btn-sm btn-outline-primary" style="width: -webkit-fill-available;"> 결재
+                <span class="material-icons-outlined"> navigate_next</span>
+              </button>
+
+              <button type="button" class="btn btn-sm btn-outline-primary" style="width: -webkit-fill-available;"> 합의
+                <span class="material-icons-outlined"> navigate_next</span>
+              </button>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+                <label class="form-check-label" for="flexRadioDefault1">
+                  순차합의
+                </label>
+              </div>
+              <div class="form-check mt-1">
+                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" checked>
+                <label class="form-check-label" for="flexRadioDefault2">
+                  병렬합의
+                </label>
+              </div> 
+              <button type="button" class="btn btn-sm btn-outline-primary" style="width: -webkit-fill-available;"> 수신
+                <span class="material-icons-outlined"> navigate_next</span>
+              </button>
+
+              <button type="button" class="btn btn-sm btn-outline-primary" style="width: -webkit-fill-available;"> 참조
+                <span class="material-icons-outlined"> navigate_next</span>
+              </button>
+            </div>
+          </div>
+          <!--//버튼영역--> 
+          <!--결재선-->
+          <div class="col-md-6">
+            <div class="d-sm-flex justify-content-between align-items-center">
+              <h6 class="bold">결재선</h6> 
+            </div>
+            <div class="div-contents-border" style="height:350px">
+              <table class="table table-data"> 
+                <tbody>
+                  <tr class="td-option"> 
+                    <td></td>
+                    <td>
+                      <span class="badge bg-primary-light">기안</span></td>
+                    <td class="tl">홍길동 (전략기획팀) </td>
+                    <td>
+                    </td>
+                  </tr>
+                  <tr class="td-option">
+                    <td class="width50">
+                      <span class="material-symbols-outlined"> drag_indicator </span>
+                    </td>
+                    <td class="width50"><span class="badge bg-info-light">결재</span></td>
+                    <td class="tl">김가장 (전략기획팀) </td>
+                    <td class="width50">
+                      <span class="material-symbols-outlined">close</span>
+                    </td>
+                  </tr> 
+                  <tr class="td-option">
+                    <td>
+                      <span class="material-symbols-outlined"> drag_indicator </span>
+                    </td>
+                    <td><span class="badge bg-success-light">합의</span></td>
+                    <td  class="tl">고군필 (영업팀) </td>
+                    <td>
+                      <span class="material-symbols-outlined">close</span>
+                     </td>
+                  </tr>
+                  <tr class="td-option">
+                    <td>
+                      <span class="material-symbols-outlined"> drag_indicator </span>
+                    </td>
+                    <td><span class="badge bg-success-light">합의</span></td>
+                    <td class="tl">김재무 (회계팀) </td>
+                    <td>
+                      <span class="material-symbols-outlined">close</span>
+                     </td>
+                  </tr>
+                  <tr class="td-option">
+                    <td>
+                      <span class="material-symbols-outlined"> drag_indicator </span>
+                    </td>
+                    <td><span class="badge bg-info-light">결재</span></td>
+                    <td class="tl">김사우 (전략기획팀) </td>
+                    <td>
+                      <span class="material-symbols-outlined">close</span>
+                     </td>
+                  </tr>
+                  <tr class="td-option">
+                    <td>
+                      <span class="material-symbols-outlined"> drag_indicator </span>
+                    </td>
+                    <td><span class="badge bg-warning-light">수신</span></td>
+                    <td class="tl">김동현 (경영지원팀) </td>
+                    <td>
+                      <span class="material-symbols-outlined">close</span>
+                     </td>
+                  </tr>
+                </tbody>
+              </table> 
+            </div> 
+            <div class="d-sm-flex justify-content-between align-items-cente mt-3">
+              <h6 class="bold">참조</h6>
+            </div>
+            <div class="div-popup-border-padding-autoheight" style="height:100px">
+              <span class="badge badge-lg bg-light text-dark">홍길동 과장 (IT사업팀)
+                <span class="badge badge-close text-secondary"><span
+                    class="material-symbols-outlined delete">close</span></span>
+              </span>
+              <span class="badge badge-lg bg-light text-dark">김만수 이사 (경영지원팀)
+                <span class="badge badge-close text-secondary"><span
+                    class="material-symbols-outlined delete">close</span></span>
+              </span>
+            </div>
+          </div>
+          <!--//결재선-->
+        </div>
+      </div>
+      <div class="modal-footer tc">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">취소</button>
+        <button type="button" class="btn btn-primary">확인</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- //결재선추가 조직도팝업-->
+
+
+<!--관련문서첨부 모달-->
+<div class="modal fade" id="modal-approval-document" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">관련문서 목록</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+                
+      <!--필터-->
+      <div class="row row-cols-sm-auto align-items-center gy-3">
+        <div class="vam">
+          <div class="col-auto me-1">기안일</div>
+            <div class="col-auto">
+              <input type="date" class="form-control form-control-sm">
+            </div> 
+            <div class="col-auto mx-2">
+              ~
+            </div> 
+            <div class="col-auto">
+              <input type="date" class="form-control form-control-sm">
+            </div> 
+        </div>
+        <div class="vam">
+          <div class="col-auto me-1">
+            제목
+          </div>
+          <div class="col-auto">
+            <input type="text" class="form-control form-control-sm " id="" value="" >
+          </div>
+        </div>
+        <div class="vam">
+          <div class="col-auto me-1">
+            문서번호
+          </div>
+          <div class="col-auto">
+            <input type="text" class="form-control form-control-sm" value="">
+          </div>
+        </div>
+        <div class="vam">
+          <div class="col-auto me-1">
+            문서위치
+          </div>
+          <div class="col-auto">
+            <select class="form-select form-select-sm">
+              <option selected="">완료함</option>
+              <option value="1">수신함</option>
+              <option value="2">참조함</option>
+              <option value="3">진행중</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-sm btn-secondary" type="button">
+            <span class="material-icons">search</span> 조회
+          </button>
+        </div> 
+      </div>
+      <hr/>
+      <!--//필터-->
+
+        <div class="div-contents-border">
+          <table class="table table-data">
+            <thead class="table-light">
+              <tr>
+                <th scope="col" style="width:50px"><input type="checkbox" class="form-check-input" /></th>
+                <th scope="col" style="width:15%" >문서번호</th>
+                <th scope="col">문서양식</th>
+                <th scope="col">제목</th>
+                <th scope="col">기안자</th>
+                <th scope="col">기안일</th> 
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input type="checkbox" class="form-check-input" /></td>
+                <td><a href="">AP2024-202020</a></td>  
+                <td>지출결의서</td>  
+                <td class="tl">2024년 3월 지출결의서-홍길동대리</td>
+                <td>홍길동</td>  
+                <td>2024-06-13</td>  
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="form-check-input" /></td>
+                <td><a href="">AP2024-202021</a></td>  
+                <td>지출결의서</td>  
+                <td class="tl">2024년 2월 지출결의서-홍길동대리</td>
+                <td>홍길동</td>  
+                <td>2024-06-13</td>  
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary"  data-bs-toggle="modal"  data-bs-target="#">닫기</button>
+        <button type="button" class="btn btn-primary"  data-bs-toggle="modal"  data-bs-target="#">추가</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!--//관련문서첨부 모달-->
+
+
+
+
+</body>
+
+
+<!--html include js-->
+<script src="../../../assets/js/common.js"></script>
+<!--html include js-->
+
+<!--부트스트랩 JS Files -->
+<script src="../../../assets/js//bootstrap.bundle.min.js"></script>
+<!--  Main JS File -->
+<script src="../../../assets/js/main.js"></script>
+
+</html>

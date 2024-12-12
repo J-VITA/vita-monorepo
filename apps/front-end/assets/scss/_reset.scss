@@ -1,0 +1,87 @@
+@font-face {
+	font-family: "Pretendard-Regular";
+	src: url("@/assets/fonts/Pretendard-Regular.woff") format("woff");
+	font-weight: 400;
+	font-style: normal;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+html,
+body {
+	font-size: 10px;
+	overflow-x: hidden;
+}
+
+body {
+	font-size: 1.3rem;
+}
+
+.slide-left-enter-active,
+.slide-left-leave-active,
+.slide-right-enter-active,
+.slide-right-leave-active {
+	transition: all 0.2s;
+	position: absolute;
+}
+.slide-left-enter,
+.slide-right-leave-active {
+	transform: translateX(10%);
+}
+
+.slide-left-enter-from {
+	opacity: 0;
+	transform: translate(10px, 0);
+}
+.slide-left-leave-to {
+	opacity: 0;
+	transform: translate(-10%);
+}
+.slide-right-enter-from {
+	opacity: 0;
+	transform: translate(-10%, 0);
+}
+.slide-right-leave-to {
+	opacity: 0;
+	transform: translate(10%, 0);
+}
+.layout-enter-active,
+.layout-leave-active {
+	transition: all 0.4s;
+}
+.layout-enter-from,
+.layout-leave-to {
+	filter: grayscale(1);
+}
+.slide-fade-enter-active {
+	transition: all 0.3s ease;
+}
+.slide-fade-leave-active {
+	transition: all 0.8s cubic-bezier(1, 0.5, 0.8, 1);
+}
+.slide-fade-enter,
+.slide-fade-leave-to {
+	transform: translateX(10px);
+	opacity: 0;
+}
+
+.ag-center-header .ag-header-cell-label {
+	justify-content: center;
+}
+
+.ag-center-cell {
+	text-align: center;
+}
+
+.ag-paging-page-size {
+	display: none !important;
+}
+.page-layout {
+	[class^="ag-theme"] {
+		--ag-font-size: 1.3rem;
+		--ag-font-family: "Pretendard-Regular", -apple-system, sans-serif;
+	}
+}

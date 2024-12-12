@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ko" data-bs-theme="">
+
+<!-- [include] head -->
+<head data-include-file="../include/head.html" class="head-wrap includeJs"><meta charset="UTF-8"></head>
+<!-- //[include] head -->
+
+<body>
+  <!-- [include] top -->
+  <header data-include-file="../include/top.html" id="header" class="includeJs header fixed-top d-flex align-items-center"></header>
+  <!-- [include] top -->
+
+  <!-- //[include] sidebar -->
+  <div data-include-file="../include/sidebar.html" class="sidebar-wrap includeJs"></div>
+  <!-- //[include] sidebar -->
+
+  <main id="main" class="main">
+    <div class="pagetitle">
+      <div class="row">
+        <div class="col-md-10">
+          <h1>대시보드</h1>
+          <nav class="col-md-10">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="index.html"><i class="bi bi-house-door"></i></a></li>
+              <li class="breadcrumb-item">전표처리</li>
+              <li class="breadcrumb-item active">전표입력</li>
+            </ol>
+          </nav>
+        </div>
+        <div class="col-6 col-md-2">
+          <div class="col-auto fr">
+            <button type="button" class="btn btn-sm btn-primary" disabled>
+              <i class="bi bi-credit-card"></i> 결재상신
+            </button>
+          </div>
+        </div>
+      </div>
+    </div> 
+    <section class="section dashboard">
+      <div class="row"> 
+        <!-- Left side columns -->
+        <div class="col-lg-8">
+          <div class="row"> 
+            <!-- Sales Card -->
+            <div class="col-xxl-4 col-md-6">
+              <div class="card info-card sales-card"> 
+                <div class="filter">
+                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li class="dropdown-header text-start">
+                      <h6>Filter</h6>
+                    </li> 
+                    <li><a class="dropdown-item" href="#">Today</a></li>
+                    <li><a class="dropdown-item" href="#">This Month</a></li>
+                    <li><a class="dropdown-item" href="#">This Year</a></li>
+                  </ul>
+                </div> 
+                <div class="card-body">
+                  <h5 class="card-title">지출내역 <span>| 최근1달</span></h5> 
+                  <div class="d-flex align-items-center">
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                      <i class="bi bi-cart"></i>
+                    </div>
+                    <div class="ps-3">
+                      <h6>145</h6>
+                      <span class="text-success small pt-1 fw-bold">12%</span>
+                       <span class="text-muted small pt-2 ps-1">increase</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div><!-- End Sales Card -->
+            <!-- Revenue Card -->
+            <div class="col-xxl-4 col-md-6">
+              <div class="card info-card revenue-card">
+
+                <div class="filter">
+                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li class="dropdown-header text-start">
+                      <h6>Filter</h6>
+                    </li>
+                    <li><a class="dropdown-item" href="#">Today</a></li>
+                    <li><a class="dropdown-item" href="#">This Month</a></li>
+                    <li><a class="dropdown-item" href="#">This Year</a></li>
+                  </ul>
+                </div>
+                <div class="card-body">
+                  <h5 class="card-title">지출내역 <span>| 최근1달</span></h5>
+                  <div class="d-flex align-items-center">
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                      <i class="bi bi-currency-dollar"></i>
+                    </div>
+                    <div class="ps-3">
+                      <h6>$3,264</h6>
+                      <span class="text-success small pt-1 fw-bold">8%</span> 
+                      <span class="text-muted small pt-2 ps-1">increase</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div><!-- End Revenue Card -->
+
+            <!-- Customers Card -->
+            <div class="col-xxl-4 col-xl-12">
+              <div class="card info-card customers-card">
+                <div class="filter">
+                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li class="dropdown-header text-start">
+                      <h6>Filter</h6>
+                    </li>
+                    <li><a class="dropdown-item" href="#">Today</a></li>
+                    <li><a class="dropdown-item" href="#">This Month</a></li>
+                    <li><a class="dropdown-item" href="#">This Year</a></li>
+                  </ul>
+                </div>
+                <div class="card-body">
+                  <h5 class="card-title">지출내역 <span>| 최근1달</span></h5>
+                  <div class="d-flex align-items-center">
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                      <i class="bi bi-people"></i>
+                    </div>
+                    <div class="ps-3">
+                      <h6>1244</h6>
+                      <span class="text-danger small pt-1 fw-bold">12%</span> <span
+                        class="text-muted small pt-2 ps-1">decrease</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div><!-- End Customers Card -->
+
+            <!-- Reports -->
+            <div class="col-12 mt-3">
+              <div class="card">
+                <div class="filter">
+                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li class="dropdown-header text-start">
+                      <h6>Filter</h6>
+                    </li>
+                    <li><a class="dropdown-item" href="#">Today</a></li>
+                    <li><a class="dropdown-item" href="#">This Month</a></li>
+                    <li><a class="dropdown-item" href="#">This Year</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div><!-- End Reports -->
+
+            <!-- Top  -->
+            <div class="col-12">
+              <div class="card top-selling overflow-auto">
+                <div class="filter">
+                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li class="dropdown-header text-start">
+                      <h6>Filter</h6>
+                    </li>
+                    <li><a class="dropdown-item" href="#">Today</a></li>
+                    <li><a class="dropdown-item" href="#">This Month</a></li>
+                    <li><a class="dropdown-item" href="#">This Year</a></li>
+                  </ul>
+                </div>
+                <div class="card-body pb-0">
+                  <h5 class="card-title">Top <span>| Today</span></h5>
+                  <table class="table table-borderless">
+                    <thead>
+                      <tr>
+                        <th scope="col">Preview</th>
+                        <th scope="col">Product</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Sold</th>
+                        <th scope="col">Revenue</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th scope="row"><a href="#"><img src="assets/img/product-1.jpg" alt=""></a></th>
+                        <td><a href="#" class="text-primary fw-bold">Ut inventore ipsa voluptas nulla</a></td>
+                        <td>$64</td>
+                        <td class="fw-bold">124</td>
+                        <td>$5,828</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><a href="#"><img src="assets/img/product-2.jpg" alt=""></a></th>
+                        <td><a href="#" class="text-primary fw-bold">Exercitationem similique doloremque</a></td>
+                        <td>$46</td>
+                        <td class="fw-bold">98</td>
+                        <td>$4,508</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><a href="#"><img src="assets/img/product-3.jpg" alt=""></a></th>
+                        <td><a href="#" class="text-primary fw-bold">Doloribus nisi exercitationem</a></td>
+                        <td>$59</td>
+                        <td class="fw-bold">74</td>
+                        <td>$4,366</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><a href="#"><img src="assets/img/product-4.jpg" alt=""></a></th>
+                        <td><a href="#" class="text-primary fw-bold">Officiis quaerat sint rerum error</a></td>
+                        <td>$32</td>
+                        <td class="fw-bold">63</td>
+                        <td>$2,016</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><a href="#"><img src="assets/img/product-5.jpg" alt=""></a></th>
+                        <td><a href="#" class="text-primary fw-bold">Sit unde debitis delectus repellendus</a></td>
+                        <td>$79</td>
+                        <td class="fw-bold">41</td>
+                        <td>$3,239</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div><!-- End Top  -->
+
+            <!-- Top  -->
+            <div class="col-12 mt-3">
+              <div class="card top-selling overflow-auto">
+                <div class="filter">
+                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li class="dropdown-header text-start">
+                      <h6>Filter</h6>
+                    </li>
+                    <li><a class="dropdown-item" href="#">Today</a></li>
+                    <li><a class="dropdown-item" href="#">This Month</a></li>
+                    <li><a class="dropdown-item" href="#">This Year</a></li>
+                  </ul>
+                </div>
+                <div class="card-body pb-0">
+                  <h5 class="card-title">Top <span>| Today</span></h5>
+                  <table class="table table-borderless">
+                    <thead>
+                      <tr>
+                        <th scope="col">Preview</th>
+                        <th scope="col">Product</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Sold</th>
+                        <th scope="col">Revenue</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th scope="row"><a href="#"><img src="assets/img/product-1.jpg" alt=""></a></th>
+                        <td><a href="#" class="text-primary fw-bold">Ut inventore ipsa voluptas nulla</a></td>
+                        <td>$64</td>
+                        <td class="fw-bold">124</td>
+                        <td>$5,828</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><a href="#"><img src="assets/img/product-2.jpg" alt=""></a></th>
+                        <td><a href="#" class="text-primary fw-bold">Exercitationem similique doloremque</a></td>
+                        <td>$46</td>
+                        <td class="fw-bold">98</td>
+                        <td>$4,508</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><a href="#"><img src="assets/img/product-3.jpg" alt=""></a></th>
+                        <td><a href="#" class="text-primary fw-bold">Doloribus nisi exercitationem</a></td>
+                        <td>$59</td>
+                        <td class="fw-bold">74</td>
+                        <td>$4,366</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><a href="#"><img src="assets/img/product-4.jpg" alt=""></a></th>
+                        <td><a href="#" class="text-primary fw-bold">Officiis quaerat sint rerum error</a></td>
+                        <td>$32</td>
+                        <td class="fw-bold">63</td>
+                        <td>$2,016</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><a href="#"><img src="assets/img/product-5.jpg" alt=""></a></th>
+                        <td><a href="#" class="text-primary fw-bold">Sit unde debitis delectus repellendus</a></td>
+                        <td>$79</td>
+                        <td class="fw-bold">41</td>
+                        <td>$3,239</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div><!-- End Top  -->
+          </div>
+        </div><!-- End Left side columns -->
+
+        <!-- Right side columns -->
+        <div class="col-lg-4">
+
+          
+          <!-- Recent Activity -->
+          <div class="card">
+            <div class="filter">
+              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <li class="dropdown-header text-start">
+                  <h6>Filter</h6>
+                </li>
+                <li><a class="dropdown-item" href="#">Today</a></li>
+                <li><a class="dropdown-item" href="#">This Month</a></li>
+                <li><a class="dropdown-item" href="#">This Year</a></li>
+              </ul>
+            </div>
+            <div class="card-body">
+              <h5 class="card-title">Recent Activity <span>| Today</span></h5>
+
+
+              <!-- Section: Timeline -->
+<section class="py-5">
+  <ul class="timeline-with-icons">
+    <li class="timeline-item mb-5">
+      <span class="timeline-icon">
+        <i class="fas fa-rocket text-primary fa-sm fa-fw"></i>
+      </span>
+
+      <h5 class="fw-bold">Our company starts its operations</h5>
+      <p class="text-muted mb-2 fw-bold">11 March 2020</p>
+      <p class="text-muted">
+        Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit
+        necessitatibus adipisci, ad alias, voluptate pariatur officia
+        repellendus repellat inventore fugit perferendis totam dolor
+        voluptas et corrupti distinctio maxime corporis optio?
+      </p>
+    </li>
+
+    <li class="timeline-item mb-5">
+
+      <span class="timeline-icon">
+        <i class="fas fa-hand-holding-usd text-primary fa-sm fa-fw"></i>
+      </span>
+      <h5 class="fw-bold">First customer</h5>
+      <p class="text-muted mb-2 fw-bold">19 March 2020</p>
+      <p class="text-muted">
+        Quisque ornare dui nibh, sagittis egestas nisi luctus nec. Sed
+        aliquet laoreet sapien, eget pulvinar lectus maximus vel.
+        Phasellus suscipit porta mattis.
+      </p>
+    </li>
+
+    <li class="timeline-item mb-5">
+
+      <span class="timeline-icon">
+        <i class="fas fa-users text-primary fa-sm fa-fw"></i>
+      </span>
+      <h5 class="fw-bold">Our team exceeds 10 people</h5>
+      <p class="text-muted mb-2 fw-bold">24 June 2020</p>
+      <p class="text-muted">
+        Orci varius natoque penatibus et magnis dis parturient montes,
+        nascetur ridiculus mus. Nulla ullamcorper arcu lacus, maximus
+        facilisis erat pellentesque nec. Duis et dui maximus dui aliquam
+        convallis. Quisque consectetur purus erat, et ullamcorper sapien
+        tincidunt vitae.
+      </p>
+    </li>
+
+    <li class="timeline-item mb-5">
+
+      <span class="timeline-icon">
+        <i class="fas fa-money-bill-wave text-primary fa-sm fa-fw"></i>
+      </span>
+      <h5 class="fw-bold">Earned the first million $!</h5>
+      <p class="text-muted mb-2 fw-bold">15 October 2020</p>
+      <p class="text-muted">
+        Nulla ac tellus convallis, pulvinar nulla ac, fermentum diam. Sed
+        et urna sit amet massa dapibus tristique non finibus ligula. Nam
+        pharetra libero nibh, id feugiat tortor rhoncus vitae. Ut suscipit
+        vulputate mattis.
+      </p>
+    </li>
+  </ul>
+</section>
+<!-- Section: Timeline -->
+<style>
+  .timeline-with-icons {
+  border-left: 1px solid hsl(0, 0%, 90%);
+  position: relative;
+  list-style: none;
+}
+
+.timeline-with-icons .timeline-item {
+  position: relative;
+}
+
+.timeline-with-icons .timeline-item:after {
+  position: absolute;
+  display: block;
+  top: 0;
+}
+
+.timeline-with-icons .timeline-icon {
+  position: absolute;
+  left: -48px;
+  background-color: hsl(217, 88.2%, 90%);
+  color: hsl(217, 88.8%, 35.1%);
+  border-radius: 50%;
+  height: 31px;
+  width: 31px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>
+
+
+
+
+              <div class="activity">
+                <div class="activity-item d-flex">
+                  <div class="activite-label">32 min</div>
+                  <i class="bi bi-circle-fill activity-badge text-success align-self-start"></i>
+                  <div class="activity-content">
+                    Quia quae rerum <a href="#" class="fw-bold text-dark">explicabo officiis</a> beatae
+                  </div>
+                </div><!-- End activity item-->
+                <div class="activity-item d-flex">
+                  <div class="activite-label">56 min</div>
+                  <i class="bi bi-circle-fill activity-badge text-danger align-self-start"></i>
+                  <div class="activity-content">
+                    Voluptatem blanditiis blanditiis eveniet
+                  </div>
+                </div><!-- End activity item-->
+                <div class="activity-item d-flex">
+                  <div class="activite-label">2 hrs</div>
+                  <i class="bi bi-circle-fill activity-badge text-primary align-self-start"></i>
+                  <div class="activity-content">
+                    Voluptates corrupti molestias voluptatem
+                  </div>
+                </div><!-- End activity item-->
+                <div class="activity-item d-flex">
+                  <div class="activite-label">1 day</div>
+                  <i class="bi bi-circle-fill activity-badge text-info align-self-start"></i>
+                  <div class="activity-content">
+                    Tempore autem saepe <a href="#" class="fw-bold text-dark">occaecati voluptatem</a> tempore
+                  </div>
+                </div><!-- End activity item-->
+                <div class="activity-item d-flex">
+                  <div class="activite-label">2 days</div>
+                  <i class="bi bi-circle-fill activity-badge text-warning align-self-start"></i>
+                  <div class="activity-content">
+                    Est sit eum reiciendis exercitationem
+                  </div>
+                </div><!-- End activity item-->
+                <div class="activity-item d-flex">
+                  <div class="activite-label">4 weeks</div>
+                  <i class="bi bi-circle-fill activity-badge text-muted align-self-start"></i>
+                  <div class="activity-content">
+                    Dicta dolorem harum nulla eius. Ut quidem quidem sit quas
+                  </div>
+                </div><!-- End activity item-->
+              </div>
+            </div>
+          </div><!-- End Recent Activity -->
+
+          <!-- Budget Report -->
+          <div class="card">
+            <div class="filter">
+              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <li class="dropdown-header text-start">
+                  <h6>Filter</h6>
+                </li>
+                <li><a class="dropdown-item" href="#">Today</a></li>
+                <li><a class="dropdown-item" href="#">This Month</a></li>
+                <li><a class="dropdown-item" href="#">This Year</a></li>
+              </ul>
+            </div>
+          </div><!-- End Budget Report -->
+          <!-- Website Traffic -->
+          <div class="card mt-3">
+            <div class="filter">
+              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <li class="dropdown-header text-start">
+                  <h6>Filter</h6>
+                </li>
+                <li><a class="dropdown-item" href="#">Today</a></li>
+                <li><a class="dropdown-item" href="#">This Month</a></li>
+                <li><a class="dropdown-item" href="#">This Year</a></li>
+              </ul>
+            </div>
+            <div class="card-body pb-0">
+              <h5 class="card-title">Website Traffic <span>| Today</span></h5>
+              <div id="trafficChart"
+                style="min-height: 400px; user-select: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); position: relative;"
+                class="echart" _echarts_instance_="ec_1716966541132">
+                <div style="position: relative; width: 458px; height: 400px; padding: 0px; margin: 0px; border-width: 0px; cursor: default;">
+                  <canvas data-zr-dom-id="zr_0" width="687" height="600"
+                    style="position: absolute; left: 0px; top: 0px; width: 458px; height: 400px; user-select: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); padding: 0px; margin: 0px; border-width: 0px;"></canvas>
+                </div>
+                <div class=""></div>
+              </div>
+            </div>
+          </div><!-- End Website Traffic -->
+          <!-- News & Updates Traffic -->
+          <div class="card mt-3">
+            <div class="filter">
+              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <li class="dropdown-header text-start">
+                  <h6>Filter</h6>
+                </li>
+                <li><a class="dropdown-item" href="#">Today</a></li>
+                <li><a class="dropdown-item" href="#">This Month</a></li>
+                <li><a class="dropdown-item" href="#">This Year</a></li>
+              </ul>
+            </div>
+            <div class="card-body pb-0">
+              <h5 class="card-title">News &amp; Updates <span>| Today</span></h5>
+              <div class="news">
+                <div class="post-item clearfix">
+                  <img src="assets/img/news-1.jpg" alt="">
+                  <h4><a href="#">안녕하세요</a></h4>
+                  <p>안녕하세요안녕하세요안녕하세요안녕하세요안녕하세요안녕하세요안녕하세요...</p>
+                </div>
+                <div class="post-item clearfix">
+                  <img src="assets/img/news-2.jpg" alt="">
+                  <h4><a href="#">안녕하세요</a></h4>
+                  <p>안녕하세요안녕하세요안녕하세요안녕하세요안녕하세요안녕하세요안녕하세요...</p>
+                </div>
+                <div class="post-item clearfix">
+                  <img src="assets/img/news-3.jpg" alt="">
+                  <h4><a href="#">안녕하세요</a></h4>
+                  <p>안녕하세요안녕하세요안녕하세요안녕하세요안녕하세요안녕하세요안녕하세요...</p>
+                </div>
+                <div class="post-item clearfix">
+                  <img src="assets/img/news-4.jpg" alt="">
+                  <h4><a href="#">안녕하세요</a></h4>
+                  <p>안녕하세요안녕하세요안녕하세요안녕하세요안녕하세요안녕하세요안녕하세요...</p>
+                </div>
+                <div class="post-item clearfix">
+                  <img src="assets/img/news-5.jpg" alt="">
+                  <h4><a href="#">안녕하세요</a></h4>
+                  <p>안녕하세요안녕하세요안녕하세요안녕하세요안녕하세요안녕하세요안녕하세요...</p>
+                </div>
+
+              </div><!-- End sidebar recent posts-->
+
+            </div>
+          </div><!-- End News & Updates -->
+
+        </div><!-- End Right side columns -->
+
+      </div>
+    </section>
+  </main><!-- End #main -->
+
+
+
+
+
+  <!-- [include] footer -->
+  <footer id="footer" class="footer includeJs" data-include-file="../include/footer.html"></footer>
+  <!-- //[include] footer -->
+  </div>
+  <!--html include js-->
+  <script src="../../../assets/js/common.js"></script>
+  <!--html include js-->
+
+  <!--부트스트랩 JS Files -->
+  <script src="../../../assets/js//bootstrap.bundle.min.js"></script>
+  <!--  Main JS File -->
+  <script src="../../../assets/js/main.js"></script>
+
+
+
+</body>
+
+
+</html>

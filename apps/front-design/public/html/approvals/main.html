@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko" data-bs-theme="">
+
+<!-- [include] head -->
+
+<head data-include-file="../include/head.html" class="head-wrap includeJs"><meta charset="UTF-8"></head>
+<!-- //[include] head -->
+
+<body>
+  <!-- [include] top -->
+  <header data-include-file="../include/top.html" id="header" class="includeJs header fixed-top d-flex align-items-center"> </header>
+  <!-- [include] top -->
+  <!-- //[include] sidebar -->
+  <div data-include-file="../include/sidebar.html" class="sidebar-wrap includeJs"></div>
+  <!-- //[include] sidebar -->
+
+  <main id="main" class="main">
+    <div class="pagetitle">
+      <h1>전자결재 홈</h1>
+    </div>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html"><i class="bi bi-house-door"></i></a></li>
+        <li class="breadcrumb-item">전자결재</li>
+        <li class="breadcrumb-item active">전자결재 홈</li>
+      </ol>
+    </nav>
+    <section class="section">
+      <div class="row"> 
+        <!--결재작성카드-->
+        <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            <section class="section">
+              <!--필터-->
+              <div class="row row-cols-sm-auto align-items-center mt-2 mb-2">
+                <h6 class="bold">결재작성</h6>
+              </div>
+              <!--//필터-->
+              <!--결재작성버튼-->
+              <div class="row">
+                <div class="col-md-12">
+                  <ul class="ul-approval-select">
+                    <li>
+                      <button type="button" class="btn btn-light px-3 py-3"  onclick = "location.href = 'document-budget-write.html' ">
+                        <span class="material-symbols-outlined" style="font-size:40px"> receipt_long </span>
+                      </button>
+                      <p>지출결의서<br/>(통합)</p>
+                    </li>
+                    <li>
+                      <button type="button" class="btn btn-light px-3 py-3"  onclick = "location.href = 'document-budget-write.html' ">
+                        <span class="material-symbols-outlined" style="font-size:40px"> receipt_long </span>
+                      </button>
+                      <p>예산신청서</p>
+                    </li>
+                    <li>
+                      <button type="button" class="btn btn-light px-3 py-3"  onclick = "location.href = 'document-budget-write.html' ">
+                        <!-- <i class="material-icons-two-tone  blue" style="font-size:40px">receipt_long</i> -->
+                        <span class="material-symbols-outlined" style="font-size:40px"> receipt_long </span>
+                      </button>
+                      <p>출장신청서</p>
+                    </li> 
+                    <li>
+                      <button type="button" class="btn btn-light px-3 py-3"  onclick = "location.href = 'document-budget-write.html' ">
+                        <span class="material-symbols-outlined" style="font-size:40px"> receipt_long </span>
+                      </button>
+                      <p>출장정산보고서</p>
+                    </li>
+                    <li>
+                      <button type="button" class="btn btn-light px-3 py-3">
+                        <span class="material-symbols-outlined" style="font-size:40px"> receipt_long </span>
+                      </button>
+                      <p>경조금신청서</p>
+                    </li>
+                  </ul>
+                </div>
+
+              </div>
+              <!--//결재요약-->
+          </div>
+        </div>
+      </div>
+      <!--//결재작성카드-->
+    
+      <!--결재대시보드-->
+      <div class="col-md-12 mt-3">
+        <div class="card">
+          <div class="card-body">
+            <section class="section">
+              <!--필터-->
+              <div class="row row-cols-sm-auto align-items-center gy-3">
+                <div class="vam">
+                  <div class="col-auto me-1">기준 조회기간</div>
+                  <div class="col-auto">
+                    <input type="date" class="form-control form-control-sm" value="2024-05-01">
+                  </div>
+                  <div class="col-auto mx-1">~</div>
+                  <div class="col-auto">
+                    <input type="date" class="form-control form-control-sm" value="2024-06-30">
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <button class="btn btn-sm btn-secondary" type="button">
+                    <span class="material-icons">search</span> 조회
+                  </button>
+                </div>
+              </div>
+              <hr />
+              <!--//필터-->
+              <!--결재요약-->
+              <div class="row div-approval-dashboard mt-4">
+                <div class="col-md-3">
+                  <div class="card shadow-unset">
+                    <div class="card-header">
+                      <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-primary-light text-primary">
+                          <span class="material-symbols-outlined icon-approval-dashboard">edit_square </span>
+                        </div>
+                        <div class="ps-3">
+                          <h6 class="bold">결재</h6>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-body">
+                      <div class="d-sm-flex justify-content-between align-items-center mb-2 mt-3">
+                        <div>
+                          <h7>결재진행 <a href="" class="bold ms-1 fs16">3건</a></h7>
+                        </div>
+                        <div class="d-flex flex-wrap">
+                          <h7>결재하기 <a href="" class="bold ms-1 fs16">3건</a></h7>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card shadow-unset">
+                    <div class="card-header">
+                      <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-warning-light text-warning">
+                          <span class="material-symbols-outlined icon-approval-dashboard">forward_to_inbox </span>
+                        </div>
+                        <div class="ps-3">
+                          <h6 class="bold">수신/참조</h6>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-body">
+                      <div class="d-sm-flex justify-content-between align-items-center mb-2 mt-3">
+                        <div>
+                          <h7>수신 <a href="" class="bold ms-1 fs16">0건</a></h7>
+                        </div>
+                        <div class="d-flex flex-wrap">
+                          <h7>참조 <a href="" class="bold ms-1 fs16">1건</a></h7>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card shadow-unset">
+                    <div class="card-header">
+                      <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-success-light text-success">
+                          <span class="material-symbols-outlined icon-approval-dashboard">verified </span>
+                        </div>
+                        <div class="ps-3">
+                          <h6 class="bold">완료/저장</h6>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-body">
+                      <div class="d-sm-flex justify-content-between align-items-center mb-2 mt-3">
+                        <div>
+                          <h7>결재완료 <a href="" class="bold ms-1 fs16">6건</a></h7>
+                        </div>
+                        <div class="d-flex flex-wrap">
+                          <h7>임시저장 <a href="" class="bold ms-1 fs16">2건</a></h7>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card shadow-unset">
+                    <div class="card-header">
+                      <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-danger-light text-danger">
+                          <span class="material-symbols-outlined icon-approval-dashboard">cancel </span>
+                        </div>
+                        <div class="ps-3">
+                          <h6 class="bold">반려/회수</h6>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-body">
+                      <div class="d-sm-flex justify-content-between align-items-center mb-2 mt-3">
+                        <div>
+                          <h7>반려 <a href="" class="bold ms-1 fs16">1건</a></h7>
+                        </div>
+                        <div class="d-flex flex-wrap">
+                          <h7>회수 <a href="" class="bold ms-1 fs16">0건</a></h7>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!--//결재요약-->
+          </div>
+        </div>
+      </div>
+      <!--//결재대시보드-->
+
+   
+      </div>
+    </section>
+  </main>
+  <!-- End #main -->
+
+
+  <!--html include js-->
+  <script src="../../../assets/js/common.js"></script>
+  <!--html include js-->
+
+  <!--부트스트랩 JS Files -->
+  <script src="../../../assets/js//bootstrap.bundle.min.js"></script>
+  <!--  Main JS File -->
+  <script src="../../../assets/js/main.js"></script>
+
+</body>
+
+
+</html>

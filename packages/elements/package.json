@@ -1,0 +1,23 @@
+{
+	"name": "elements",
+	"version": "0.0.1",
+	"private": true,
+	"main": "./index.ts",
+	"types": "./index.ts",
+	"scripts": {
+		"lint": "eslint ."
+	},
+	"devDependencies": {
+		"eslint-config-custom": "*",
+		"eslint-plugin-unicorn": "^55.0.0",
+		"prettier": "^3.2.5",
+		"prettier-config-custom": "*",
+		"tsconfig": "*"
+	},
+	"dependencies": {
+		"@vueuse/components": "^10.9.0",
+		"@vueuse/core": "^10.9.0",
+		"eslint-config-turbo": "^2.1.1",
+		"vuesax": "^4.0.1-alpha.25"
+	}
+}

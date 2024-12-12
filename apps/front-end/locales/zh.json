@@ -1,0 +1,16 @@
+{
+	"hello": "你好，{name} ！",
+	"language": "语言",
+	"description": "这个世界真奇妙，不是吗？",
+	"about": "关于",
+	"login-title": "登录到您的帐户",
+	"email-address": "电子邮件地址",
+	"password": "密码",
+	"remember-me": "记住账号",
+	"sign-in": "登入",
+	"help": "帮助",
+	"login-help-description": "出于演示目的，此应用程序附带了可用于登录的预定义凭据：",
+	"with": "和",
+	"required-login-field": "需要电子邮件地址和密码",
+	"currency": "CNY"
+}
