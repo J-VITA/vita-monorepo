@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { materialIcons } from "@/composables/icons"
-import { FieldLayout } from "layout"
 import type { IAddr, Response } from "@/types"
 
 import {

@@ -18,6 +18,8 @@ definePageMeta({
 const authStore = useAuthStore()
 const { getCompanyId, getCompanyCode, getWorkplaceId, getWorkplaceCode, getRole } =
 	storeToRefs(authStore)
+const route = useRoute()
+const routePath = computed(() => route.path)
 
 interface DataNode {
 	id: number
@@ -902,11 +904,11 @@ onActivated(() => {
 						>
 							부서추가
 						</a-button>
-						<excel-button
+						<eacc-excel-button
 							url="/api/v2/settings/departments/validate"
 							req-type="upload"
 							label="일괄등록"
-							:sample-file-key="$route.path"
+							:sample-file-key="routePath"
 							@submit="() => refresh()"
 						/>
 						<a-dropdown :trigger="['click']">

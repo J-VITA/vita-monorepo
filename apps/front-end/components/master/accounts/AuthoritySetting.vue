@@ -50,7 +50,7 @@ const {
 } = await useAsyncData(
 	`account-roles-list`,
 	() =>
-		useCFetch<Response<any>>("/api/v2/master/accountRoles", {
+		useCFetch<Response<any>>("/api/v2/masters/accountRoles", {
 			method: "GET",
 			params: {
 				companyCode: getCompanyCode.value,
@@ -64,7 +64,7 @@ const {
 const onCopy = async () => {
 	await Promise.all(
 		selectedRowItems.value.map((item) =>
-			useCFetch<Response<any>>(`/api/v2/master/accountRoles/copy/${item.id}`, {
+			useCFetch<Response<any>>(`/api/v2/masters/accountRoles/copy/${item.id}`, {
 				method: "PUT",
 				params: { id: item.id },
 				body: { id: item.id },
@@ -90,7 +90,7 @@ const cellChange = (pagination: any, filters: any, sorter: any, rows: any) => {
 const deleteCallback = async (items: AccountRolesItem[]) => {
 	await Promise.all(
 		items.map((item) =>
-			useCFetch<Response<any>>(`/api/v2/master/accountRoles/${item.id}`, {
+			useCFetch<Response<any>>(`/api/v2/masters/accountRoles/${item.id}`, {
 				method: "DELETE",
 				params: { id: item.id },
 				body: {
@@ -104,15 +104,12 @@ const deleteCallback = async (items: AccountRolesItem[]) => {
 }
 
 const onDetail = async (record: AccountRolesItem) => {
-	showModal.value = true
-	detailItem.value = await useCFetch<Response<any>>(
-		`/api/v2/master/accountRoles/${record.id}`,
-		{
-			method: "GET",
-			params: { id: record.id },
-		}
-	).then((res: Response<any>) => {
-		return { ...res.data, code: record.code }
+	await useCFetch<Response<any>>(`/api/v2/masters/accountRoles/${record.id}`, {
+		method: "GET",
+		params: { id: record.id },
+	}).then((res: Response<any>) => {
+		detailItem.value = { ...res.data, code: record.code }
+		showModal.value = true
 	})
 }
 

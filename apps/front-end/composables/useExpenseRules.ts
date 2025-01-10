@@ -1,52 +1,9 @@
-import type { Response, KeyLabel, SlipType } from "@/types"
+import type { Response, KeyLabel, SlipType, E_MONTH_KEYS, E_DAYS_KEYS } from "@/types"
+import { E_MONTH, E_DAYS } from "@/types"
+
 import type { Data } from "@/types/master/config"
 import dayjs from "dayjs"
-
-export const E_MONTH = {
-	THAT_MONTH: dayjs().month() + 1,
-	NEXT_MONTH: dayjs().add(1, "month").month() + 1,
-}
-// E_MONTH 객체의 값 타입 정의
-export type E_MONTH = (typeof E_MONTH)[keyof typeof E_MONTH]
-// E_MONTH 객체의 키 타입 정의
-export type E_MONTH_KEYS = keyof typeof E_MONTH
-
-export const E_DAYS = {
-	ONE: 1,
-	TWO: 2,
-	THREE: 3,
-	FOUR: 4,
-	FIVE: 5,
-	SIX: 6,
-	SEVEN: 7,
-	EIGHT: 8,
-	NINE: 9,
-	TEN: 10,
-	ELEVEN: 11,
-	TWELVE: 12,
-	THIRTEEN: 13,
-	FOURTEEN: 14,
-	FIFTEEN: 15,
-	SIXTEEN: 16,
-	SEVENTTEEN: 17,
-	EIGHTEEN: 18,
-	NINETEEN: 19,
-	TWENTY: 20,
-	TWENTY_ONE: 21,
-	TWENTY_TWO: 22,
-	TWENTY_THREE: 23,
-	TWENTY_FOUR: 24,
-	TWENTY_FIVE: 25,
-	TWENTY_SIX: 26,
-	TWENTY_SEVEN: 27,
-	TWENTY_EIGHT: 28,
-	LAST: dayjs().endOf("month").date(),
-}
-
-// E_DAYS 객체의 값 타입 정의
-export type E_DAYS = (typeof E_DAYS)[keyof typeof E_DAYS]
-// E_DAYS 객체의 키 타입 정의
-export type E_DAYS_KEYS = keyof typeof E_DAYS
+import { SubCode } from "@/types/settings/codes"
 
 export const useExpenseRules = () => {
 	const authStore = useAuthStore()
@@ -60,7 +17,7 @@ export const useExpenseRules = () => {
 		return getCompanyCode.value
 			? ((await Promise.resolve(
 					useCFetch<Response<Data>>(
-						`/api/v2/slips/commons/expenseRules/${getCompanyCode.value}`,
+						`/api/v2/masters/expenseRules/${getCompanyCode.value}`,
 						{
 							method: "GET",
 							params: {
@@ -82,6 +39,36 @@ export const useExpenseRules = () => {
 				})) as Response<Data>)
 	}
 
+	/**
+	 * 공통코드 지급 예정일
+	 * @returns
+	 */
+	const getCommonCodeRule = async () => {
+		const abortCtr = new AbortController()
+		return getCompanyCode.value
+			? ((await Promise.resolve(
+					useCFetch<Response<Array<SubCode>>>(`/api/v2/settings/codes/subCodes/select`, {
+						method: "GET",
+						params: {
+							companyCode: getCompanyCode.value,
+							groupCode: "PAY_TERM_CD",
+							used: true,
+							remarkFlag: true,
+						},
+						cache: "no-cache",
+						signal: abortCtr.signal,
+					}).then((res: Response<Array<SubCode>>) => (res ? res : {}))
+				).finally(() => {
+					if (abortCtr) {
+						abortCtr.abort()
+					}
+				})) as Response<Array<SubCode>>)
+			: ((await Promise.resolve({} as Response<Array<SubCode>>).finally(() => {
+					if (abortCtr) {
+						abortCtr.abort()
+					}
+				})) as Response<Array<SubCode>>)
+	}
 	/**
 	 * 경비규정관리 상신 날짜 체크
 	 * @returns
@@ -297,67 +284,93 @@ export const useExpenseRules = () => {
 	 * @returns
 	 */
 	const checkPaymentDate = async (slipType: SlipType) => {
-		const getMonthValue = (key?: E_MONTH_KEYS | string): E_MONTH => {
-			return E_MONTH[key as E_MONTH_KEYS]
+		const getMonthValue = (key?: E_MONTH_KEYS | string): E_MONTH =>
+			E_MONTH[key as E_MONTH_KEYS]
+		const getDayValue = (key?: E_DAYS_KEYS | string): E_DAYS => E_DAYS[key as E_DAYS_KEYS]
+
+		const rules = await getRules().then((res: Response<Data>) => res.data)
+		if (!rules) return
+
+		// 공통 코드 규칙 조회 함수
+		const getSubCodeConfig = async (slipType: string) => {
+			const subCodeDate = await getCommonCodeRule().then(
+				(res: Response<Array<SubCode>>) => res.data
+			)
+			if (!subCodeDate) return
+
+			const subCode = subCodeDate.find((code: SubCode) =>
+				code.remark3.split(",").includes(slipType)
+			)
+
+			if (!subCode) return
+
+			const month =
+				subCode.remark1 === "1"
+					? getMonthValue("THAT_MONTH")
+					: subCode.remark1 === "2"
+						? getMonthValue("NEXT_MONTH")
+						: Number(subCode.remark1)
+
+			const day = subCode.remark2 === "31" ? getDayValue("LAST") : Number(subCode.remark2)
+
+			const flag =
+				subCode.remark1 === "0" && subCode.remark2 === "0" && subCode.code !== "IMM"
+
+			return { month, day, flag }
 		}
 
-		const getDayValue = (key?: E_DAYS_KEYS | string): E_DAYS => {
-			return E_DAYS[key as E_DAYS_KEYS]
-		}
-
-		const rules = await Promise.resolve(
-			getRules().then((res: Response<Data>) => res.data)
-		)
-		if (rules) {
-			const currentMonth: number = dayjs().month() + 1
-			const nextMonth: number = dayjs().add(1, "month").month() + 1
-
-			if (slipType === "PERSONAL_EXPENSE") {
+		// 전표 유형별 처리
+		const paymentConfig = {
+			PERSONAL_EXPENSE: () => {
 				if (rules.personalExpensePaymentDateFlag) {
-					const month = getMonthValue(rules.personalExpensePaymentTypeName)
-					const day = getDayValue(rules.personalExpensePaymentDayName)
-					const flag = rules.personalExpenseWriteFlag
 					return {
-						month,
-						day,
-						flag,
+						month: getMonthValue(rules.personalExpensePaymentTypeName),
+						day: getDayValue(rules.personalExpensePaymentDayName),
+						flag: rules.personalExpenseWriteFlag,
 					}
 				}
-			}
-
-			//카드
-			if (slipType === "CARD") {
+				return getSubCodeConfig("PERSONAL_EXPENSE")
+			},
+			CARD: () => {
 				if (rules.corporateCreditCardPaymentDateFlag) {
-					const month = getMonthValue(rules.corporateCreditCardPaymentTypeName)
-					const day = getDayValue(rules.corporateCreditCardPaymentDayName)
-					// const flag = rules.corporateCreditCardPaymentWriteFlag;
-					const flag = false
 					return {
-						month,
-						day,
-						flag,
+						month: getMonthValue(rules.corporateCreditCardPaymentTypeName),
+						day: getDayValue(rules.corporateCreditCardPaymentDayName),
+						flag: false,
 					}
 				}
-			}
-
-			//전자세금계산서, 수기세금계산서
-			if (["E_TAX_INVOICE", "TAX_INVOICE"].includes(slipType)) {
+				return getSubCodeConfig("CARD")
+			},
+			E_TAX_INVOICE: () => {
 				if (rules.billInvoicePaymentDateFlag) {
-					const month = getMonthValue(rules.billInvoicePaymentTypeName)
-					const day = getDayValue(rules.billInvoicePaymentDayName)
-					const flag = rules.billInvoiceWriteFlag
 					return {
-						month,
-						day,
-						flag,
+						month: getMonthValue(rules.billInvoicePaymentTypeName),
+						day: getDayValue(rules.billInvoicePaymentDayName),
+						flag: rules.billInvoiceWriteFlag,
 					}
 				}
-			}
+				return getSubCodeConfig("E_TAX_INVOICE")
+			},
+			TAX_INVOICE: () => {
+				if (rules.billInvoicePaymentDateFlag) {
+					return {
+						month: getMonthValue(rules.billInvoicePaymentTypeName),
+						day: getDayValue(rules.billInvoicePaymentDayName),
+						flag: rules.billInvoiceWriteFlag,
+					}
+				}
+				return getSubCodeConfig("TAX_INVOICE")
+			},
+		}
 
+		const result = paymentConfig[slipType as keyof typeof paymentConfig]()
+		if (!result) {
 			throw new Error(
 				"경비규정 설정이 되어있지 않습니다. 직접 설정하시거나, 담당자에게 문의하여주세요."
 			)
 		}
+
+		return result
 	}
 
 	return {

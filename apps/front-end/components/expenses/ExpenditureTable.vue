@@ -19,6 +19,7 @@ import {
 import type { MenuProps } from "ant-design-vue"
 import type { Data } from "@/types/master/config"
 import { useExpenseListColumns } from "~/types/expenses/commons/list"
+import { _formatNumberCommas } from "@iwx/ui"
 
 const { expenseData } = defineProps<{
 	expenseData: Response<Array<ExpenseList>>
@@ -71,7 +72,7 @@ const onSelectionchange = (size: number) => {
 const onDelete = (ids: any) => {
 	const lastId = ids.at(-1)
 	ids.forEach(async (id: number) => {
-		await useCFetch<Response<any>>(`/api/v2/slip/expenses/${id}`, {
+		await useCFetch<Response<any>>(`/api/v2/slips/expenses/${id}`, {
 			method: "DELETE",
 			body: { id },
 		}).then((res: Response<any>) => {
@@ -88,7 +89,7 @@ const onDelete = (ids: any) => {
 
 const onCopy = () => {
 	if (selectedRows.value && selectedRows.value.length > 0) {
-		const lastId = selectedRows.value.map((e: any) => e.id).at(-1)
+		const headerIds = selectedRows.value.map((e: any) => e.id)
 		Modal.confirm({
 			title: "선택한 행을 복사하시겠습니까?",
 			content: "영수증 및 첨부파일을 제외한 모든 항목이 동일하게 복제됩니다.",
@@ -97,19 +98,15 @@ const onCopy = () => {
 			cancelText: "취소",
 			icon: materialIcons("mso", "error"),
 			async onOk() {
-				selectedRows.value.forEach(async (item: any, idx: number) => {
-					await useCFetch<Response<any>>(`/api/v2/slip/expenses/copy/${item.id}`, {
-						method: "PUT",
-						body: { id: item.id },
-					}).then((res: Response<any>) => {
-						if (res.status === 0) {
-							if (lastId === item.id) {
-								initTableSelectData()
-								message.success(`복사하였습니다.`)
-								emit("refresh")
-							}
-						}
-					})
+				await useCFetch<Response<any>>(`/api/v2/slips/expenses/copy`, {
+					method: "PUT",
+					body: { headerIds },
+				}).then((res: Response<any>) => {
+					if (res.status === 0) {
+						initTableSelectData()
+						message.success(`복사하였습니다.`)
+						emit("refresh")
+					}
 				})
 			},
 		})
@@ -271,7 +268,7 @@ watchSyncEffect(() => {
 							<span class="ml-sm">지출내역추가</span>
 						</a-menu-item>
 						<a-menu-divider />
-						<a-menu-item key="RECEIPT" disabled>
+						<a-menu-item key="RECEIPT">
 							<component :is="materialIcons('mso', 'center_focus_weak')" />
 							<span class="ml-sm">영수증 자동 인식</span>
 						</a-menu-item>
@@ -382,10 +379,11 @@ watchSyncEffect(() => {
 					{{ text }}
 				</a-typography-link>
 			</template>
-			<template v-else-if="column.dataIndex === 'totalAmount'">
+			<template v-else-if="column.dataIndex === 'krwTotalAmount'">
 				<a-tag style="float: left" color="red" v-if="record.divisionSlipFlag">분할</a-tag>
 				<a-typography-text strong>
-					{{ formatCurrency(text, record.currencyTypeName) }}
+					<!-- {{ formatCurrency(text, record.currencyTypeName) }} -->
+					{{ _formatNumberCommas(text, ",", ".") }}
 				</a-typography-text>
 			</template>
 			<template v-else-if="column.dataIndex === 'description'">

@@ -20,7 +20,7 @@ import BankAccountModal from "./BankAccountModal/index.vue"
 import PersonalApprovalLineModal from "./PersonalApprovalLineModal/index.vue"
 import ExpenseModal from "./ExpenseModal/index.vue"
 import CardHistoryModal from "./CardHistoryModal/index.vue"
-import ExpenseDetailModal from "./ExpenseDetailModal/index.vue"
+import EaccSlipDetailModal from "./EaccSlipDetailModal/index.vue"
 import DocumentPreviewModal from "./DocumentPreviewModal/index.vue"
 import BringExpenseHistoryModal from "./BringExpenseHistoryModal/index.vue"
 import TaxCodeModal from "./TaxCodeModal/index.vue"
@@ -28,6 +28,8 @@ import ApprovalLineSettingsModal from "./ApprovalLineSettingsModal/index.vue"
 import ApprovalLineChangeHistoryModal from "./ApprovalLineChangeHistoryModal/index.vue"
 import CardManagementModal from "./CardManagementModal/index.vue"
 import CardReleaseDetailModal from "./CardReleaseDetailModal/index.vue"
+import TaxInvoiceModal from "./TaxInvoiceModal/index.vue"
+import EaccOcrModal from "./EaccOcrModal/index.vue"
 
 export {
 	ConfirmModal,
@@ -52,7 +54,7 @@ export {
 	PersonalApprovalLineModal,
 	ExpenseModal,
 	CardHistoryModal,
-	ExpenseDetailModal,
+	EaccSlipDetailModal,
 	DocumentPreviewModal,
 	BringExpenseHistoryModal,
 	TaxCodeModal,
@@ -60,4 +62,6 @@ export {
 	ApprovalLineChangeHistoryModal,
 	CardManagementModal,
 	CardReleaseDetailModal,
+	TaxInvoiceModal,
+	EaccOcrModal,
 }

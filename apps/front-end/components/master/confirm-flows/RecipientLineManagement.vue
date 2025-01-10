@@ -57,7 +57,7 @@ const selectedRowKeys = ref<(string | number)[]>([])
 const onDelete = (ids: any[]) => {
 	const lastId = ids.map((id: number) => id).at(-1)
 	ids.forEach(async (id: number) => {
-		await useCFetch<Response<any>>(`/api/v2/master/approvalReceivers/${id}`, {
+		await useCFetch<Response<any>>(`/api/v2/masters/approvalReceivers/${id}`, {
 			method: "DELETE",
 			body: { id },
 		}).then((res: Response<any>) => {
@@ -134,7 +134,7 @@ const onDetail = (id?: string | number) => {
 					@click="onDelete"
 					:disabled="!selectedRowKeys || selectedRowKeys.length === 0"
 				/>
-				<excel-button req-type="upload" size="middle" label="엑셀업로드" />
+				<eacc-excel-button req-type="upload" size="middle" label="엑셀업로드" />
 				<a-button
 					type="primary"
 					:icon="materialIcons('mso', 'add_circle')"

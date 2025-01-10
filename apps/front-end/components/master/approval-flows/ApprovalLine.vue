@@ -87,7 +87,7 @@ const onDelete = (data: any) => {
 
 	let num: number = 1
 	ids.forEach(async (id: number) => {
-		await useCFetch<Response<any>>(`/api/v2/master/approvalLines/${id}`, {
+		await useCFetch<Response<any>>(`/api/v2/masters/approvalLines/${id}`, {
 			method: "DELETE",
 			body: { id },
 		})
@@ -127,7 +127,7 @@ const cellChange = (pagination: any, filters: any, sorter: any, rows: any) => {
  * @param id
  */
 const getApprovalLines = async (id: string | number) => {
-	return await useCFetch<Response<any>>(`/api/v2/master/approvalLines`, {
+	return await useCFetch<Response<any>>(`/api/v2/masters/approvalLines`, {
 		method: "GET",
 		params: {
 			companyCode: getCompanyCode.value,
@@ -141,7 +141,7 @@ const getApprovalLines = async (id: string | number) => {
  * @param id
  */
 const getApprovalLinesDetail = async (id: number) => {
-	return await useCFetch<Response<ApprovalLines>>(`/api/v2/master/approvalLines/${id}`, {
+	return await useCFetch<Response<ApprovalLines>>(`/api/v2/masters/approvalLines/${id}`, {
 		method: "GET",
 		params: {
 			id,

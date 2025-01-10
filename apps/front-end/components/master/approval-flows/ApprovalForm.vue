@@ -30,7 +30,7 @@ const {
 	pending: apprFormDataPending,
 	refresh: apprFormDataRefresh,
 } = await useAsyncData(`approval-form`, () =>
-	useCFetch<Response<any>>("/api/v2/master/approvalForms", {
+	useCFetch<Response<any>>("/api/v2/masters/approvalForms", {
 		method: "GET",
 	}).then((res: Response<any>) => {
 		return res.data

@@ -7,7 +7,7 @@ import SearchButton from "./crud/SearchButton.vue"
 import EditButton from "./crud/EditButton.vue"
 import EaccFilterButton from "./EaccFilterButton/index.vue"
 import EaccButton from "./EaccButton/index.vue"
-import ExcelButton from "./ExcelButton/index.vue"
+import EaccExcelButton from "./EaccExcelButton/index.vue"
 
 export {
 	RetiredButton,
@@ -19,7 +19,7 @@ export {
 	EditButton,
 	EaccFilterButton,
 	EaccButton,
-	ExcelButton,
+	EaccExcelButton,
 }
 
 export interface DataProps {

@@ -72,7 +72,7 @@ const onSubmit = () => {
 	validate()
 		.then(async () => {
 			loading.value = true
-			await useCFetch<Response<any>>("/api/v2/master/accountPeriods", {
+			await useCFetch<Response<any>>("/api/v2/masters/accountPeriods", {
 				method: "POST",
 				body: Object.assign({}, modelRef.value),
 			}).then((res: Response<any>) => {

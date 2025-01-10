@@ -7,7 +7,7 @@ import {
 	CardType,
 	type FormData,
 } from "@/types/approvals/document"
-import { Response, SlipFormType } from "@/types"
+import { EaccError, Response, SlipFormType } from "@/types"
 import type { FormInstance } from "ant-design-vue"
 import ApprovalLine from "@/components/approvals/document/ApprovalLine.vue"
 import CardIssueForm from "@/components/approvals/document/CardIssueForm.vue"
@@ -17,7 +17,7 @@ import AttachedFile from "@/components/approvals/document/AttachedFile.vue"
 import dayjs from "dayjs"
 
 const authStore = useAuthStore()
-const { getEmployeeId } = storeToRefs(authStore)
+const { getEmployeeId, getCompanyCode } = storeToRefs(authStore)
 
 const { detail, save } = useApprovals()
 const { getRouteParams, setRouteParams, clearParams } = useRouteParams()
@@ -58,21 +58,33 @@ watch(isShowApprove, (flag) => {
 	}
 })
 
+const formValidator = () => {
+	return new Promise((resolve, reject) => {
+		formRef.value
+			?.validate()
+			.then((res: any) => {
+				resolve(res)
+			})
+			.catch((errorInfo: any) => {
+				const firstErrorField = errorInfo.errorFields[0]
+				if (firstErrorField) {
+					formRef.value?.scrollToField(firstErrorField.name)
+				}
+				reject({
+					message: `${errorInfo.errorFields[0].errors[0]}`,
+					type: "error",
+				})
+			})
+	})
+}
+
 const responseResult = async (form: any) => {
 	if (form && form.draftEmployeeId === getEmployeeId.value) {
 		formData.value = {
 			...form,
 			approvalFormType: SlipFormType.CARD_ISSUE,
-			// formIds:
-			// 	form.slipSimpleDatas?.map((e: any) => {
-			// 		return { id: e.id }
-			// 	}) || [],
 			agreementOptionType: form.agreementOptionTypeName,
 			relatedDocumentIds: [],
-			// cardIssueForm: {
-			// 	requestedBy: form.requestedBy ? form.requestedBy : getEmployeeId.value,
-			// 	requestedByName: form.requestedByName ? [form.requestedByName] : [getEmployeeId.value],
-			// },
 		}
 		const cardIssueData = await cardIssueformRef.value?.loadFormData(form.id)
 		if (cardIssueData) {
@@ -126,6 +138,7 @@ onMounted(async () => {
 						})
 				} else {
 					if (formData.value.cardIssueForm) {
+						formData.value.cardIssueForm.companyCode = getCompanyCode.value
 						formData.value.cardIssueForm.requestedBy = getEmployeeId.value
 						formData.value.cardIssueForm.requestedByEmployeeIds = [getEmployeeId.value]
 					}
@@ -139,26 +152,22 @@ onMounted(async () => {
 
 const postCardIssues = async (params: CardIssueViewForm) => {
 	if (!params.startDate) {
-		message.error("사용일(시작)을 입력하세요.")
-		return false
+		throw new EaccError("사용일(시작)을 입력하세요.", "Invalid Value")
 	}
 	if (!params.endDate) {
-		message.error("사용일(종료)을 입력하세요.")
-		return false
+		throw new EaccError("사용일(종료)을 입력하세요.", "Invalid Value")
 	}
 
 	if (params.cardType === CardType.PERSONAL && !params.cardOwnerEmployeeId) {
-		message.error("카드소유자를 선택해주세요.")
-		return false
+		throw new EaccError("카드소유자를 선택해주세요.", "Invalid Value")
 	}
 
 	if (!params.description) {
-		message.error("사용목적을 입력하세요.")
-		return false
+		throw new EaccError("사용목적을 입력하세요.", "Invalid Value")
 	}
 
 	return Promise.resolve(
-		await useCFetch(`/api/v2/card/issues`, {
+		await useCFetch(`/api/v2/cards/issues`, {
 			body: Object.assign({ id: params.id ? params.id : "" }, params),
 			method: `${params.id ? "PATCH" : "POST"}`,
 		})
@@ -167,6 +176,7 @@ const postCardIssues = async (params: CardIssueViewForm) => {
 
 defineExpose({
 	postCardIssues,
+	formValidator,
 })
 </script>
 <template>

@@ -5,6 +5,7 @@ import {
 	BudgetApplyData,
 	BudgetProposalFormData,
 } from "@/types/budgets"
+import { type FormInstance } from "ant-design-vue"
 import dayjs from "dayjs"
 import { Dayjs } from "dayjs"
 
@@ -33,6 +34,7 @@ const open = computed({
 	},
 })
 
+const formRef = useTemplateRef<FormInstance>("formRef")
 const { $dayjs } = useNuxtApp()
 const dropdownStyle = ref({ maxHeight: "40rem", overflow: "auto" })
 const addCnt = ref<number>(1)
@@ -78,7 +80,7 @@ const {
 	status: costCenterStatus,
 	refresh: costCenterRefresh,
 } = await useAsyncData(`budget-proposal-costcenter-list`, () =>
-	useCFetch<any>("/api/v2/master/costCenters", {
+	useCFetch<any>("/api/v2/settings/costCenters", {
 		method: "GET",
 		params: {
 			...costCenterSearchParams.value,
@@ -95,7 +97,7 @@ const {
 	status: accountStatus,
 	refresh: accountRefresh,
 } = await useAsyncData(`budget-proposal-account-list`, () =>
-	useCFetch<any>("/api/v2/master/accounts", {
+	useCFetch<any>("/api/v2/masters/accounts", {
 		method: "GET",
 		params: {
 			...accountSearchParams.value,
@@ -218,36 +220,38 @@ const onCloseModal = () => {
 }
 
 const onSubmit = async (value: any) => {
-	const changeSaveForm = saveFormData.value.map((element): BudgetProposalFormData => {
-		return {
-			...element,
-			fromYearMonth: $dayjs(element.fromYearMonth, "YYYY-MM", true).isValid()
-				? $dayjs(element.fromYearMonth).format("YYYY-MM")
-				: undefined,
-			toYearMonth: $dayjs(element.toYearMonth, "YYYY-MM", true).isValid()
-				? $dayjs(element.toYearMonth).format("YYYY-MM")
-				: undefined,
-			idx: undefined,
-			remainAmount: undefined,
-			fromAccountId: element.fromAccountId ? Number(element.fromAccountId) : undefined,
-			toAccountId: Number(element.toAccountId),
-		}
-	})
-	if (!!editData.id) {
-		const patchResultStatus: boolean = await patchData(changeSaveForm)
-		if (patchResultStatus) {
-			saveFormData.value.forEach((element, idx) => {
-				emit("update:value", element.id, "patch")
-				if (idx + 1 === saveFormData.value.length) open.value = false
+	formRef.value?.validate().then(async () => {
+		const changeSaveForm = saveFormData.value.map((element): BudgetProposalFormData => {
+			return {
+				...element,
+				fromYearMonth: $dayjs(element.fromYearMonth, "YYYY-MM", true).isValid()
+					? $dayjs(element.fromYearMonth).format("YYYY-MM")
+					: undefined,
+				toYearMonth: $dayjs(element.toYearMonth, "YYYY-MM", true).isValid()
+					? $dayjs(element.toYearMonth).format("YYYY-MM")
+					: undefined,
+				idx: undefined,
+				remainAmount: undefined,
+				fromAccountId: element.fromAccountId ? Number(element.fromAccountId) : undefined,
+				toAccountId: Number(element.toAccountId),
+			}
+		})
+		if (!!editData.id) {
+			const patchResultStatus: boolean = await patchData(changeSaveForm)
+			if (patchResultStatus) {
+				saveFormData.value.forEach((element, idx) => {
+					emit("update:value", element.id, "patch")
+					if (idx + 1 === saveFormData.value.length) open.value = false
+				})
+			}
+		} else {
+			const saveResultData: Array<BudgetApplyData> = await saveData(changeSaveForm)
+			saveResultData.forEach((element, idx) => {
+				emit("update:value", element.id, "post")
+				if (idx + 1 === saveResultData.length) open.value = false
 			})
 		}
-	} else {
-		const saveResultData: Array<BudgetApplyData> = await saveData(changeSaveForm)
-		saveResultData.forEach((element, idx) => {
-			emit("update:value", element.id, "post")
-			if (idx + 1 === saveResultData.length) open.value = false
-		})
-	}
+	})
 }
 
 /**
@@ -372,23 +376,36 @@ watch(
 		>
 			<template #content>
 				<!-- ref="budgetProposalFormRef" -->
-				<a-form label-align="left" layout="horizontal">
+				<a-form
+					ref="formRef"
+					:model="saveFormData"
+					label-align="left"
+					layout="horizontal"
+					:colon="false"
+					:style="{ marginLeft: '30px' }"
+				>
 					<div v-if="type !== 'increase'">
-						<a-descriptions
-							:colon="false"
-							title="받는대상(To)"
-							:labelStyle="{ width: '100px', paddingTop: '5px' }"
-							:style="{ width: 'auto' }"
+						<a-typography-title
+							:level="5"
+							class="ml-none mb-10"
+							:style="{ marginBottom: '20px' }"
 						>
-							<a-descriptions-item :label="'예산년월'" :span="1.5">
+							{{ "받는대상(To)" }}
+						</a-typography-title>
+						<a-flex gap="25">
+							<a-form-item
+								label="예산년월"
+								name="toYearMonth"
+								:rules="[{ required: true }]"
+							>
 								<a-date-picker
 									v-model:value="saveFormData[0].toYearMonth"
 									picker="month"
 									:disabledDate="disabledDate"
 									:style="{ width: '20rem' }"
 								></a-date-picker>
-							</a-descriptions-item>
-							<a-descriptions-item :label="'코스트센터'" :span="1.5">
+							</a-form-item>
+							<a-form-item label="코스트센터" name="toCostCenterId">
 								<a-tree-select
 									:style="{ width: '20rem' }"
 									v-model:value="saveFormData[0].toCostCenterId"
@@ -409,8 +426,14 @@ watch(
 									tree-node-filter-prop="name"
 									:max-tag-count="2"
 								/>
-							</a-descriptions-item>
-							<a-descriptions-item :label="'계정항목'" :span="1.5">
+							</a-form-item>
+						</a-flex>
+						<a-flex gap="25">
+							<a-form-item
+								label="계정항목"
+								name="toAccountId"
+								:rules="[{ required: true }]"
+							>
 								<a-tree-select
 									:style="{ width: '20rem' }"
 									v-model:value="saveFormData[0].toAccountId"
@@ -430,83 +453,99 @@ watch(
 									tree-node-filter-prop="name"
 									:max-tag-count="2"
 								/>
-							</a-descriptions-item>
-							<a-descriptions-item :label="'예산잔액'" :span="1.5">
-								<eacc-amount-input
-									v-model:value="saveFormData[0].remainAmount"
-									disabled
-									:style="{ width: '20rem' }"
-								/>
-							</a-descriptions-item>
-							<a-descriptions-item
-								v-if="type !== 'increase'"
-								:label="'신청금액 합계'"
-								:span="1.5"
+							</a-form-item>
+							<a-form-item
+								v-if="type === 'increase'"
+								label="신청금액합계"
+								name="totalAmount"
 							>
 								<eacc-amount-input
 									v-model:value="totalAmount"
 									:disabled="type !== 'increase'"
 									style="width: 20rem"
 								/>
-							</a-descriptions-item>
-							<a-descriptions-item
+							</a-form-item>
+						</a-flex>
+						<a-flex gap="25">
+							<a-form-item
 								v-if="type === 'increase'"
-								:label="'신청금액'"
-								:span="1.5"
+								label="신청금액"
+								name="requestAmount"
 							>
 								<eacc-amount-input
 									v-model:value="saveFormData[0].requestAmount"
 									:disabled="type !== 'increase'"
 									style="width: 20rem"
 								/>
-							</a-descriptions-item>
-						</a-descriptions>
+							</a-form-item>
+						</a-flex>
 					</div>
-					<div>
-						<a-divider v-if="type !== 'increase'" />
-						<a-descriptions
-							:colon="false"
-							:labelStyle="{ width: '100px', paddingTop: '5px' }"
-							v-for="(item, idx) in saveFormData"
-							:key="'proposal-' + idx"
-							:style="{ width: 'auto' }"
+					<a-divider v-if="type !== 'increase'" />
+					<div
+						v-for="(item, idx) in saveFormData"
+						:key="'proposal-' + idx"
+						:style="type !== 'increase' ? { margin: '20px 0' } : { marginBottom: '20px' }"
+					>
+						<a-flex
+							:style="
+								type !== 'increase' ? { margin: '15px 0' } : { marginBottom: '20px' }
+							"
 						>
-							<template #title>
-								<div>
-									<span v-if="type === 'increase'">
-										{{ idx == 0 ? "받는대상(To)" : `받는대상 ${idx}` }}
-									</span>
-									<span v-if="type !== 'increase'">
-										{{ idx == 0 ? "주는대상(From)" : `주는대상 ${idx}` }}
-									</span>
-									<a-button
-										v-if="idx > 0"
-										:icon="materialIcons('mso', 'do_not_disturb_on')"
-										ghost
-										danger
-										:style="{ marginLeft: '10px' }"
-										@click="onDeleteBudget(item.idx)"
-									/>
-								</div>
-							</template>
-							<a-descriptions-item :label="'예산년월'" :span="1.5">
+							<a-typography-title
+								v-if="type === 'increase'"
+								:level="5"
+								class="ml-none mb-10"
+							>
+								{{ idx == 0 ? "받는대상(To)" : `받는대상 ${idx}` }}
+							</a-typography-title>
+							<a-typography-title
+								v-if="type !== 'increase'"
+								:level="5"
+								class="ml-none mb-10"
+							>
+								{{ idx == 0 ? "주는대상(From)" : `주는대상 ${idx}` }}
+							</a-typography-title>
+							<a-button
+								v-if="idx > 0"
+								:icon="materialIcons('mso', 'do_not_disturb_on')"
+								ghost
+								danger
+								:style="{ marginLeft: '10px' }"
+								@click="onDeleteBudget(item.idx)"
+							/>
+						</a-flex>
+						<a-flex gap="25">
+							<a-form-item
+								v-if="type !== 'increase'"
+								label="예산년월"
+								name="fromYearMonth"
+								:rules="[{ required: true }]"
+							>
 								<a-date-picker
-									v-if="type !== 'increase'"
 									v-model:value="item.fromYearMonth"
 									picker="month"
 									:disabledDate="disabledDate"
 									:style="{ width: '20rem' }"
 								></a-date-picker>
+							</a-form-item>
+							<a-form-item
+								v-if="type === 'increase'"
+								label="예산년월"
+								name="toYearMonth"
+								:rules="[{ required: true }]"
+							>
 								<a-date-picker
-									v-if="type === 'increase'"
 									v-model:value="item.toYearMonth"
 									picker="month"
 									:style="{ width: '20rem' }"
 								></a-date-picker>
-							</a-descriptions-item>
-							<a-descriptions-item :label="'코스트센터'" :span="1.5">
+							</a-form-item>
+							<a-form-item
+								v-if="type !== 'increase'"
+								label="코스트센터"
+								name="fromCostCenterId"
+							>
 								<a-tree-select
-									v-if="type !== 'increase'"
 									:style="{ width: '20rem' }"
 									v-model:value="item.fromCostCenterId"
 									show-search
@@ -526,8 +565,13 @@ watch(
 									tree-node-filter-prop="name"
 									:max-tag-count="2"
 								/>
+							</a-form-item>
+							<a-form-item
+								v-if="type === 'increase'"
+								label="코스트센터"
+								name="toCostCenterId"
+							>
 								<a-tree-select
-									v-if="type === 'increase'"
 									:style="{ width: '20rem' }"
 									v-model:value="item.toCostCenterId"
 									show-search
@@ -546,10 +590,16 @@ watch(
 									tree-node-filter-prop="name"
 									:max-tag-count="2"
 								/>
-							</a-descriptions-item>
-							<a-descriptions-item :label="'계정항목'" :span="1.5">
+							</a-form-item>
+						</a-flex>
+						<a-flex gap="25">
+							<a-form-item
+								v-if="type !== 'increase'"
+								label="계정항목"
+								name="fromAccountId"
+								:rules="[{ required: true }]"
+							>
 								<a-tree-select
-									v-if="type !== 'increase'"
 									:style="{ width: '20rem' }"
 									v-model:value="item.fromAccountId"
 									show-search
@@ -569,8 +619,14 @@ watch(
 									tree-node-filter-prop="name"
 									:max-tag-count="2"
 								/>
+							</a-form-item>
+							<a-form-item
+								v-if="type === 'increase'"
+								label="계정항목"
+								name="toAccountId"
+								:rules="[{ required: true }]"
+							>
 								<a-tree-select
-									v-if="type === 'increase'"
 									:style="{ width: '20rem' }"
 									v-model:value="item.toAccountId"
 									show-search
@@ -589,39 +645,42 @@ watch(
 									tree-node-filter-prop="name"
 									:max-tag-count="2"
 								/>
-							</a-descriptions-item>
-							<a-descriptions-item :label="'예산잔액'" :span="1.5">
+							</a-form-item>
+
+							<a-form-item label="예산잔액" name="remainAmount">
 								<eacc-amount-input
 									v-model:value="item.remainAmount"
 									disabled
 									:style="{ width: '20rem' }"
 								/>
-							</a-descriptions-item>
-							<a-descriptions-item :label="'신청금액'" :span="1.5">
+							</a-form-item>
+						</a-flex>
+						<a-flex gap="25">
+							<a-form-item label="신청금액" name="requestAmount">
 								<eacc-amount-input
 									v-model:value="item.requestAmount"
 									:disabled="false"
 									style="width: 20rem"
 								/>
-							</a-descriptions-item>
-						</a-descriptions>
-						<a-button
-							v-if="type !== 'increase' && !editData.id"
-							:icon="materialIcons('mso', 'add')"
-							type="primary"
-							ghost
-							@click="addBudgetFrom"
-							>주는대상 추가</a-button
-						>
-						<a-button
-							v-if="type === 'increase' && !editData.id"
-							:icon="materialIcons('mso', 'add')"
-							type="primary"
-							ghost
-							@click="addBudgetTo"
-							>받는대상 추가</a-button
-						>
+							</a-form-item>
+						</a-flex>
 					</div>
+					<a-button
+						v-if="type !== 'increase' && !editData.id"
+						:icon="materialIcons('mso', 'add')"
+						type="primary"
+						ghost
+						@click="addBudgetFrom"
+						>주는대상 추가</a-button
+					>
+					<a-button
+						v-if="type === 'increase' && !editData.id"
+						:icon="materialIcons('mso', 'add')"
+						type="primary"
+						ghost
+						@click="addBudgetTo"
+						>받는대상 추가</a-button
+					>
 				</a-form>
 			</template>
 		</field-modal>

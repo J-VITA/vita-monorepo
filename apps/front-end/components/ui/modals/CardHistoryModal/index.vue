@@ -7,6 +7,7 @@ import {
 	Response,
 	SortType,
 	SortTypes,
+	dateTimeFormat,
 } from "@/types"
 import type { Dayjs } from "dayjs"
 import type { ColumnType } from "ant-design-vue/lib/table/interface"
@@ -91,7 +92,7 @@ const postConvertToSlip = async (items: ICardHistoryResponseParams[]) => {
 		validateCardUsageItems(items, [CardUseStateType.UNPROCESSED])
 
 		const response = await useCFetch<Response<any>>(
-			`/api/v2/slip/expenses/card/convert-to-slip`,
+			`/api/v2/slips/expenses/card/convert-to-slip`,
 			{
 				method: "POST",
 				body: {
@@ -122,7 +123,7 @@ const patchPrivateProcess = async (items: ICardHistoryResponseParams[]) => {
 		validateCardUsageItems(items, [CardUseStateType.UNPROCESSED])
 
 		const response = await useCFetch<Response<any>>(
-			`/api/v2/slips/commons/private/process`,
+			`/api/v2/slips/expenses/private/process`,
 			{
 				method: "PATCH",
 				body: {
@@ -151,7 +152,7 @@ const patchPrivateRelease = async (items: ICardHistoryResponseParams[]) => {
 		validateCardUsageItems(items, [CardUseStateType.PERSONAL_EXPENSE_PROCESSED])
 
 		const response = await useCFetch<Response<any>>(
-			`/api/v2/slips/commons/private/release`,
+			`/api/v2/slips/expenses/private/release`,
 			{
 				method: "PATCH",
 				body: {
@@ -207,12 +208,14 @@ const { data: myCards, refresh: myCardsRefresh } = await useAsyncData(
 	`slips-commons-my-cards-${getEmployeeId.value}`,
 	async () => {
 		const response = await useCFetch<Response<Array<any>>>(
-			`/api/v2/slips/commons/my-cards`,
+			`/api/v2/slips/expenses/my-cards`,
 			{
 				method: "GET",
 				params: {
 					companyCode: getCompanyCode.value,
 					employeeId: getEmployeeId.value,
+					startDate: searchParams.value.searchDateFrom,
+					endDate: searchParams.value.searchDateTo,
 				},
 			}
 		)
@@ -243,7 +246,7 @@ const { data: cardOptions } = await useAsyncData(
 	`card-usages-types-card-use-state-type-modal`,
 	async () => {
 		const response = await useCFetch<Response<Array<any>>>(
-			`/api/v2/card/usages/types/CardUseStateType`,
+			`/api/v2/cards/usages/types/CardUseStateType`,
 			{ method: "GET" }
 		)
 		if (response.status !== 0) {
@@ -276,7 +279,7 @@ const {
 	`slips-commons-expenses-card-usages-list-modal`,
 	async () => {
 		const response = await useCFetch<Response<ICardHistoryResponse>>(
-			`/api/v2/slips/commons/expenses/card-usages/list`,
+			`/api/v2/slips/expenses/card-usages/list`,
 			{
 				method: "GET",
 				params: {
@@ -360,6 +363,7 @@ const {
 						<a-space>
 							<a-range-picker
 								v-model:value="searchParams.filterDate"
+								:value-format="dateTimeFormat"
 								@change="onChangeRangePicker"
 							/>
 						</a-space>

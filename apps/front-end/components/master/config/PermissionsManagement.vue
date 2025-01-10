@@ -23,6 +23,7 @@ watch(props.data, (args) => {
 				</a-col>
 				<a-col flex="1">
 					<a-flex :gap="15" class="mb-sm text-secondary">
+						<a-switch size="small" v-model:checked="data.apTaxInvoiceManageFlag" />
 						<span>
 							전표처리 > 매입세금계산서 메뉴에서 미처리 세금계산서건들을 모두 조회할 수
 							있고 전표처리할 수 있습니다. 또한 특정사용자에게 미처리 세금계산서를
@@ -30,6 +31,32 @@ watch(props.data, (args) => {
 						</span>
 					</a-flex>
 					<div class="box">
+						<eacc-select-multi-table
+							class="mb-sm"
+							label="부서"
+							url="/api/v2/masters/commons/departments"
+							v-model:value="data.apTaxInvoiceManageDepartments"
+							key-props="id"
+							:columns="[
+								{
+									title: '이름',
+									data: (row: any) => row.name,
+									width: '10rem',
+								},
+								{ title: '직위', data: (row: any) => row.jobName },
+								{ title: '부서', data: (row: any) => row.departmentName },
+								{
+									title: '사업장',
+									data: (row: any) => row.workplaceName,
+								},
+							]"
+							@update:value="
+								(value) => {
+									console.log(value)
+									data.apTaxInvoiceManageDepartments = value
+								}
+							"
+						/>
 						<eacc-select-multi-table
 							label="담당자"
 							url="/api/v2/masters/commons/employees"
@@ -48,7 +75,13 @@ watch(props.data, (args) => {
 									data: (row: any) => row.workplaceName,
 								},
 							]"
-							@update:value="(value) => (data.apTaxInvoiceManagers = value)"
+							@update:value="
+								(value) => {
+									console.log(value)
+
+									data.apTaxInvoiceManagers = value
+								}
+							"
 						/>
 					</div>
 				</a-col>

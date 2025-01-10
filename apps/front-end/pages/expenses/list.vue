@@ -12,9 +12,9 @@ import {
 	createViewParams,
 	ExViewParams,
 	SortTypes,
+	dateTimeFormat,
 } from "@/types"
-import { pageSize, SortType } from "@/types"
-import { dateFormat, ExpensesCodeType } from "@/types/expenses"
+import { type OilExpensesFormData, dateFormat, ExpensesCodeType } from "@/types/expenses"
 
 import type { Data } from "@/types/master/config"
 import type { Dayjs } from "dayjs"
@@ -46,8 +46,11 @@ const { pageSelectRole } = useMenus()
 
 const codeFieldNames = { label: "label", value: "code" }
 const allItemField = { label: "전체", code: "", used: true, name: "" }
-
-const { searchParams, updateSearchParams } = useExpenseListSearch(getCompanyCode.value)
+const oilData = ref<OilExpensesFormData>()
+const { searchParams, updateSearchParams } = useExpenseListSearch(
+	getCompanyCode.value,
+	getEmployeeId.value
+)
 
 const {
 	data: pageRole,
@@ -55,7 +58,6 @@ const {
 	clear: pageRoleClear,
 } = await useAsyncData(`expenses-page-role-name`, async () => {
 	const role = await pageSelectRole().selectLevelTypeName
-	console.log(`expenses-page-role-name`, role)
 	await getLevelType(role)
 	return role
 })
@@ -104,7 +106,61 @@ const searchRoleFlag = computed(() => {
 
 const filterFormData = reactive<Array<IFormData>>([
 	{
-		name: "creatorCheck",
+		name: "searchDate",
+		label: "기간설정",
+		typeInfo: {
+			type: "range-picker",
+		} as IFormType,
+		defaultValue: searchParams.value.filterDate,
+	},
+	{
+		name: "departmentId",
+		label: "부서",
+		url: `/api/v2/slips/commons/departments`,
+		typeInfo: {
+			type: "single-table",
+			fieldName: { label: "name", value: "id" },
+			columns: [
+				{
+					title: "부서",
+					data: (row: any) => row.name,
+				},
+			],
+		} as IFormType,
+		defaultValue: [getDepartmentId.value],
+		disabled: pageSelectRole().selectLevelTypeName !== SelectLevelType.GLOBAL,
+		// 추가적 조건 필요
+		// 1. 비용부서에 나 자신이 기타사용자에 포함되어 있을 때 (포함되어져 있는 부서만 조회해야함)
+		// 2.
+	},
+	{
+		name: "employeeId",
+		label: "사용자",
+		url: `/api/v2/slips/commons/employees`,
+		typeInfo: {
+			type: "single-table",
+			fieldName: { label: "name", value: "id" },
+			columns: [
+				{
+					title: "이름",
+					data: (row: any) => row.name,
+					width: "10rem",
+				},
+				{ title: "직위", data: (row: any) => row.jobName },
+				{ title: "코스트센터", data: (row: any) => row.costCenterName },
+				{ title: "부서", data: (row: any) => row.departmentName },
+				{
+					title: "사업장",
+					data: (row: any) => row.workplaceName,
+				},
+			],
+		} as IFormType,
+		defaultValue: [getEmployeeId.value],
+		disabled: pageSelectRole().selectLevelTypeName === SelectLevelType.PERSONAL,
+		divider: true,
+	},
+	{
+		name: "agentFlag",
 		label: "대리작성조회",
 		typeInfo: {
 			type: "checkbox",
@@ -113,11 +169,11 @@ const filterFormData = reactive<Array<IFormData>>([
 		description: "대리 작성내역 포함",
 	},
 	{
-		name: "creatorByName",
+		name: "agentIds",
 		label: "대리작성자",
-		url: "/api/v2/slips/commons/employees",
+		url: `/api/v2/slips/expenses/agent`,
 		typeInfo: {
-			type: "single-table",
+			type: "multi-table",
 			fieldName: { label: "name", value: "id" },
 			columns: [
 				{
@@ -144,27 +200,27 @@ const filterFormData = reactive<Array<IFormData>>([
 		defaultValue: "",
 	},
 	{
-		name: "tradeByName",
-		label: "가맹점(거래처)",
-		url: `/api/v2/slips/commons/vendors`,
-		typeInfo: {
-			type: "single-table",
-			fieldName: { label: "name", value: "code" },
-			columns: [
-				{ title: "가맹점명", data: (row: any) => row.name },
-				{ title: "구분", data: (row: any) => row.vendorTypeLabel },
-				{
-					title: "사용여부",
-					data: (row: any) => (row.used ? "사용중" : "미사용"),
-				},
-			],
-		} as IFormType,
-		defaultValue: [],
+		name: "vendorName",
+		label: "거래처명",
+		// url: `/api/v2/slips/commons/vendors`,
+		// typeInfo: {
+		// 	type: "single-table",
+		// 	fieldName: { label: "name", value: "code" },
+		// 	columns: [
+		// 		{ title: "가맹점명", data: (row: any) => row.name },
+		// 		{ title: "구분", data: (row: any) => row.vendorTypeLabel },
+		// 		{
+		// 			title: "사용여부",
+		// 			data: (row: any) => (row.used ? "사용중" : "미사용"),
+		// 		},
+		// 	],
+		// } as IFormType,
+		defaultValue: "",
 	},
 	{
 		name: "accountId",
 		label: "계정/비용항목",
-		url: `/api/v2/masters/commons/accounts`,
+		url: `/api/v2/slips/commons/employee-account?companyCode=${getCompanyCode.value}&used=true&emplyeeId=${getEmployeeId.value}&personalExpenseFlag=true&cardFlag=true`,
 		rules: [
 			{
 				required: false,
@@ -172,31 +228,15 @@ const filterFormData = reactive<Array<IFormData>>([
 			},
 		],
 		typeInfo: {
-			type: "single-table",
+			type: "tree",
 			fieldName: { label: "name", value: "id" },
-			columns: [
-				{ title: "계정과목", data: (row: any) => row.name },
-				{ title: "설명", data: (row: any) => row.description },
-				{
-					title: "사용여부",
-					data: (row: any) => (row.used ? "사용중" : "미사용"),
-				},
-			],
 		} as IFormType,
 		defaultValue: [],
 	},
 	{
-		name: "amount",
-		label: "지출금액",
-		defaultValue: [0, 0],
-		typeInfo: {
-			type: "amount",
-		} as IFormType,
-	},
-	{
 		name: "state",
 		label: "상태",
-		url: `/api/v2/slip/expenses/types/slipStatuses`,
+		url: `/api/v2/slips/expenses/types/slipStatuses`,
 		rules: [
 			{
 				required: false,
@@ -213,7 +253,7 @@ const filterFormData = reactive<Array<IFormData>>([
 	{
 		name: "slipType",
 		label: "전표유형",
-		url: `/api/v2/slip/expenses/types/slipTypes`,
+		url: `/api/v2/slips/expenses/types/slipTypes`,
 		rules: [
 			{
 				required: false,
@@ -230,7 +270,7 @@ const filterFormData = reactive<Array<IFormData>>([
 	// {
 	//   name: 'state',
 	//   label: '상태',
-	//   url: '/api/v2/slip/expenses/types/slipStatuses',
+	//   url: '/api/v2/slips/expenses/types/slipStatuses',
 	//   typeInfo: {
 	//     type: 'multi-checkbox',
 	//     indeterminate: false,
@@ -246,7 +286,7 @@ const filterFormData = reactive<Array<IFormData>>([
 	// {
 	//   name: 'slipType',
 	//   label: '지출유형선택',
-	//   url: '/api/v2/slip/expenses/types/slipTypes',
+	//   url: '/api/v2/slips/expenses/types/slipTypes',
 	//   typeInfo: {
 	//     type: 'multi-checkbox',
 	//     fieldName: {
@@ -304,6 +344,7 @@ type PropsCardHistoryType = {
 type PropsCardHistoryBrand = "PropsCardHistoryBrand"
 const showCardHistoryModal = ref<boolean>(false)
 const showOilExpenseModal = ref<boolean>(false)
+const showReceiptModal = ref<boolean>(false)
 
 const cardHistoryParams = computed(() =>
 	createViewParams<PropsCardHistoryType, PropsCardHistoryBrand>({
@@ -315,6 +356,7 @@ const selectedData = ref<any>(undefined)
 const selectedSlipType = ref<SlipType>(SlipType.PERSONAL_EXPENSE)
 
 const onExpenseModal = async (data: any, slipType: SlipType) => {
+	if (data?.fuelSlipFlag) return onOilExpenseModal(data)
 	if (expenseRules.value) {
 		showExpenseModal.value = true
 		selectedData.value = data
@@ -344,9 +386,20 @@ const onCardHistoryModal = () => {
 	}
 }
 
-const onOilExpenseModal = () => {
+const onOilExpenseModal = (data?: any) => {
 	if (expenseRules.value) {
 		showOilExpenseModal.value = true
+		if (data) getOilExpenseDetail(data)
+	}
+}
+
+const onReceiptModal = () => {
+	if (expenseRules.value) {
+		showReceiptModal.value = true
+	} else {
+		message.error(
+			`경비기준 관리 설정이 되어있지 않습니다. 직접 설정 또는 담당자에게 문의하여 주시기 바랍니다.`
+		)
 	}
 }
 
@@ -384,22 +437,73 @@ const submit = (value: Array<IFormData>) => {
 		{} as Record<string, any>
 	)
 
-	const { state, slipType, accountId, amount, projectName } = formData
+	const {
+		searchDate,
+		state,
+		slipType,
+		accountId,
+		employeeId,
+		departmentId,
+		projectName,
+		vendorName,
+		agentFlag,
+		agentIds,
+	} = formData
 
 	updateSearchParams({
 		pageNumber: 0,
+		filterDate: searchDate,
+		searchDateFrom: dayjs(searchDate[0]).format(dateFormat),
+		searchDateTo: dayjs(searchDate[1]).format(dateFormat),
+		employeeId: employeeId[0],
+		employeeIds: employeeId,
+		departmentId: departmentId[0],
+		departmentIds: departmentId,
 		accountId,
 		slipStatus: _isEmpty(state) ? "" : state,
 		slipType: _isEmpty(slipType) ? "" : slipType,
-		amountFrom: amount[0] ? amount[0] : undefined,
-		amountTo: amount[1] ? amount[1] : undefined,
+		amountFrom: undefined,
+		amountTo: undefined,
 		projectName,
+		vendorName: vendorName ? vendorName : "",
+		agentFlag,
+		agentIds,
 	})
 
 	expensesRefresh()
 }
 
 const onSearch = (data: any) => {
+	const { filterDate, employeeId, departmentId } = searchParams.value
+	const slipStatus =
+		typeof searchParams.value.slipStatus == "object"
+			? searchParams.value.slipStatus[0]
+			: searchParams.value.slipStatus
+	const slipType =
+		typeof searchParams.value.slipType == "object"
+			? searchParams.value.slipType[0]
+			: searchParams.value.slipType
+
+	updateSearchParams({
+		pageNumber: 0,
+		filterDate: filterDate,
+		searchDateFrom: dayjs(filterDate[0]).format(dateFormat),
+		searchDateTo: dayjs(filterDate[1]).format(dateFormat),
+		employeeId: employeeId,
+		employeeIds: undefined,
+		departmentId: departmentId,
+		departmentIds: undefined,
+		accountId: undefined,
+		slipStatus: _isEmpty(slipStatus) ? "" : slipStatus,
+		slipType: _isEmpty(slipType) ? "" : slipType,
+		amountFrom: undefined,
+		amountTo: undefined,
+		projectName: undefined,
+		vendorName: undefined,
+		agentFlag: undefined,
+		agentIds: undefined,
+	})
+
 	expensesExecute()
 	// expensesRefresh();
 }
@@ -413,6 +517,21 @@ const setPagination = async (pagination: any, sorter: any) => {
 
 	expensesExecute()
 }
+
+const updateUrlWithDateRange = () => {
+	const filterDateFrom = searchParams.value.filterDate[0]
+	const filterDateTo = searchParams.value.filterDate[1]
+	const companyCode = getCompanyCode.value
+	const employeeId = getEmployeeId.value
+
+	// URL 갱신
+	filterFormData.forEach((item) => {
+		if (item.name === "agentIds" && item.url) {
+			item.url = `/api/v2/slips/expenses/agent?companyCode=${companyCode}&employeeId=${employeeId}&searchDateFrom=${filterDateFrom ? dayjs(filterDateFrom).format("YYYY-MM-DD") : ""}&searchDateTo=${filterDateTo ? dayjs(filterDateTo).format("YYYY-MM-DD") : ""}`
+		}
+	})
+}
+
 const onChangeMonth = (e: any) => {
 	const { value } = e.target
 
@@ -442,6 +561,15 @@ const {
 		approvalLimitEndDay: res.data?.approvalLimitEndDayName || "",
 	}))
 )
+
+const getOilExpenseDetail = async (data: any) => {
+	await useCFetch<Response<any>>(`/api/v2/slips/expenses/${data.id}`, {
+		method: "GET",
+		params: { id: data.id },
+	}).then((res) => {
+		if (res.status === 0) oilData.value = res.data
+	})
+}
 
 const { getExpenseType } = useExpenseTypes()
 
@@ -489,19 +617,24 @@ const {
  * @param searchParams
  */
 const fetchExpenses = async (searchParams: any) => {
+	// console.log("searchParams ", searchParams)
 	const response = await useCFetch<Response<Array<ExpenseList>>>(
-		"/api/v2/slip/expenses",
+		"/api/v2/slips/expenses",
 		{
 			method: "GET",
 			params: {
 				page: searchParams.pageNumber > 1 ? searchParams.pageNumber - 1 : 0,
 				...searchParams,
+				slipType: searchParams.slipType,
+				slipStatus: searchParams.slipStatus,
 				employeeId: getEmployeeId.value,
 			},
 		}
-	)
+	).catch((error) => {
+		showError(error)
+	})
 
-	if (response.data && Array.isArray(response.data)) {
+	if (response?.data && Array.isArray(response.data)) {
 		const ids = response.data.map((item) => item.id)
 		const uniqueIds = Array.from(new Set(ids)).filter(
 			(id): id is number => id !== undefined
@@ -553,6 +686,13 @@ onBeforeRouteLeave(() => {
 		showExpenseModal.value = false
 	}
 })
+watch(
+	() => searchParams.value.filterDate,
+	() => {
+		updateUrlWithDateRange()
+	},
+	{ immediate: true }
+)
 </script>
 
 <template>
@@ -571,6 +711,7 @@ onBeforeRouteLeave(() => {
 						<label>기간설정</label>
 						<a-range-picker
 							v-model:value="searchParams.filterDate"
+							:value-format="dateTimeFormat"
 							@change="onChangeRangePicker"
 						/>
 					</a-space>
@@ -590,12 +731,28 @@ onBeforeRouteLeave(() => {
 				<a-col>
 					<a-space>
 						<span>분류</span>
+						<!-- 
+            mode="multiple"
+              :max-tag-count="1"
+              optionLabelProp="label"
+              :tag-render="(props: any) => props.label"
+               -->
 						<a-select
 							style="width: 12rem"
 							v-model:value="searchParams.slipType"
 							:field-names="codeFieldNames"
 							:options="expensesTypes!.slipTypes"
-							@change="searchParams.pageNumber = 0"
+							@change="
+								(value: any) => {
+									searchParams.pageNumber = 0
+									// if (value.length > 1) {
+									//   // 하나의 값만 유지하도록 설정
+									//   searchParams.slipType = [value[value.length - 1]];
+									// } else {
+									//   searchParams.slipType = value;
+									// }
+								}
+							"
 						>
 							<template v-if="expensesTypesPending" #notFoundContent>
 								<a-spin size="small" />
@@ -606,6 +763,12 @@ onBeforeRouteLeave(() => {
 				<a-col>
 					<a-space>
 						<span>상태</span>
+						<!-- 
+            mode="multiple"
+              :max-tag-count="1"
+              optionLabelProp="label"
+              :tag-render="(props: any) => props.label"
+               -->
 						<a-select
 							style="width: 12rem"
 							:field-names="codeFieldNames"
@@ -614,7 +777,12 @@ onBeforeRouteLeave(() => {
 							@change="
 								(value: any) => {
 									searchParams.pageNumber = 0
-									console.log(value)
+									// if (value.length > 1) {
+									//   // 하나의 값만 유지하도록 설정
+									//   searchParams.slipStatus = [value[value.length - 1]];
+									// } else {
+									//   searchParams.slipStatus = value;
+									// }
 									filterFormValue('state').set([value])
 								}
 							"
@@ -642,10 +810,8 @@ onBeforeRouteLeave(() => {
 									filterFormValue('departmentId').set(value)
 								}
 							"
+							:disabled="pageSelectRole().selectLevelTypeName !== SelectLevelType.GLOBAL"
 						/>
-						<!-- :disabled="
-                pageSelectRole().selectLevelTypeName !== SelectLevelType.GLOBAL
-              " -->
 					</a-space>
 				</a-col>
 				<a-col>
@@ -719,14 +885,17 @@ onBeforeRouteLeave(() => {
 						@update:form-data="(params: Array<IFormData>) => {}"
 						@update:form-data-item="
 							(params: IFormData) => {
-								if (params.name === 'creatorCheck') {
-									filterFormDisabled('creatorByName').set(!params.defaultValue)
+								if (params.name === 'agentFlag') {
+									filterFormDisabled('agentIds').set(!params.defaultValue)
+								}
+								if (params.name === 'searchDate') {
+									searchParams.filterDate = params.defaultValue
 								}
 							}
 						"
 						@submit="submit"
 					>
-						상세필터
+						상세검색
 					</eacc-filter-button>
 				</a-col>
 				<a-col>
@@ -747,6 +916,7 @@ onBeforeRouteLeave(() => {
 					@expense-modal="onExpenseModal"
 					@card-history-modal="onCardHistoryModal"
 					@oil-expense-modal="onOilExpenseModal"
+					@receipt-modal="onReceiptModal"
 					@pagination="setPagination"
 					@refresh="expensesRefresh"
 				/>
@@ -763,7 +933,14 @@ onBeforeRouteLeave(() => {
 				"
 				@update:show="onUpdateExpenseModal"
 			/>
-
+			<eacc-ocr-modal
+				:file-props="{
+					companyCode: getCompanyCode,
+					fileType: 'RECEIPT',
+				}"
+				v-model:show="showReceiptModal"
+			>
+			</eacc-ocr-modal>
 			<card-history-modal
 				v-if="expenses && cardHistoryParams.show"
 				:params="cardHistoryParams"
@@ -772,7 +949,9 @@ onBeforeRouteLeave(() => {
 			</card-history-modal>
 			<oil-expenses-modal
 				:show="showOilExpenseModal"
+				:oilFormData="oilData || {}"
 				@update:show="onUpdateOilExpenseModal"
+				@refresh="expensesRefresh"
 			></oil-expenses-modal>
 		</template>
 	</page-layout>

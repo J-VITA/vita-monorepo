@@ -5,8 +5,6 @@ import { iwxGrid } from "@iwx/ui"
 import type { GridApi, GridOptions } from "@iwx/ui"
 import type { UploadChangeParam } from "ant-design-vue"
 import { UploadRequestOption, RcFile } from "ant-design-vue/es/vc-upload/interface"
-import { Response } from "@/types"
-import { gridOptions } from "@/types/approvals/document"
 import { ColorTag } from "@/components/ui"
 
 interface CustomRequestOptions
@@ -28,8 +26,8 @@ interface DataProps {
 
 const { show = false, sampleFileKey, url } = defineProps<DataProps>()
 
-const authStore = useAuthStore()
-const { getCompanyCode } = storeToRefs(authStore)
+// const authStore = useAuthStore()
+// const { getCompanyCode } = storeToRefs(authStore)
 
 const emit = defineEmits<{
 	(e: "update:show", value: any): void
@@ -67,6 +65,8 @@ const onGridReady = (params: any) => {
 
 const sampleDownLoad = async () => {
 	if (sampleFileKey) {
+		console.log("sampleFileKey", sampleFileKey)
+
 		try {
 			// API를 통해 파일 다운로드
 			// const response = await useCFetch<Response<any>>(
@@ -132,7 +132,10 @@ const customUploadRequest = async (options: CustomRequestOptions) => {
 				// 컬럼 헤더와 키 추출
 				const sheetData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[] // 2차원 배열 형태로 변환
 
-				const columnHeader = sheetData[1]
+				const columnHeader = sheetData[1].filter(
+					(item: any) =>
+						!["id", "parentid", "parent_id", "parent id"].includes(item.toLowerCase())
+				)
 				// "ID", "id", "Id" 제거
 				const columnKey = sheetData[2].filter(
 					(item: any) =>
@@ -144,7 +147,7 @@ const customUploadRequest = async (options: CustomRequestOptions) => {
 					headerName: columnHeader[index],
 					field: header,
 					suppressMenu: true,
-					flex: 1,
+					// flex: 1,
 					editable: (params: any) => params.data?.editable ?? false,
 				}))
 
@@ -193,6 +196,7 @@ const onCancel = () => {
 	open.value = false
 	fileList.value = []
 	rowData.value = []
+	isFailed.value = false
 }
 
 const onSubmit = async () => {
@@ -259,6 +263,7 @@ const onSubmit = async () => {
 		:mask-closable="false"
 		:keyboard="false"
 		:destroy-on-close="true"
+		@cancel="onCancel"
 	>
 		<a-flex :gap="5" vertical align="center" class="mb-lg">
 			<a-typography-title :level="5">
@@ -320,7 +325,6 @@ const onSubmit = async () => {
 
 		<iwx-grid
 			:style="{ width: '100%', height: '60rem' }"
-			:grid-options="gridOptions"
 			:row-data="rowData"
 			:column-defs="columnDefs"
 			:suppress-menu-hide="false"

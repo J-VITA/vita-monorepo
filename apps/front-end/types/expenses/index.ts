@@ -116,6 +116,13 @@ export const SlipDivisionType = {
 	PERSONAL_EXPENSE_DIVISION: "PERSONAL_EXPENSE_DIVISION",
 }
 
+export const SlipOilType = {
+	GASOLINE: "GASOLINE",
+	DIESEL: "DIESEL",
+	LPG: "LPG",
+	Electric: "Electric",
+}
+
 /**
  * 전표 상태 코드 호출 타입
  * @description 트리 쉐이킹 & 런타임 오버헤드 축소
@@ -156,7 +163,7 @@ export const states: StateType = {
 	APPROVAL_ING: { color: "blue", text: "결재중" },
 	SEAL_STANDBY: { color: "green", text: "검인대기" },
 	SEAL_RETURN: { color: "purple", text: "검인반려" },
-	SEAL_ING: { color: "purple", text: "검인반려" },
+	SEAL_ING: { color: "purple", text: "검인중" },
 	CONFIRM: { color: "green", text: "확정" },
 	REVERSE: { color: "purple", text: "역분개" },
 }
@@ -191,8 +198,7 @@ export interface UpdatedWriterInfo {
 	accountId?: number
 }
 
-interface ManagementItemType {
-	//DynamicItemType
+export interface ManagementItemType {
 	id: number
 	companyCode: string
 	managementItemFieldName: string
@@ -208,22 +214,40 @@ interface ManagementItemType {
 	alignmentDirectionTypeLabel?: string | undefined
 	accountId: number
 	value: string
-	// key: string;
-	// label: string;
-	// value: any;
-	// required: boolean;
-	// type: FormType;
+}
+
+export interface Place {
+	place_name: string
+	road_address_name?: string
+	address_name: string
+	phone?: string
+	x: string
+	y: string
+}
+
+interface StopOver {
+	orderSeq: number
+	location: string
+	fuelSlipHeaderId?: number
 }
 
 export type OilExpensesFormData = {
 	id?: string
-	searchDate?: Dayjs | string
+	accountingDate?: Dayjs | string
+	evidenceDate?: Dayjs | string
+	paymentDueDate?: Dayjs | string
+	companyCode?: string
+	employeeId?: number
+	workplaceCode?: string
+	costCenterId?: number
+	writer?: number[]
+	accruedAccountCode?: string
 	perdiemName?: string
 	perdiemPath?: string
-	department?: string
-	stopover?: string[]
-	arrival?: string
-	roundTripFlag: boolean
+	departure?: string
+	stopover?: StopOver[]
+	destination?: string
+	roundTripFlag?: boolean
 	distance?: number
 	fuelType?: string
 	costStandard?: string
@@ -231,14 +255,11 @@ export type OilExpensesFormData = {
 	description?: string
 	accountId?: number
 	projectId?: number
-}
-
-type References = {
-	reference1: string //참조1
-	reference2: string //참조2
-	reference3: string //참조3
-	reference4: string //참조4
-	reference5: string //참조5
+	slipFileIds?: number[]
+	relatedDocumentIds?: number[]
+	oilPrice?: number
+	oilMileage?: number
+	personalPathName?: string
 }
 
 type OrderedMap = {
@@ -282,18 +303,24 @@ export type SlipDetails = {
 	krwSupplyAmount?: number //현지과세표준금액
 	krwTaxAmount?: number //현지부가세액
 	description?: string //디테일 설명
-	reference?: Partial<References> //참조정보
+	reference?: { [key: string]: string } //참조정보
 	slipHeaderId?: string | number | undefined //전표헤더 식별자
 	accountIds?: (string | number)[]
 	accountId?: string | number | undefined //계정과목 식별자
 	costCenterId?: number | undefined //코스트센터 식별자
 	projectId?: number //프로젝트 식별자
+	projectIds?: [number] //프로젝트 식별자(화면용)
 	workplaceId?: number //사업장 식별자(임시)
 	workplaceCode?: string | number //사업장코드
 	isDirectModify?: boolean // (화면) 직접수정
 	employeeId: number | undefined //작성자 - 직원 식별자
 	employee: Array<number> //작성자 - 직원 식별자(ui select-table type 객체)
 	accountChangeCnt?: number // 자동 공제를 위한 카운트 변수
+	managementItems: ManagementItemType[] | []
+}
+
+export interface SlipDetailsWithReferences extends SlipDetails {
+	reference: { [key: string]: string }
 }
 
 type IExpenses = {
@@ -304,7 +331,7 @@ type IExpenses = {
 	slipTypeLabel: string
 	slipStatusName: string
 	slipStatusLabel: string
-	accountingYearMonth: string
+	// accountingYearMonth: string
 	accountingDate: string
 	evidenceDate: string
 	slipEvidenceTypeName: string
@@ -326,20 +353,21 @@ type IExpenses = {
 
 type ISlip = {
 	documents: Array<IUploadFile<any>> //참고 문서 파일 리스트
-	entityslipHeader: IEntitySlipHeader
+	slipHeader: ISlipHeader
 	slipCard: ISlipCard
 	files: Array<IUploadFile<any>> //첨부파일 리스트
 	receiptFile: Array<IUploadFile<any>> //영수증 파일
 	slipDetails: Array<SlipDetails> //개인경비/법인카드 디테일 리스트
 }
 
-type IEntitySlipHeader = {
+type ISlipHeader = {
 	id: number | string //전표 식별자
 	companyCode: string //회사구분코드 * 필수
 	slipNumber: string
 	slipType: string //전표유형 * 필수
+	slipTypeName?: string
 	slipStatus: string // 전표상태 * 필수
-	accountingYearMonth: Dayjs | undefined //회계년월 * 필수
+	// accountingYearMonth: Dayjs | undefined //회계년월 * 필수
 	accountingDate: Dayjs | undefined //회계일자 * 필수
 	evidenceDate: Dayjs | undefined //증빙일자 * 필수
 	slipEvidenceType: string //증빙유형(CARD, CARD_DIVISION, PERSONAL_EXPENSE, PERSONAL_EXPENSE_DIVISION..) * 필수
@@ -349,6 +377,7 @@ type IEntitySlipHeader = {
 	taxCode: string //세금코드
 	workplaceId: number | undefined //사업장 식별자
 	workplaceCode: string | number | undefined //사업장코드
+	workplaceCodes?: (string | number)[] //사업장코드 (화면용)
 	evidenceVendorCode: string //증빙거래처코드
 	evidenceVendorName: string //증빙거래처명
 	evidenceVendorRegistrationNumber: string //증빙거래처 사업자등록번호
@@ -389,12 +418,12 @@ type IEntitySlipHeader = {
 	approvalDraftDate: Dayjs | undefined //결재기안일시
 	approvalFinalDate: Dayjs | undefined //결재최종일시
 	description: string //헤더 설명
-	reference: Partial<References> | undefined
+	reference: { [key: string]: string }
 	writerId: number | undefined //작성자 - 직원 식별자
 	writer: Array<number> //작성자 - 직원 식별자(ui select-table type 객체)
 	approvalFinalEmployeeId: number | undefined //최종결재자 - 직원 식별자
 	employeeId: number | undefined //사용자 - 직원 식별자
-	managementItems: ManagementItemType[] | []
+	// managementItems: ManagementItemType[] | []
 	slipStatusLabel: string
 	slipStatusName: string
 	storeName: string // 가맹점
@@ -418,13 +447,13 @@ type ISlipCard = {
 }
 
 export const SlipField: ISlip = {
-	entityslipHeader: {
+	slipHeader: {
 		id: "", //전표 식별자
 		companyCode: "", //회사구분코드
 		slipType: "", //전표유형
 		slipStatus: "", // 전표상태
 		slipNumber: "", //전표번호
-		accountingYearMonth: undefined, //회계년월
+		// accountingYearMonth: undefined, //회계년월
 		accountingDate: undefined, //회계일자
 		evidenceDate: undefined, //증빙일자
 		slipEvidenceType: "", //증빙유형(CARD, CARD_DIVISION, PERSONAL_EXPENSE, PERSONAL_EXPENSE_DIVISION..)
@@ -472,12 +501,12 @@ export const SlipField: ISlip = {
 		approvalDraftDate: undefined, //결재기안일시
 		approvalFinalDate: undefined, //결재최종일시
 		description: "", //헤더 설명
-		reference: undefined,
+		reference: {},
 		writerId: undefined, //작성자 - 직원 식별자
 		writer: [], //작성자 - 직원 식별자(ui select-table type 객체)
 		approvalFinalEmployeeId: undefined, //최종결재자 - 직원 식별자
 		employeeId: undefined, //사용자 - 직원 식별자
-		managementItems: [],
+		// managementItems: [],
 		slipStatusLabel: "",
 		slipStatusName: "",
 		storeName: "",
@@ -506,113 +535,124 @@ export const SlipField: ISlip = {
 //전표내역 조회 데이터 타입
 export type ExpenseList = Partial<IExpenses>
 
-export type EntityslipHeader = Partial<IEntitySlipHeader>
+export type SlipHeader = Partial<ISlipHeader>
 //전표 상세 전체 데이터 타입
 // export type Slip = Partial<ISlip>;
 export interface Slip {
-	entityslipHeader: EntityslipHeader
+	slipHeader: SlipHeader
 	slipDetails: SlipDetails[]
 	slipCard: ISlipCard
 	documents: any
 	files: any
 	receiptFile: any
+	fuelSlipHeader: any
 }
 export class ExpenseBuilder {
 	private expense: Slip
 
 	constructor() {
 		this.expense = {
-			entityslipHeader: { ...SlipField.entityslipHeader },
+			slipHeader: { ...SlipField.slipHeader },
 			slipDetails: [],
 			slipCard: { ...SlipField.slipCard },
 			documents: [],
 			files: [],
 			receiptFile: [],
+			fuelSlipHeader: {},
 		}
 	}
 
 	setId(id: number): ExpenseBuilder {
-		if (this.expense.entityslipHeader) {
-			this.expense.entityslipHeader.id = id
+		if (this.expense.slipHeader) {
+			this.expense.slipHeader.id = id
 		}
 		return this
 	}
 
 	setSlipType(slipType: string): ExpenseBuilder {
-		if (this.expense.entityslipHeader) {
-			this.expense.entityslipHeader.slipType = slipType
-			this.expense.entityslipHeader.slipEvidenceType = slipType
+		if (this.expense.slipHeader) {
+			this.expense.slipHeader.slipType = slipType
+			this.expense.slipHeader.slipEvidenceType = slipType
 		}
 		return this
 	}
 
 	setWorkplace(workplaceCode?: string, workplaceId?: number): ExpenseBuilder {
-		if (this.expense.entityslipHeader) {
-			this.expense.entityslipHeader.workplaceCode = workplaceCode
+		if (this.expense.slipHeader) {
+			this.expense.slipHeader.workplaceCode = workplaceCode
 			if (workplaceId) {
-				this.expense.entityslipHeader.workplaceId = workplaceId
+				this.expense.slipHeader.workplaceId = workplaceId
 			}
 		}
 		return this
 	}
 
 	setDivisionSlipFlag(flag: boolean): ExpenseBuilder {
-		if (this.expense.entityslipHeader) {
-			this.expense.entityslipHeader.divisionSlipFlag = flag
+		if (this.expense.slipHeader) {
+			this.expense.slipHeader.divisionSlipFlag = flag
 		}
 		return this
 	}
 
 	setCompanyCode(companyCode: string): ExpenseBuilder {
-		if (this.expense.entityslipHeader) {
-			this.expense.entityslipHeader.companyCode = companyCode
+		if (this.expense.slipHeader) {
+			this.expense.slipHeader.companyCode = companyCode
 		}
 		return this
 	}
 
 	setWriter(writer: number): ExpenseBuilder {
-		if (this.expense.entityslipHeader) {
-			this.expense.entityslipHeader.writerId = writer
-			this.expense.entityslipHeader.writer = [writer]
+		if (this.expense.slipHeader) {
+			this.expense.slipHeader.writerId = writer
+			this.expense.slipHeader.writer = [writer]
 		}
 		return this
 	}
 
-	setAccountingYearMonth(accountingYearMonth?: string): ExpenseBuilder {
-		if (this.expense.entityslipHeader) {
-			this.expense.entityslipHeader.accountingYearMonth = accountingYearMonth
-				? dayjs(accountingYearMonth, monthFormat)
-				: undefined
-		}
-		return this
-	}
+	// setAccountingYearMonth(accountingYearMonth?: string): ExpenseBuilder {
+	// 	if (this.expense.slipHeader) {
+	// 		this.expense.slipHeader.accountingYearMonth = accountingYearMonth
+	// 			? dayjs(accountingYearMonth, dateFormat)
+	// 			: undefined
+	// 	}
+	// 	return this
+	// }
 
 	setAccountingDate(accountingDate?: string): ExpenseBuilder {
-		if (this.expense.entityslipHeader) {
-			this.expense.entityslipHeader.accountingDate = accountingDate
+		if (this.expense.slipHeader) {
+			this.expense.slipHeader.accountingDate = accountingDate
 				? dayjs(accountingDate, dateFormat)
 				: undefined
 		}
 		return this
 	}
 
+	setEvidenceDate(evidenceDate?: string): ExpenseBuilder {
+		if (this.expense.slipHeader) {
+			this.expense.slipHeader.evidenceDate = evidenceDate
+				? dayjs(evidenceDate, dateFormat)
+				: undefined
+		}
+		return this
+	}
+
 	setPaymentDueDate(paymentDueDate: string): ExpenseBuilder {
-		if (this.expense.entityslipHeader) {
-			this.expense.entityslipHeader.paymentDueDate = dayjs(paymentDueDate, dateFormat)
+		if (this.expense.slipHeader) {
+			this.expense.slipHeader.paymentDueDate = dayjs(paymentDueDate, dateFormat)
 		}
 		return this
 	}
 
 	setCurrencyType(currencyType: string): ExpenseBuilder {
-		if (this.expense.entityslipHeader) {
-			this.expense.entityslipHeader.currencyType = currencyType
+		if (this.expense.slipHeader) {
+			this.expense.slipHeader.currencyType = currencyType
 		}
 		return this
 	}
 
 	setAccruedAccountCode(accruedAccountCode: string): ExpenseBuilder {
-		if (this.expense.entityslipHeader) {
-			this.expense.entityslipHeader.accruedAccountCode = accruedAccountCode
+		if (this.expense.slipHeader) {
+			this.expense.slipHeader.accruedAccountCode = accruedAccountCode
 		}
 		return this
 	}
@@ -647,26 +687,24 @@ export class ExpenseBuilder {
 		this.expense.slipDetails =
 			slipDetails.length > 0
 				? slipDetails
-				: [getDefaultSlipDetail(this.expense.entityslipHeader?.id)]
+				: [getDefaultSlipDetail(this.expense.slipHeader?.id)]
 
 		if (this.expense.slipDetails) {
 			const amounts = this.expense.slipDetails.map((x) => x.totalAmount || 0)
 			const vatAmounts = this.expense.slipDetails.map((x) => x.taxAmount || 0)
 
-			if (this.expense.entityslipHeader) {
-				this.expense.entityslipHeader.krwSupplyAmount = amounts.reduce(
+			if (this.expense.slipHeader) {
+				this.expense.slipHeader.krwSupplyAmount = amounts.reduce(
 					(acc, amount) => acc + amount,
 					0
 				)
-				this.expense.entityslipHeader.krwTaxAmount = vatAmounts.reduce(
+				this.expense.slipHeader.krwTaxAmount = vatAmounts.reduce(
 					(acc, amount) => acc + amount,
 					0
 				)
-				this.expense.entityslipHeader.krwTotalAmount =
-					this.expense.entityslipHeader.krwSupplyAmount +
-					this.expense.entityslipHeader.krwTaxAmount
-				this.expense.entityslipHeader.totalAmount =
-					this.expense.entityslipHeader.krwTotalAmount
+				this.expense.slipHeader.krwTotalAmount =
+					this.expense.slipHeader.krwSupplyAmount + this.expense.slipHeader.krwTaxAmount
+				this.expense.slipHeader.totalAmount = this.expense.slipHeader.krwTotalAmount
 			}
 		}
 
@@ -690,5 +728,6 @@ const getDefaultSlipDetail = (headerId?: number | string): SlipDetails => {
 		slipHeaderId: headerId ? Number(headerId) : undefined,
 		employeeId: undefined,
 		employee: [],
+		managementItems: [],
 	}
 }

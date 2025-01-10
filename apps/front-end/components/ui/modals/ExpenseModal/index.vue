@@ -6,6 +6,7 @@ import type { Dayjs } from "dayjs"
 import { AccountPeriodStatus, IRequest, type AccountPeriod } from "@/types/master/period"
 import { OsType, SlipType, type Response } from "@/types"
 import type { FormInstance, UploadFile } from "ant-design-vue"
+import { addMonthAndDate } from "~/utils/addDays"
 import {
 	type ExpenseList,
 	type SlipDetails,
@@ -15,11 +16,13 @@ import {
 	SlipField,
 	SlipStateType,
 	Slip,
-	EntityslipHeader,
+	SlipHeader,
 	WriterInfo,
 	monthFormat,
 	SlipTaxType,
 	SlipDivisionType,
+	ManagementItemType,
+	SlipDetailsWithReferences,
 } from "@/types/expenses"
 import { createVNode, onWatcherCleanup, useTemplateRef } from "vue"
 import type { Data } from "@/types/master/config"
@@ -90,38 +93,42 @@ const initFormState = async () => {
 		}).then((res: Response<Array<CommonProject>>) => res)
 	)
 
-	return new ExpenseBuilder()
-		.setWriter(getEmployeeId.value)
-		.setSlipType(formSlipType)
-		.setCurrencyType("KRW")
-		.setCompanyCode(getCompanyCode.value)
-		.setWorkplace(getWorkplaceCode.value)
-		.setAccountingYearMonth(dayjs().format("YYYY-MM"))
-		.setAccountingDate(dayjs().format("YYYY-MM-DD"))
-		.setReceiptFile([])
-		.setFiles([])
-		.setDivisionSlipFlag(false)
-		.setSlipDetails([
-			{
-				seq: 1,
-				employee: [getEmployeeId.value],
-				employeeId: getEmployeeId.value,
-				taxCode: "A",
-				krwTotalAmount: 0,
-				taxAmount: 0,
-				slipLineType: "ITEM",
-				debitCreditType: "DEBIT",
-				slipHeaderId: undefined,
-				companyCode: getCompanyCode.value,
-				workplaceCode: getWorkplaceCode.value,
-				costCenterId: getCostCenterId.value,
-				projectId:
-					projectStatus === 0 && projectData && projectData.length === 1
-						? projectData[0].id
-						: undefined,
-			},
-		])
-		.build()
+	return (
+		new ExpenseBuilder()
+			.setWriter(getEmployeeId.value)
+			.setSlipType(formSlipType)
+			.setCurrencyType("KRW")
+			.setCompanyCode(getCompanyCode.value)
+			.setWorkplace(getWorkplaceCode.value)
+			// .setAccountingYearMonth(dayjs().format("YYYY-MM-DD"))
+			.setAccountingDate(dayjs().format("YYYY-MM-DD"))
+			.setEvidenceDate(dayjs().format("YYYY-MM-DD"))
+			.setReceiptFile([])
+			.setFiles([])
+			.setDivisionSlipFlag(false)
+			.setSlipDetails([
+				{
+					seq: 1,
+					employee: [getEmployeeId.value],
+					employeeId: getEmployeeId.value,
+					taxCode: "A",
+					krwTotalAmount: 0,
+					taxAmount: 0,
+					slipLineType: "ITEM",
+					debitCreditType: "DEBIT",
+					slipHeaderId: undefined,
+					companyCode: getCompanyCode.value,
+					workplaceCode: getWorkplaceCode.value,
+					costCenterId: getCostCenterId.value,
+					projectId:
+						projectStatus === 0 && projectData && projectData.length === 1
+							? projectData[0].id
+							: undefined,
+					managementItems: [],
+				},
+			])
+			.build()
+	)
 }
 const formState = ref<Slip>(await initFormState())
 const initialState = ref<Slip>(await initFormState())
@@ -136,7 +143,7 @@ const initializeState = async () => {
 
 const currentPage = ref<number>(1)
 const modalWidth = computed(() => {
-	return formState.value.entityslipHeader?.divisionSlipFlag ? "140rem" : "80rem"
+	return formState.value.slipHeader?.divisionSlipFlag ? "140rem" : "80rem"
 })
 const {
 	checkAccountInputMethod,
@@ -166,11 +173,20 @@ const onSave = async () => {
 	const body = {
 		...formState.value,
 		slipHeaderRequest: {
-			...formState.value.entityslipHeader,
+			...formState.value.slipHeader,
 			slipType: formSlipType,
 			slipEvidenceType: formSlipType,
+			bankType: !!formState.value.slipHeader.bankType
+				? formState.value.slipHeader.bankType
+				: undefined,
+			actualPayeeFlag: false,
+			handTaxInvoiceFlag: formState.value.slipHeader.slipType?.includes(
+				"PERSONAL_EXPENSE"
+			)
+				? false
+				: undefined,
 			deductionType:
-				formState.value.entityslipHeader.taxCode === "A"
+				formState.value.slipHeader.taxCode === "A"
 					? SlipTaxType.NON_DEDUCTION
 					: SlipTaxType.DEDUCTION,
 		} as any,
@@ -180,15 +196,15 @@ const onSave = async () => {
 		slipDetailRequests: formState.value.slipDetails,
 	}
 
-	if (formState.value.entityslipHeader) {
-		body.slipHeaderRequest.accountingYearMonth = dayjs(
-			formState.value.entityslipHeader.accountingYearMonth
-		).format(monthFormat)
-		// body.slipHeaderRequest.accountingDate = dayjs(
-		//   formState.value.entityslipHeader.accountingDate
-		// ).format(dateFormat);
+	if (formState.value.slipHeader) {
+		body.slipHeaderRequest.accountingDate = dayjs(
+			formState.value.slipHeader.accountingDate
+		).format(dateFormat)
+		body.slipHeaderRequest.evidenceDate = dayjs(
+			formState.value.slipHeader.evidenceDate
+		).format(dateFormat)
 		body.slipHeaderRequest.paymentDueDate = dayjs(
-			formState.value.entityslipHeader.paymentDueDate
+			formState.value.slipHeader.paymentDueDate
 		).format(dateFormat)
 
 		body.slipHeaderRequest.employeeId = getEmployeeId.value
@@ -199,11 +215,11 @@ const onSave = async () => {
 		body.slipHeaderRequest.countryType = "KOR"
 		body.slipHeaderRequest.osType = OsType.WEB
 		body.slipHeaderRequest.exchangeRateDate = dayjs(
-			formState.value.entityslipHeader.accountingDate
+			formState.value.slipHeader.accountingDate
 		).format(dateFormat)
-		body.slipHeaderRequest.description = formState.value.entityslipHeader.description
+		body.slipHeaderRequest.description = formState.value.slipHeader.description
 		body.slipHeaderRequest.evidenceDate = dayjs(
-			formState.value.entityslipHeader.accountingDate
+			formState.value.slipHeader.evidenceDate
 		).format(dateFormat)
 		body.slipHeaderRequest.fixedAssetFlag = false
 
@@ -246,6 +262,7 @@ const onSave = async () => {
 
 		body.slipHeaderRequest.slipCalculationType = "NOT"
 	}
+
 	if (disabledPersonalExpenseReceiptFlag.value) {
 		if (!formState.value.receiptFile || formState.value.receiptFile.length === 0) {
 			message.error("영수증 파일을 첨부하세요.")
@@ -267,22 +284,31 @@ const onSave = async () => {
 			.map((file: any) => ({ id: file.uid as number }))
 	}
 
-	body.slipDetailRequests = body.slipDetails.map((x: SlipDetails, idx: number) => ({
-		...x,
-		seq: idx + 1,
-		divisionSeq: idx + 1,
-		debitCreditType: "DEBIT",
-		slipLineType: "ITEM",
-		companyCode: getCompanyCode.value,
-		taxCode: x.taxCode === SlipTaxType.NON_DEDUCTION ? "A" : "B",
-		//이제까지 안넣으거 확인
-		// budgetDepartmentCode: '',
-		// localAmount: x.amount,
-		// localTaxAmount: x.taxAmount,
-		// localTaxBaseAmount: 10000,
-		// taxBaseAmount: 10000,
-	}))
+	body.slipDetailRequests = body.slipDetails.map((x: SlipDetails, idx: number) => {
+		const result: SlipDetailsWithReferences = {
+			...x,
+			seq: idx + 1,
+			divisionSeq: idx + 1,
+			debitCreditType: "DEBIT",
+			slipLineType: "ITEM",
+			companyCode: getCompanyCode.value,
+			taxCode: x.taxCode === SlipTaxType.NON_DEDUCTION ? "A" : "B",
+			reference: {},
+			krwSupplyAmount: x.supplyAmount,
+			krwTaxAmount: x.taxAmount,
+			krwTotalAmount: formState.value.slipHeader.totalAmount,
+			totalAmount: formState.value.slipHeader.totalAmount,
+		}
 
+		if (x.managementItems) {
+			x.managementItems.forEach((item: ManagementItemType, itemIdx: number) => {
+				result.reference[`reference${itemIdx + 1}`] = item.value
+			})
+		}
+		return result
+	})
+
+	console.log("body ", body)
 	//이제까지 안넣으거 확인
 	// body.foreignCurrencyAmount = 0;
 	// body.krwOtherAmount = 0;
@@ -293,9 +319,9 @@ const onSave = async () => {
 	// body.termsOfPaymentCode = '';
 
 	return await useCFetch<Response<any>>(
-		`/api/v2/slip/expenses${formState.value.entityslipHeader.id ? "/" + formState.value.entityslipHeader.id : ""}`,
+		`/api/v2/slips/expenses${formState.value.slipHeader.id ? "/" + formState.value.slipHeader.id : ""}`,
 		{
-			method: formState.value.entityslipHeader.id ? "PATCH" : "POST",
+			method: formState.value.slipHeader.id ? "PATCH" : "POST",
 			body,
 		}
 	).then((res: Response<any>) => {
@@ -304,6 +330,7 @@ const onSave = async () => {
 		} else {
 			console.log(res)
 		}
+		isRepeat.value = false
 		return res
 	})
 }
@@ -313,17 +340,16 @@ const onSubmit = () => {
 		?.validate()
 		.then(() => {
 			// loading.value = true;
-			const divisionType = formState.value.entityslipHeader.divisionSlipFlag
+			const divisionType = formState.value.slipHeader.divisionSlipFlag
 				? SlipDivisionType.CARD_DIVISION
 				: SlipDivisionType.CARD
 			if (divisionType === SlipDivisionType.CARD_DIVISION && !validateTotalAmount())
 				return
-			onSave()
-			// .then((res: Response<any>) => {
-			//   if (res.status === 0) {
-			//     open.value = false;
-			//   }
-			// });
+			onSave().then((res: Response<any>) => {
+				if (res.status === 0) {
+					open.value = false
+				}
+			})
 		})
 		.catch((error: Error) => {
 			console.log("error", error)
@@ -334,7 +360,7 @@ const onRepeat = () => {
 	formRef.value
 		?.validate()
 		.then(async () => {
-			const divisionType = formState.value.entityslipHeader.divisionSlipFlag
+			const divisionType = formState.value.slipHeader.divisionSlipFlag
 				? SlipDivisionType.CARD_DIVISION
 				: SlipDivisionType.CARD
 			if (divisionType === SlipDivisionType.CARD_DIVISION) return validateTotalAmount()
@@ -365,54 +391,56 @@ const updateFormTotalAmount = (amount: number) => {
 		if (isDirectModify) {
 			const vat = (amount || 0) * 0.1
 			formState.value.slipDetails[0].totalAmount = amount - vat
-			formState.value.entityslipHeader.supplyAmount = amount - vat
-			formState.value.entityslipHeader.krwSupplyAmount = amount - vat
+			formState.value.slipHeader.supplyAmount = amount - vat
+			formState.value.slipHeader.krwSupplyAmount = amount - vat
 
 			formState.value.slipDetails[0].taxAmount = vat
-			formState.value.entityslipHeader.taxAmount = vat
-			formState.value.entityslipHeader.krwTaxAmount = vat
+			formState.value.slipHeader.taxAmount = vat
+			formState.value.slipHeader.krwTaxAmount = vat
 		} else {
 			formState.value.slipDetails[0].totalAmount = amount
-			formState.value.entityslipHeader.supplyAmount = amount
-			formState.value.entityslipHeader.krwSupplyAmount = amount
+			formState.value.slipHeader.supplyAmount = amount
+			formState.value.slipHeader.krwSupplyAmount = amount
 
 			formState.value.slipDetails[0].taxAmount = 0
-			formState.value.entityslipHeader.taxAmount = 0
-			formState.value.entityslipHeader.krwTaxAmount = 0
+			formState.value.slipHeader.taxAmount = 0
+			formState.value.slipHeader.krwTaxAmount = 0
 		}
 	}
 }
 
 const updateTotalAmount = (amount: number = 0) => {
-	if (!formState.value.entityslipHeader.totalAmount) {
-		formState.value.entityslipHeader.totalAmount = 0
+	if (!formState.value.slipHeader.totalAmount) {
+		formState.value.slipHeader.totalAmount = 0
 	}
-	formState.value.entityslipHeader.totalAmount = amount
-	formState.value.entityslipHeader.krwTotalAmount = amount
+	formState.value.slipHeader.totalAmount = amount
+	formState.value.slipHeader.krwTotalAmount = amount
 }
 
 const updateSupplyAmount = (amount: number = 0) => {
-	if (!formState.value.entityslipHeader.supplyAmount) {
-		formState.value.entityslipHeader.supplyAmount = 0
+	if (!formState.value.slipHeader.supplyAmount) {
+		formState.value.slipHeader.supplyAmount = 0
 	}
-	formState.value.entityslipHeader.supplyAmount = amount
-	formState.value.entityslipHeader.krwSupplyAmount = amount
+	formState.value.slipHeader.supplyAmount = amount
+	formState.value.slipHeader.krwSupplyAmount = amount
 }
 
 const updateTaxAmount = (amount: number = 0) => {
-	if (!formState.value.entityslipHeader.taxAmount) {
-		formState.value.entityslipHeader.taxAmount = 0
+	if (!formState.value.slipHeader.taxAmount) {
+		formState.value.slipHeader.taxAmount = 0
 	}
-	formState.value.entityslipHeader.taxAmount = amount
-	formState.value.entityslipHeader.krwTaxAmount = amount
+	formState.value.slipHeader.taxAmount = amount
+	formState.value.slipHeader.krwTaxAmount = amount
 }
+
+const updatePaymentDueDate = () => {}
 
 const modifyFlag = (value: any) => {
 	formRef.value?.resetFields([value])
 }
 
 const updateDescription = (value: string) => {
-	formState.value.entityslipHeader.description = value
+	formState.value.slipHeader.description = value
 }
 
 /**
@@ -422,7 +450,7 @@ const updateDescription = (value: string) => {
  */
 const getSlipExpenses = async (id: number, signal?: AbortSignal) => {
 	return await Promise.resolve(
-		useCFetch<Response<Slip>>(`/api/v2/slip/expenses/${id}`, {
+		useCFetch<Response<Slip>>(`/api/v2/slips/expenses/${id}`, {
 			signal,
 		}).then(async (res: Response<Slip>) => res.data || (await initFormState()))
 	)
@@ -475,7 +503,7 @@ const disabledDate = (current: Dayjs) => {
  */
 const updateAccuredAccountCode = async (value: any) => {
 	// const sub = await Promise.resolve(
-	//   useCFetch<Response<Array<any>>>(`/api/v2/slip/expenses/credit/sub`, {
+	//   useCFetch<Response<Array<any>>>(`/api/v2/slips/commons/credit/sub`, {
 	//     method: 'GET',
 	//     params: {
 	//       companyCode: getCompanyCode.value,
@@ -496,7 +524,7 @@ const updateSlipFile = (value: any) => {
 }
 
 const writerUpdate = (values: WriterInfo[]): void => {
-	if (!formState.value.entityslipHeader) return
+	if (!formState.value.slipHeader) return
 
 	const [firstValue] = values
 	if (!firstValue) return
@@ -504,7 +532,7 @@ const writerUpdate = (values: WriterInfo[]): void => {
 	const { id: employeeId, companyCode, workplaceCode } = firstValue
 
 	// 전표 헤더 업데이트
-	Object.assign(formState.value.entityslipHeader, {
+	Object.assign(formState.value.slipHeader, {
 		writer: values.map((v) => v.id),
 		employeeId,
 		companyCode,
@@ -512,7 +540,7 @@ const writerUpdate = (values: WriterInfo[]): void => {
 	})
 
 	// 분할전표가 아니라면 전표 상세 업데이트
-	if (!formState.value.entityslipHeader.divisionSlipFlag) {
+	if (!formState.value.slipHeader.divisionSlipFlag) {
 		formState.value.slipDetails = formState.value.slipDetails.map(
 			(detail: SlipDetails) => ({
 				...detail,
@@ -544,7 +572,7 @@ const addDivisionSlip = async () => {
 		ctr.signal
 	).finally(() => ctr.abort())
 
-	formState.value.entityslipHeader.divisionSlipFlag = true
+	formState.value.slipHeader.divisionSlipFlag = true
 
 	if (formState.value.slipDetails && formState.value.slipDetails.length > 0) {
 		const employeeId = getEmployeeId.value
@@ -569,13 +597,14 @@ const addDivisionSlip = async () => {
 			supplyAmount: 0,
 			slipLineType: "ITEM",
 			debitCreditType: "DEBIT",
-			slipHeaderId: formState.value.entityslipHeader.id,
+			slipHeaderId: formState.value.slipHeader.id,
 			companyCode: getCompanyCode.value,
 			costCenterId: costCenterId,
 			projectId:
 				projectStatus === 0 && projectData && projectData.length === 1
 					? projectData[0].id
 					: undefined,
+			managementItems: [],
 		})
 	}
 }
@@ -615,7 +644,7 @@ const validateTotalAmount = () => {
 			return prev + next
 		}, 0)
 	const addSupplyTax = taxAmount + supplyAmount
-	if (formState.value.entityslipHeader.totalAmount !== addSupplyTax) {
+	if (formState.value.slipHeader.totalAmount !== addSupplyTax) {
 		message.error("총 금액이 맞지 않습니다.")
 		returnType = false
 	}
@@ -635,7 +664,7 @@ const changePage = async (page: number, count: number) => {
 			cancelText: "취소",
 			centered: true,
 			async onOk() {
-				const divisionType = formState.value.entityslipHeader.divisionSlipFlag
+				const divisionType = formState.value.slipHeader.divisionSlipFlag
 					? SlipDivisionType.CARD_DIVISION
 					: SlipDivisionType.CARD
 				if (divisionType === SlipDivisionType.CARD_DIVISION) return validateTotalAmount()
@@ -702,21 +731,23 @@ const changePage = async (page: number, count: number) => {
 }
 
 const fieldsToWatch = [
-	"entityslipHeader",
+	"slipHeader",
 	"slipDetails",
 	"slipCard",
 	"files",
 	"receiptFile",
 	"documents",
+	"fuelSlipHeader",
 ] as const
 
 const fieldNames = {
-	entityslipHeader: "헤더정보",
+	slipHeader: "헤더정보",
 	slipDetails: "라인정보",
 	slipCard: "카드정보",
 	files: "첨부파일",
 	receiptFile: "영수증파일",
 	documents: "관련문서",
+	fuelSlipHeader: "fuelSlipHeader",
 }
 
 const checkAllChanges = () => {
@@ -745,6 +776,8 @@ fieldsToWatch.forEach((field) => {
 					console.log(`${fieldNames[field]}가 초기 상태로 돌아왔습니다.`)
 					checkAllChanges()
 				}
+			} else {
+				console.log(" warning field ", field)
 			}
 		},
 		{ deep: true }
@@ -762,13 +795,139 @@ const resetChanges = () => {
 	initializeState()
 }
 
+// 비동기 데이터 로드 및 초기화 로직
+const loadData = async (id: number, isPageChange: boolean = false) => {
+	isLoading.value = true
+	isWatching.value = false
+
+	try {
+		const controller = new AbortController()
+		const expenseData = await getSlipExpenses(id, controller.signal)
+
+		formState.value = {
+			...expenseData,
+			slipHeader: {
+				...expenseData.slipHeader,
+				writer: [expenseData.slipHeader.writerId as number],
+				accountingDate: dayjs(expenseData.slipHeader.accountingDate),
+				evidenceDate: dayjs(expenseData.slipHeader.evidenceDate),
+				paymentDueDate: dayjs(expenseData.slipHeader.paymentDueDate),
+				currencyType: expenseData.slipHeader.currencyTypeName,
+			},
+			slipDetails: await Promise.all(
+				expenseData.slipDetails.map(async (form: SlipDetails) => {
+					if (expenseData.slipHeader.writerId) {
+						if (!form.employee) {
+							form.employee = [form.employeeId as number]
+						}
+						if (!form.employeeId) {
+							form.employeeId = expenseData.slipHeader.writerId
+						}
+						if (!form.workplaceCode) {
+							form.workplaceCode = expenseData.slipHeader.workplaceCode
+						}
+					}
+					if (form.taxCode === "A") form.taxCode = SlipTaxType.NON_DEDUCTION
+					if (form.taxCode === "B") form.taxCode = SlipTaxType.DEDUCTION
+
+					if (form.reference && Object.entries(form.reference).length > 0) {
+						const managementItems = await useCFetch<Response<any>>(
+							`/api/v2/masters/managementItems`,
+							{
+								method: "GET",
+								params: {
+									companyCode: getCompanyCode.value,
+									accountId: form.accountId,
+								},
+							}
+						).then(
+							(res: Response<any>) =>
+								res.data
+									.filter((a: any) => a.disabled)
+									.map((a: any, index: number) => ({
+										...a,
+										value:
+											(form.reference as Record<string, string>)[
+												`reference${index + 1}`
+											] || null,
+									}))
+									.sort((a: any, b: any) => a.orderSequence - b.orderSequence) || []
+						)
+						form.managementItems = managementItems
+					}
+					return form
+				})
+			),
+			receiptFile: expenseData.receiptFile
+				? [
+						{
+							...expenseData.receiptFile,
+							uid: expenseData.receiptFile.id,
+						},
+					]
+				: [],
+			files: expenseData.files?.map((file: any) => ({ ...file, uid: file.id })) || [],
+			documents:
+				expenseData.documents?.map((file: any) => ({
+					...file,
+					uid: file.id,
+				})) || [],
+			fuelSlipHeader: expenseData?.fuelSlipHeader ?? {},
+			slipCard: expenseData?.slipCard ?? {},
+		}
+
+		initialState.value = _cloneDeep(formState.value)
+
+		hasChanged.value = false
+
+		const filteredSlipStateType = enumOmit(
+			SlipStateType,
+			"UNPROCESSED",
+			"COMPLETE",
+			"COMPLETE_TEMP_BOX"
+		)
+
+		isRead.value =
+			Object.values(filteredSlipStateType).filter(
+				(e) => e === expenseData.slipHeader.slipStatusName
+			).length > 0
+	} catch (error) {
+		console.error("Error loading data:", error)
+		formState.value = await initFormState()
+		formRef.value?.resetFields()
+	} finally {
+		isLoading.value = false
+		isWatching.value = true
+	}
+}
+
+onMounted(async () => {
+	//지급예정일 세팅
+	if (!formState.value.slipHeader.slipType) return
+	await checkPaymentDate(formState.value.slipHeader.slipType).then((res) => {
+		if (res) {
+			disabledPaymentDueDate.value = res?.flag
+			if (
+				!formState.value.slipHeader.paymentDueDate ||
+				!dayjs(formState.value.slipHeader.paymentDueDate).isValid()
+			) {
+				formState.value.slipHeader.paymentDueDate = dayjs(
+					addMonthAndDate(res.month, res.day)
+				)
+				// formState.value.slipHeader.paymentDueDate =
+				// dayjs(dayjs().month(res.month).date(res.day).format(dateFormat));
+			}
+		}
+	})
+})
+
 /**
  * 모달 오픈 시점에서의 전표 정보 초기화
  */
 watch(
 	open,
 	async () => {
-		if (open) {
+		if (!open) {
 			accruedAccountInputDisabled.value = await checkAccountInputMethod()
 				.then((res: any) => !res.key)
 				.catch((error: any) => {
@@ -782,7 +941,7 @@ watch(
 					return null
 				})
 
-			// ((formState.value.entityslipHeader as EntityslipHeader).entityslipHeader as EntityslipHeader).paymentDueDate = await checkPaymentDate(
+			// ((formState.value.slipHeader as slipHeader).slipHeader as slipHeader).paymentDueDate = await checkPaymentDate(
 			//   SlipType.PERSONAL_EXPENSE
 			// )
 			//   .then((res: any) => {
@@ -794,8 +953,8 @@ watch(
 			//     message.error(`${error.message}`);
 			//     return undefined;
 			//   });
-			if (formState.value.entityslipHeader) {
-				formState.value.entityslipHeader.paymentDueDate = await checkPaymentDate(
+			if (formState.value.slipHeader) {
+				formState.value.slipHeader.paymentDueDate = await checkPaymentDate(
 					// SlipType.PERSONAL_EXPENSE
 					formSlipType
 				)
@@ -854,82 +1013,6 @@ watch(
 	},
 	{ immediate: true }
 )
-
-// 비동기 데이터 로드 및 초기화 로직
-const loadData = async (id: number, isPageChange: boolean = false) => {
-	isLoading.value = true
-	isWatching.value = false
-
-	try {
-		const controller = new AbortController()
-		const expenseData = await getSlipExpenses(id, controller.signal)
-
-		formState.value = {
-			...expenseData,
-			entityslipHeader: {
-				...expenseData.entityslipHeader,
-				writer: [expenseData.entityslipHeader.writerId as number],
-				accountingYearMonth: dayjs(expenseData.entityslipHeader.accountingYearMonth),
-				accountingDate: dayjs(expenseData.entityslipHeader.accountingDate),
-				paymentDueDate: dayjs(expenseData.entityslipHeader.paymentDueDate),
-				currencyType: expenseData.entityslipHeader.currencyTypeName,
-			},
-			slipDetails: expenseData.slipDetails.map((form: SlipDetails) => {
-				if (expenseData.entityslipHeader.writerId) {
-					if (!form.employee) {
-						form.employee = [form.employeeId as number]
-					}
-					if (!form.employeeId) {
-						form.employeeId = expenseData.entityslipHeader.writerId
-					}
-					if (!form.workplaceCode) {
-						form.workplaceCode = expenseData.entityslipHeader.workplaceCode
-					}
-				}
-				if (form.taxCode === "A") form.taxCode = SlipTaxType.NON_DEDUCTION
-				if (form.taxCode === "B") form.taxCode = SlipTaxType.DEDUCTION
-
-				return form
-			}),
-			receiptFile: expenseData.receiptFile
-				? [
-						{
-							...expenseData.receiptFile,
-							uid: expenseData.receiptFile.id,
-						},
-					]
-				: [],
-			files: expenseData.files?.map((file: any) => ({ ...file, uid: file.id })) || [],
-			documents:
-				expenseData.documents?.map((file: any) => ({
-					...file,
-					uid: file.id,
-				})) || [],
-		}
-
-		initialState.value = _cloneDeep(formState.value)
-		hasChanged.value = false
-
-		const filteredSlipStateType = enumOmit(
-			SlipStateType,
-			"UNPROCESSED",
-			"COMPLETE",
-			"COMPLETE_TEMP_BOX"
-		)
-
-		isRead.value =
-			Object.values(filteredSlipStateType).filter(
-				(e) => e === expenseData.entityslipHeader.slipStatusName
-			).length > 0
-	} catch (error) {
-		console.error("Error loading data:", error)
-		formState.value = await initFormState()
-		formRef.value?.resetFields()
-	} finally {
-		isLoading.value = false
-		isWatching.value = true
-	}
-}
 </script>
 <template>
 	<!-- :width="formState.divisionSlipFlag ? '160rem' : '80rem'" -->
@@ -943,7 +1026,7 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 		@cancel="modalCancle"
 	>
 		<template #title>
-			<expense-title
+			<eacc-paging-title
 				v-model:page="currentPage"
 				:is-page="slipData ? true : false"
 				:loading="loading"
@@ -959,10 +1042,10 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 						</template>
 					</a-tag>
 				</template>
-			</expense-title>
+			</eacc-paging-title>
 		</template>
 		<a-row :gutter="40">
-			<a-col :span="formState.entityslipHeader.divisionSlipFlag ? 8 : 11">
+			<a-col :span="formState.slipHeader.divisionSlipFlag ? 8 : 11">
 				<!-- 영수증 이미지 업로드 및 뷰어 -->
 				<receipt-file-upload
 					:is-read="isRead"
@@ -970,7 +1053,7 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 					:file-props="{
 						companyCode: getCompanyCode,
 						fileType: 'RECEIPT',
-						documentedNumber: formState.entityslipHeader.slipNumber,
+						documentedNumber: formState.slipHeader.slipNumber,
 					}"
 				/>
 				<!-- 첨부파일 -->
@@ -982,7 +1065,7 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 					:file-props="{
 						companyCode: getCompanyCode,
 						fileType: 'SLIP',
-						documentedNumber: formState.entityslipHeader.slipNumber,
+						documentedNumber: formState.slipHeader.slipNumber,
 					}"
 					@update:file-list="updateSlipFile"
 				>
@@ -990,22 +1073,15 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 				<!-- 관련문서 -->
 				<documents-file-upload
 					v-if="disabledDocumentsFile"
-					:is-read="isRead"
-					class="mt-xl"
-					v-model:file-list="formState.documents"
-					:file-props="{
-						companyCode: getCompanyCode,
-						fileType: 'SLIP',
-						documentedNumber: formState.entityslipHeader.slipNumber,
-					}"
-					@update:file-list="updateSlipFile"
+					:result-type="'SLIP'"
+					@update:document-ids="(idList: number[]) => (formState.documents = idList)"
 				>
 				</documents-file-upload>
 			</a-col>
-			<a-col :span="formState.entityslipHeader.divisionSlipFlag ? 16 : 13">
+			<a-col :span="formState.slipHeader.divisionSlipFlag ? 16 : 13">
 				<a-spin :spinning="loading">
 					<a-flex
-						v-if="formState.entityslipHeader.divisionSlipFlag"
+						v-if="formState.slipHeader.divisionSlipFlag"
 						justify="space-between"
 						wrap="wrap"
 					>
@@ -1025,7 +1101,7 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 						:wrapper-col="{ span: 18 }"
 						:disabled="isRead"
 					>
-						<a-row :gutter="40" v-if="formState.entityslipHeader.divisionSlipFlag">
+						<a-row :gutter="40" v-if="formState.slipHeader.divisionSlipFlag">
 							<a-col class="ml-lg" :span="11" v-if="formSlipType === SlipType.CARD">
 								<!-- formSlipType -->
 								<a-form-item
@@ -1042,7 +1118,7 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 								<a-form-item
 									label="사용자"
 									has-feedback
-									:name="['entityslipHeader', 'writer']"
+									:name="['slipHeader', 'writer']"
 									:rules="[
 										{
 											type: 'array',
@@ -1052,7 +1128,7 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 									]"
 								>
 									<eacc-select-table
-										v-model:value="formState.entityslipHeader.writer"
+										v-model:value="formState.slipHeader.writer"
 										:disabled="isRead"
 										key-props="id"
 										label-prop="name"
@@ -1081,12 +1157,12 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 									v-if="!accruedAccountInputDisabled"
 									label="부채계정"
 									has-feedback
-									:name="['entityslipHeader', 'accruedAccountCode']"
+									:name="['slipHeader', 'accruedAccountCode']"
 									:rules="[{ required: true, message: '필수 입력값 입니다.' }]"
 								>
 									<eacc-select
 										v-if="getCompanyCode"
-										:url="`/api/v2/slip/expenses/credit`"
+										:url="`/api/v2/slips/commons/credit`"
 										:params="{
 											companyCode: getCompanyCode,
 											personalExpenseFlag: formSlipType === SlipType.PERSONAL_EXPENSE,
@@ -1097,7 +1173,7 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 											// parentId: ''
 										}"
 										:on-all-field="false"
-										v-model:value="formState.entityslipHeader.accruedAccountCode"
+										v-model:value="formState.slipHeader.accruedAccountCode"
 										refresh
 										first
 										:field-names="{ label: 'name', value: 'code' }"
@@ -1108,7 +1184,7 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 								</a-form-item>
 								<a-form-item
 									label="가맹점"
-									:name="['entityslipHeader', 'storeName']"
+									:name="['slipHeader', 'storeName']"
 									:rules="[
 										{
 											required: disabledPersonalExpenseVendorFlag,
@@ -1117,53 +1193,70 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 									]"
 								>
 									<a-input
-										v-model:value="formState.entityslipHeader.storeName"
+										v-model:value="formState.slipHeader.storeName"
 										placeholder="가맹점을 입력하세요.(선택)"
 									></a-input>
 								</a-form-item>
 							</a-col>
 							<a-col class="ml-lg" :span="11">
 								<a-form-item
-									label="회계년월"
+									label="회계일자"
 									has-feedback
-									:name="['entityslipHeader', 'accountingYearMonth']"
+									:name="['slipHeader', 'accountingDate']"
 									:rules="[{ required: true, message: '필수 입력값 입니다.' }]"
 								>
 									<a-date-picker
 										class="full-width"
 										:disabled-date="disabledDate"
-										picker="month"
-										v-model:value="formState.entityslipHeader.accountingYearMonth"
+										picker="date"
+										v-model:value="formState.slipHeader.accountingDate"
 										@change="(_: any, dateString: any) => console.log(dateString)"
 									/>
 								</a-form-item>
 								<a-form-item
 									label="사용일자"
 									has-feedback
-									:name="['entityslipHeader', 'accountingDate']"
+									:name="['slipHeader', 'evidenceDate']"
 									:rules="[{ required: true, message: '필수 입력값 입니다.' }]"
 								>
 									<a-date-picker
 										class="full-width"
 										:disabled-date="disabledDate"
-										v-model:value="formState.entityslipHeader.accountingDate"
+										v-model:value="formState.slipHeader.evidenceDate"
 										@change="(_: any, dateString: any) => console.log(dateString)"
 									/>
 								</a-form-item>
 							</a-col>
 							<a-col class="ml-lg" :span="11">
+								<!-- disabledPaymentDueDate -->
+								<a-form-item label="지급조건" v-if="!disabledPaymentDueDate">
+									<eacc-select
+										:url="`/api/v2/slips/commons/credit`"
+										:params="{
+											companyCode: getCompanyCode,
+											groupCode: 'PAY_TERM_CD',
+											used: true,
+											remarkFlag: true,
+										}"
+										:on-all-field="false"
+										refresh
+										:field-names="{ label: 'name', value: 'id' }"
+										value-type="any"
+										@update:any-value="updatePaymentDueDate"
+									/>
+								</a-form-item>
 								<a-form-item label="지급예정일">
 									<a-date-picker
 										class="full-width"
-										v-model:value="formState.entityslipHeader.paymentDueDate"
-										:disabled="isRead || disabledPaymentDueDate"
+										v-model:value="formState.slipHeader.paymentDueDate"
+										:disabled="isRead || !disabledPaymentDueDate"
 									/>
 								</a-form-item>
 								<a-form-item label="총 금액" class="mb-none">
 									<a-flex :gap="5">
 										<a-form-item
 											class="full-width"
-											:name="['entityslipHeader', 'totalAmount']"
+											:name="['slipHeader', 'totalAmount']"
 											:rules="[
 												{
 													required: true,
@@ -1177,17 +1270,17 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 											]"
 										>
 											<eacc-amount-input
-												v-model:value="formState.entityslipHeader.totalAmount"
+												v-model:value="formState.slipHeader.totalAmount"
 												@update:value="updateFormTotalAmount"
-												:disabled="formState.entityslipHeader.divisionSlipFlag || isRead"
+												:disabled="formState.slipHeader.divisionSlipFlag || isRead"
 											/>
 										</a-form-item>
 										<a-form-item
-											:name="['entityslipHeader', 'currencyType']"
+											:name="['slipHeader', 'currencyType']"
 											:rules="[{ required: false }]"
 										>
 											<a-select
-												v-model:value="formState.entityslipHeader.currencyType"
+												v-model:value="formState.slipHeader.currencyType"
 												:options="[{ label: 'KRW', value: 'KRW' }]"
 												@change="updateCurrencyType"
 											/>
@@ -1209,7 +1302,7 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 							<a-form-item
 								label="사용자"
 								has-feedback
-								:name="['entityslipHeader', 'writer']"
+								:name="['slipHeader', 'writer']"
 								:rules="[
 									{
 										type: 'array',
@@ -1219,7 +1312,7 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 								]"
 							>
 								<eacc-select-table
-									v-model:value="formState.entityslipHeader.writer"
+									v-model:value="formState.slipHeader.writer"
 									:disabled="isRead"
 									key-props="id"
 									label-prop="name"
@@ -1241,29 +1334,29 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 							</a-form-item>
 
 							<a-form-item
-								label="회계년월"
+								label="회계일자"
 								has-feedback
-								:name="['entityslipHeader', 'accountingYearMonth']"
+								:name="['slipHeader', 'accountingDate']"
 								:rules="[{ required: true, message: '필수 입력값 입니다.' }]"
 							>
 								<a-date-picker
 									class="full-width"
 									:disabled-date="disabledDate"
-									picker="month"
-									v-model:value="formState.entityslipHeader.accountingYearMonth"
+									picker="date"
+									v-model:value="formState.slipHeader.accountingDate"
 									@change="(_: any, dateString: any) => console.log(dateString)"
 								/>
 							</a-form-item>
 							<a-form-item
 								label="사용일자"
 								has-feedback
-								:name="['entityslipHeader', 'accountingDate']"
+								:name="['slipHeader', 'evidenceDate']"
 								:rules="[{ required: true, message: '필수 입력값 입니다.' }]"
 							>
 								<a-date-picker
 									class="full-width"
 									:disabled-date="disabledDate"
-									v-model:value="formState.entityslipHeader.accountingDate"
+									v-model:value="formState.slipHeader.evidenceDate"
 									@change="(_: any, dateString: any) => console.log(dateString)"
 								/>
 							</a-form-item>
@@ -1272,12 +1365,12 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 								v-if="!accruedAccountInputDisabled"
 								label="부채계정"
 								has-feedback
-								:name="['entityslipHeader', 'accruedAccountCode']"
+								:name="['slipHeader', 'accruedAccountCode']"
 								:rules="[{ required: true, message: '필수 입력값 입니다.' }]"
 							>
 								<eacc-select
 									v-if="getCompanyCode"
-									:url="`/api/v2/slip/expenses/credit`"
+									:url="`/api/v2/slips/commons/credit`"
 									:params="{
 										companyCode: getCompanyCode,
 										personalExpenseFlag: formSlipType === SlipType.PERSONAL_EXPENSE,
@@ -1288,7 +1381,7 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 										// parentId: ''
 									}"
 									:on-all-field="false"
-									v-model:value="formState.entityslipHeader.accruedAccountCode"
+									v-model:value="formState.slipHeader.accruedAccountCode"
 									refresh
 									first
 									:field-names="{ label: 'name', value: 'code' }"
@@ -1297,17 +1390,32 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 									:disabled="isRead || accruedAccountInputDisabled"
 								/>
 							</a-form-item>
+							<a-form-item label="지급조건" v-if="!disabledPaymentDueDate">
+								<eacc-select
+									:url="`/api/v2/slips/commons/credit`"
+									:params="{
+										companyCode: getCompanyCode,
+										groupCode: 'PAY_TERM_CD',
+										used: true,
+									}"
+									:on-all-field="false"
+									refresh
+									:field-names="{ label: 'name', value: 'id' }"
+									value-type="any"
+									@update:any-value="updatePaymentDueDate"
+								/>
+							</a-form-item>
 							<a-form-item label="지급예정일">
 								<a-date-picker
 									class="full-width"
-									v-model:value="formState.entityslipHeader.paymentDueDate"
-									:disabled="isRead || disabledPaymentDueDate"
+									v-model:value="formState.slipHeader.paymentDueDate"
+									:disabled="isRead || !disabledPaymentDueDate"
 								/>
 							</a-form-item>
 
 							<a-form-item
 								label="가맹점"
-								:name="['entityslipHeader', 'storeName']"
+								:name="['slipHeader', 'storeName']"
 								:rules="[
 									{
 										required: disabledPersonalExpenseVendorFlag,
@@ -1316,7 +1424,7 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 								]"
 							>
 								<a-input
-									v-model:value="formState.entityslipHeader.storeName"
+									v-model:value="formState.slipHeader.storeName"
 									placeholder="가맹점을 입력하세요.(선택)"
 								></a-input>
 							</a-form-item>
@@ -1325,7 +1433,7 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 								<a-flex :gap="5">
 									<a-form-item
 										class="full-width"
-										:name="['entityslipHeader', 'totalAmount']"
+										:name="['slipHeader', 'totalAmount']"
 										:rules="[
 											{
 												required: true,
@@ -1339,17 +1447,17 @@ const loadData = async (id: number, isPageChange: boolean = false) => {
 										]"
 									>
 										<eacc-amount-input
-											v-model:value="formState.entityslipHeader.totalAmount"
+											v-model:value="formState.slipHeader.totalAmount"
 											@update:value="updateFormTotalAmount"
 											disabled
 										/>
 									</a-form-item>
 									<a-form-item
-										:name="['entityslipHeader', 'currencyType']"
+										:name="['slipHeader', 'currencyType']"
 										:rules="[{ required: false }]"
 									>
 										<a-select
-											v-model:value="formState.entityslipHeader.currencyType"
+											v-model:value="formState.slipHeader.currencyType"
 											:options="[{ label: 'KRW', value: 'KRW' }]"
 											@change="updateCurrencyType"
 										/>

@@ -11,6 +11,9 @@ const { positionData, loading = false } = defineProps<{
 
 const authStore = useAuthStore()
 const { getCompanyCode, getWorkplaceId, getRole } = storeToRefs(authStore)
+
+const route = useRoute()
+const routePath = computed(() => route.path)
 const positionLoading = ref(false)
 const state = reactive<{
 	selectedRowKeys: Key
@@ -141,11 +144,11 @@ watchEffect(() => {
 					>
 						직위추가
 					</a-button>
-					<excel-button
+					<eacc-excel-button
 						url="/api/v2/settings/positions/validate"
 						req-type="upload"
 						label="일괄등록"
-						:sample-file-key="$route.path"
+						:sample-file-key="routePath"
 						@submit="() => emit('refresh')"
 					/>
 				</a-space>

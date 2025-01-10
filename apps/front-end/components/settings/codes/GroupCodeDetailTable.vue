@@ -393,7 +393,6 @@ const handleResizeColumn = (w: number, col: ColumnType<any>) => {
 		@submit="() => addSubCode(subStage, subCodeField)"
 	>
 		<template #content="{ field }">
-			{{ field }}
 			<a-form
 				label-align="left"
 				:colon="false"

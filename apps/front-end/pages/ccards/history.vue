@@ -4,7 +4,13 @@ import { useAuthStore } from "@/stores/auth"
 import { type FormInstance } from "ant-design-vue"
 import type { Dayjs } from "dayjs"
 import type { ColumnType } from "ant-design-vue/lib/table/interface"
-import { pagination, generateSortParams, pageSizeOptions, type Response } from "@/types"
+import {
+	pagination,
+	generateSortParams,
+	pageSizeOptions,
+	type Response,
+	dateTimeFormat,
+} from "@/types"
 import {
 	type CardHistoryItem,
 	type CardIssueApproveOrRejectRequest,
@@ -21,9 +27,7 @@ const authStore = useAuthStore()
 const { getCompanyCode, getEmployeeId } = storeToRefs(authStore)
 const { $dayjs } = useNuxtApp()
 
-const { searchParams, updateSearchParams } = await useCardHistorySearch(
-	getCompanyCode.value
-)
+const { searchParams, updateSearchParams } = useCardHistorySearch(getCompanyCode.value)
 const columns = useCardHistoryColumns()
 
 const isDetail = ref<boolean>(false)
@@ -34,6 +38,7 @@ const formState = ref<CardIssueApproveOrRejectRequest>({
 	approvedBy: getEmployeeId.value,
 	cardIssueRequestStatus: "",
 	comment: "",
+	companyCode: getCompanyCode.value,
 })
 const formRef = useTemplateRef<FormInstance>("formRef")
 
@@ -82,7 +87,7 @@ const showDetail = (id: number) => {
 }
 
 const showModalAction = async (id: number, type: "APPROVED" | "REJECTED") => {
-	await useCFetch<Response<CardHistoryItem>>(`/api/v2/card/issues/${id}`, {
+	await useCFetch<Response<CardHistoryItem>>(`/api/v2/cards/issues/${id}`, {
 		method: "GET",
 		params: { id },
 	}).then(async (res) => {
@@ -113,7 +118,7 @@ const onApproval = (data: any) => {
 		delete body.cardOptions
 		delete body.date
 
-		await useCFetch<Response<any>>(`/api/v2/card/issues/${data.id}/approval`, {
+		await useCFetch<Response<any>>(`/api/v2/cards/issues/${data.id}/approval`, {
 			method: "PATCH",
 			params: {
 				id: data.id,
@@ -133,7 +138,7 @@ const {
 } = await useAsyncData(
 	"card-issues-list",
 	() =>
-		useCFetch<Response<Array<CardHistoryItem>>>("/api/v2/card/issues", {
+		useCFetch<Response<Array<CardHistoryItem>>>("/api/v2/cards/issues", {
 			method: "GET",
 			params: {
 				page: searchParams.value.pageNumber,
@@ -161,6 +166,7 @@ const {
 						<label>신청일</label>
 						<a-range-picker
 							v-model:value="searchParams.filterDate"
+							:value-format="dateTimeFormat"
 							@change="onChangeRangePicker"
 						/>
 					</a-space>
@@ -378,6 +384,7 @@ const {
 										class="full-width"
 										disabled
 										v-model:value="field.date"
+										:value-format="dateTimeFormat"
 									/>
 								</a-descriptions-item>
 							</a-descriptions>

@@ -48,7 +48,11 @@ const handleMenuClick: MenuProps["onClick"] = async (e) => {
 const employeeIsModal = ref<boolean>(false)
 </script>
 <template>
-	<a-dropdown :trigger="['click']" :arrow="{ pointAtCenter: true }">
+	<a-dropdown
+		placement="bottomRight"
+		:trigger="['click']"
+		:arrow="{ pointAtCenter: true }"
+	>
 		<a-button type="text" @click.prevent class="user-dropdown-link">
 			<a-avatar :size="26">
 				<template #icon>

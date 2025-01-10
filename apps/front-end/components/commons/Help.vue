@@ -14,7 +14,7 @@ const data = ref<DataItem[]>([
 ])
 </script>
 <template>
-	<a-dropdown :trigger="['click']" :arrow="{ pointAtCenter: true }">
+	<a-dropdown :trigger="['click']" placement="bottom" :arrow="{ pointAtCenter: true }">
 		<a-button
 			type="text"
 			:icon="materialIcons('mso', 'help')"

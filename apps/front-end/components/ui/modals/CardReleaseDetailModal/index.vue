@@ -32,7 +32,7 @@ const changePage = (page: number, count: number) => {
 }
 
 const fetchData = async (id: number) => {
-	data.value = await useCFetch<Response<CardHistoryItem>>(`/api/v2/card/issues/${id}`, {
+	data.value = await useCFetch<Response<CardHistoryItem>>(`/api/v2/cards/issues/${id}`, {
 		method: "GET",
 	}).then((res) => res.data)
 }
@@ -50,33 +50,35 @@ watch(open, (newVal) => {
 <template>
 	<a-modal centered v-model:open="open" :destroy-on-close="true" @cancel="open = false">
 		<template #title>
-			<expense-title
+			<eacc-paging-title
 				v-model:page="currentPage"
 				:is-page="true"
 				:loading="false"
 				title="법인카드 불출 신청내역"
 				:current-page-data-list="propsData?.list"
 				@update:page="changePage"
-			></expense-title>
+			></eacc-paging-title>
 		</template>
 		<a-descriptions :column="1" size="small" bordered :label-style="{ width: '30%' }">
 			<a-descriptions-item label="신청번호">
 				{{ data?.cardIssueNumber }}
 			</a-descriptions-item>
 			<a-descriptions-item label="상태">
-				<!-- <a-badge
-							:color="CardUseStateColor[text]"
-							:text="record.cardUseStateTypeLabel"
-						/> -->
-				{{ data?.cardIssueRequestStatus }}
+				<a-badge
+					:status="
+						data?.cardIssueRequestStatus.code.code === 'APPROVED'
+							? 'success'
+							: data?.cardIssueRequestStatus.code.code === 'REJECTED'
+								? 'error'
+								: 'warning'
+					"
+					:text="data?.cardIssueRequestStatus.label"
+				/>
 			</a-descriptions-item>
 			<a-descriptions-item label="신청일">
-				{{ $dayjs(data?.createdAt).format("YYYY-MM-DD HH:mm:ss") }}
+				{{ $dayjs(data?.createdAt).format("YYYY-MM-DD HH:mm") }}
 			</a-descriptions-item>
 			<a-descriptions-item label="카드구분">
-				<!-- {{ data?.cardType }}
-				{{ data?.cardType.label }} -->
-
 				<a-tag :color="CardTypeColor[data?.cardType.code]">
 					{{ data?.cardType.label }}
 				</a-tag>
@@ -91,8 +93,8 @@ watch(open, (newVal) => {
 				{{ data?.requestedBy }}
 			</a-descriptions-item>
 			<a-descriptions-item label="사용기간">
-				{{ $dayjs(data?.startDate).format("YYYY-MM-DD HH:mm:ss") }} ~
-				{{ $dayjs(data?.endDate).format("YYYY-MM-DD HH:mm:ss") }}
+				{{ $dayjs(data?.startDate).format("YYYY-MM-DD HH:mm") }} ~
+				{{ $dayjs(data?.endDate).format("YYYY-MM-DD HH:mm") }}
 			</a-descriptions-item>
 			<a-descriptions-item label="신청사유">
 				{{ data?.description }}

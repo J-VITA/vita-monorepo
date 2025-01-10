@@ -51,7 +51,7 @@ const onSubmit = async () => {
 		employeeIds: users,
 	}
 
-	await useCFetch<Response<any>>("/api/v2/master/costCenters/employees", {
+	await useCFetch<Response<any>>("/api/v2/settings/costCenters/employees", {
 		method: "PUT",
 		body: send,
 	}).then((res: Response<any>) => {

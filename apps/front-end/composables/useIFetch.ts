@@ -26,7 +26,11 @@ export async function useIFetch<T>(url: string, options: UseFetchOptions<T> = {}
 		// key: url,
 		signal: ctr.signal,
 		key: uniqueKey, // Unique key to prevent data overwriting
-		headers: accessToken.value ? { Authorization: `Bearer ${accessToken.value}` } : {},
+		// headers: accessToken.value ? { Authorization: `Bearer ${accessToken.value}` } : {},
+		headers: {
+			...(accessToken.value ? { Authorization: `Bearer ${accessToken.value}` } : {}),
+			"Accept-Encoding": "gzip, deflate, br, zstd",
+		},
 		onResponse: async ({ response, options }) => {
 			if (response.status === 200) {
 				const responseData = response._data
@@ -58,9 +62,15 @@ export async function useIFetch<T>(url: string, options: UseFetchOptions<T> = {}
 				}
 			} else if (response.status === 403) {
 				await logout()
+			} else if ([502, 503].includes(response.status)) {
+				throw createError({
+					statusCode: response.status,
+					statusMessage: "Bad Gateway",
+					message: "서버가 일시적으로 응답할 수 없습니다. 잠시 후 다시 시도해주세요.",
+				})
 			}
 		},
-		cache: "no-cache",
+		cache: "force-cache",
 		transform: (response: T) => {
 			return response
 		},

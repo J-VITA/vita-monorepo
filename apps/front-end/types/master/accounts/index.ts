@@ -41,10 +41,20 @@ interface IAccountItem {
 	managementItemFlag?: boolean
 	erpAccountFlag: boolean
 	managementItems: IManagementItem[]
+	familyEventFlag: boolean
+	accountGroupTypeLabel?: string
+	accountGroupTypeName?: string
+	accountGroupType?: string
+	nonDeduction: boolean
+	transportationFlag: boolean
+	mealFlag: boolean
+	dailyAllowanceFlag: boolean
+	accommodationFlag: boolean
+	parent?: any
 }
 
 interface IAccountRolesItem {
-	id: number
+	id?: number
 	companyCode: string
 	code: string
 	name: string
@@ -54,38 +64,6 @@ interface IAccountRolesItem {
 	description: string
 	used: boolean
 }
-
-// interface IAccountRoleDetail {
-//   id: number;
-//   companyCode: string;
-//   code: string;
-//   name: string;
-//   accountItemAmount: number;
-//   costCenterAmount: number;
-//   employeeAmount: number;
-//   description: string;
-//   used: boolean;
-//   // accountList: {
-//   //   id: number;
-//   //   companyCode: string;
-//   //   code: string;
-//   //   name: string;
-//   // }[];
-//   // accountCostCenters: {
-//   //   id?: number;
-//   //   companyCode: string;
-//   //   code: string;
-//   // }[];
-//   // accountEmployees: {
-//   //   id?: number;
-//   //   companyCode: string;
-//   //   employeeNumber: string;
-//   // }[];
-
-//   accountIds: { id: number }[];
-//   costCenterIds: { id: number }[];
-//   employeeIds: { id: number }[];
-// }
 
 export type AccountItem = Omit<IAccountItem, "id | companyCode | parentId | depth | code">
 
@@ -108,30 +86,51 @@ export const initData: AccountItem = {
 	foreignCurrencyFlag: false, //외화관리
 	erpAccountFlag: false, //ERP계정여부
 	managementItemFlag: true,
+	familyEventFlag: false, // 경조금 관리
 	managementItems: [],
+	nonDeduction: false, // 불공제여부
+	transportationFlag: false, // 출장비-교통비 여부
+	mealFlag: false, // 출장비-식비 여부
+	dailyAllowanceFlag: false, // 출장비-일비 여부
+	accommodationFlag: false, // 출장비-숙박비 여부
 }
 
 export type AccountRolesItem = Partial<IAccountRolesItem>
 
-export type AccountRoleDetail = Partial<IAccountRolesItem> & {
-	accountList: {
+export type AccountRoleDetail = {
+	id: number
+	companyCode: string
+	code: string
+	name: string
+	description: string
+	used: boolean
+	accountList: Array<{
 		id: number
 		accountRoleId: number
 		accountId: number
-	}[]
-	accountCostCenters: {
+		halfChecked: boolean
+	}>
+	accountCostCenters: Array<{
 		id: number
 		accountRoleId: number
 		costCenterId: number
-	}[]
-	accountEmployees: {
+	}>
+	accountEmployees: Array<{
 		id: number
 		accountRoleId: number
 		employeeId: number
-	}[]
+	}>
 }
-export type AccountRoleForm = Partial<IAccountRolesItem> & {
-	accountIds: { id: number }[]
-	costCenterIds: { id: number }[]
-	employeeIds: { id: number }[]
+export type AccountRoleForm = {
+	id?: number
+	companyCode: string // 필수
+	code: string // 필수
+	name?: string
+	description?: string
+	used?: boolean
+	accountIds?: Array<{ id: number; halfChecked: boolean }>
+	costCenterIds?: Array<number>
+	employeeIds?: Array<number>
+	// costCenterIds?: Array<number> | Array<{ id: number }>
+	// employeeIds?: Array<number> | Array<{ id: number }>
 }

@@ -2,7 +2,7 @@
 definePageMeta({
 	name: "개인설정",
 	middleware(to, from) {
-		return navigateTo("/mypage/myinfo")
+		return navigateTo("/mypage/notifications")
 	},
 })
 </script>

@@ -15,6 +15,9 @@ definePageMeta({
 const authStore = useAuthStore()
 const { getCompanyCode } = storeToRefs(authStore)
 
+const route = useRoute()
+const routePath = computed(() => route.path)
+
 const searchParams = ref<RequestParams<any>>({
 	companyCode: getCompanyCode.value,
 	pageNumber: 0,
@@ -31,7 +34,7 @@ const {
 } = await useAsyncData(
 	`master-taxes-list`,
 	async () =>
-		await useCFetch<Response<Array<Tax>>>("/api/v2/master/taxes", {
+		await useCFetch<Response<Array<Tax>>>("/api/v2/masters/taxes", {
 			method: "GET",
 			params: {
 				companyCode: getCompanyCode.value,
@@ -120,7 +123,7 @@ const onDelete = async (ids: any[]) => {
 	// const lastId = ids.at(-1);
 	await Promise.all(
 		ids.map((id) =>
-			useCFetch<Response<any>>(`/api/v2/master/taxes/${id}`, {
+			useCFetch<Response<any>>(`/api/v2/masters/taxes/${id}`, {
 				method: "DELETE",
 				body: { id },
 			})
@@ -180,6 +183,15 @@ const showTaxModal = (data?: any) => {
 			<a-divider class="my-md" />
 			<a-flex justify="flex-end" class="mb-sm">
 				<a-space :size="5">
+					<eacc-excel-button
+						ghost
+						type="primary"
+						url="/api/v2/masters/taxes/validate"
+						req-type="upload"
+						label="엑셀일괄등록"
+						:sample-file-key="routePath"
+						@submit="() => taxesRefresh()"
+					/>
 					<eacc-button
 						component-is="delete"
 						:data="selectedRowKeys"

@@ -9,6 +9,7 @@ const { getMenus } = storeToRefs(menusStore)
 const router = useRouter()
 const route = useRoute()
 const isAdmin = useAdmin()
+const isRoot = useRoot()
 
 const props = withDefaults(
 	defineProps<{
@@ -18,6 +19,7 @@ const props = withDefaults(
 )
 
 const { getRules } = useExpenseRules()
+const { $bus } = useNuxtApp()
 
 const projectFlag = ref<boolean>(false)
 const oilFlag = ref<boolean>(false)
@@ -134,7 +136,6 @@ const masterMenuDisabled = (path: string) => {
 // 라우터 변경 시
 router.afterEach(async () => {
 	setMenuExpand()
-	setMasterSubMenusOpend()
 })
 
 onBeforeMount(async () => {
@@ -149,9 +150,17 @@ const handleNavigation = async (path: string) => {
 		console.error("Navigation error:", error)
 	}
 }
+
+onMounted(() => {
+	$bus.on("setMasterSubMenusOpend", setMasterSubMenusOpend)
+})
+
+onUnmounted(() => {
+	$bus.off("setMasterSubMenusOpend")
+})
 </script>
 <template>
-	<a-layout v-if="getMenus.menus[currentIdx]">
+	<a-layout v-if="getMenus.menus[currentIdx] && route.path !== '/dashboard'">
 		<div>
 			<template v-for="(item, idx) in getMenus.menus[currentIdx].children" :key="idx">
 				<a-menu
@@ -194,6 +203,28 @@ const handleNavigation = async (path: string) => {
 							></component>
 						</template>
 						{{ item.name }}
+					</a-menu-item>
+				</a-menu>
+			</template>
+			<template v-if="isRoot && currentIdx === 1">
+				<a-menu
+					v-model:selectedKeys="selectedKeys"
+					@click="handleClick"
+					:theme="props.theme"
+					mode="inline"
+					@openChange="openChange"
+				>
+					<a-menu-item key="/settings/menu">
+						<template #icon>
+							<component :is="materialIcons('mso', 'list')" />
+						</template>
+						메뉴관리
+					</a-menu-item>
+					<a-menu-item key="/settings/excel-form">
+						<template #icon>
+							<component :is="materialIcons('mso', 'table_convert')" />
+						</template>
+						엑셀양식관리
 					</a-menu-item>
 				</a-menu>
 			</template>

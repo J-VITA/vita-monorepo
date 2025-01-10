@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import type { Dayjs } from "dayjs"
-import { type Response, pageSizeOptions, pagination } from "@/types"
+import {
+	type Response,
+	pageSizeOptions,
+	pagination,
+	generateSortParams,
+	dateTimeFormat,
+} from "@/types"
 import type { ColumnType } from "ant-design-vue/lib/table/interface"
 import type { FormInstance } from "ant-design-vue"
 import {
@@ -18,7 +24,7 @@ const { $dayjs } = useNuxtApp()
 const authStore = useAuthStore()
 const { getCompanyCode, getEmployeeId } = storeToRefs(authStore)
 
-const { searchParams, updateSearchParams } = await useApprovalWaitListSearch(
+const { searchParams, updateSearchParams } = useApprovalWaitListSearch(
 	getCompanyCode.value,
 	getEmployeeId.value
 )
@@ -66,6 +72,22 @@ const onSelectChange = (keys: (string | number)[]) => {
 
 const handleResizeColumn = (w: number, col: ColumnType<any>) => {
 	col.width = w
+}
+
+const cellChange = (pagination: any, filters: any, sorter: any, rows: any) => {
+	const sortParams = generateSortParams(sorter)
+	updateSearchParams({
+		pageNumber: pagination.current - 1,
+		size: pagination.pageSize,
+		sort: sortParams,
+	})
+}
+
+const onSelectionChange = (size: number) => {
+	updateSearchParams({
+		pageNumber: 0,
+		size,
+	})
 }
 
 const onSearch = (params: any) => {
@@ -144,6 +166,7 @@ onActivated(() => {
 						<label>기안일</label>
 						<a-range-picker
 							v-model:value="searchParams.filterDate"
+							:value-format="dateTimeFormat"
 							@change="onChangeRangePicker"
 						/>
 					</a-space>
@@ -181,6 +204,7 @@ onActivated(() => {
 						:options="pageSizeOptions"
 						value-field="key"
 						text-field="label"
+						@change="(page: any) => onSelectionChange(page)"
 					/>
 				</a-space>
 			</a-flex>
@@ -206,6 +230,7 @@ onActivated(() => {
 				}"
 				:show-sorter-tooltip="false"
 				@resize-column="handleResizeColumn"
+				@change="cellChange"
 			>
 				<template #headerCell="{ title }">
 					<div class="text-center">{{ title }}</div>
@@ -220,6 +245,8 @@ onActivated(() => {
 						<approval-lines
 							:data="text.sort((a: any, b: any) => a.stage - b.stage)"
 							:type="record.agreementOptionTypeName"
+							:status="true"
+							:next-stage="record.nextApprovalStage"
 						/>
 					</template>
 				</template>

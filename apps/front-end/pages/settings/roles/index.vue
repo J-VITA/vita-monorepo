@@ -107,9 +107,13 @@ const {
 				companyCode: getRole.value === "ROOT" ? companyCode.value : getCompanyCode.value,
 				pageNumber: roleParams.value.pageNumber - 1,
 			},
-		}).then((res: Response<any>) => res),
+		}),
 	{
 		watch: [roleParams.value],
+		transform: (res: Response<any>) => {
+			const list = res.data.filter((item: any) => item.code !== "ROOT")
+			return { ...res, data: list }
+		},
 	}
 )
 

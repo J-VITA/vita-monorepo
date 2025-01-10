@@ -14,6 +14,8 @@ export interface IExpenseListSearchParams {
 	searchDateTo: string //종료일
 	slipType: string
 	slipStatus: string
+	agentFlag: boolean
+	agentIds: (string | number)[] //대리인 식별자
 	departmentId?: number
 	departmentName?: string
 	departmentIds?: (number | string)[]
@@ -30,6 +32,7 @@ export interface IExpenseListSearchParams {
 	employeeIds?: (number | string)[] //사용자 식별자(조회 select table parameters)
 	month: "당월"
 	filterDate: [Dayjs, Dayjs]
+	vendorName?: string
 }
 
 export type ExpenseListSearch = ExSearchParams<
@@ -42,7 +45,10 @@ export type ExpenseListSearch = ExSearchParams<
  * @param
  * @returns
  */
-export const useExpenseListSearch = (companyCode: string) => {
+export const useExpenseListSearch = (
+	companyCode: string,
+	employeeId: number | string
+) => {
 	const searchParams = ref(
 		createSearchParams<RequestParams<IExpenseListSearchParams>, "ExpenseList">({
 			pageNumber: 0,
@@ -55,6 +61,8 @@ export const useExpenseListSearch = (companyCode: string) => {
 			searchDateTo: dayjs(useMonth.to()).format("YYYY-MM-DD"), //종료일
 			slipType: "",
 			slipStatus: "",
+			agentFlag: true,
+			agentIds: [employeeId],
 			departmentId: undefined, //부서 식별자
 			departmentIds: undefined, //부서 식별자
 			departmentName: undefined, //부서명
@@ -65,12 +73,13 @@ export const useExpenseListSearch = (companyCode: string) => {
 			costCenterId: undefined, //코스트센터 식별자
 			costCenterIds: undefined, //코스트센터 식별자
 			costCenterName: undefined, //코스트센터명
-			amountFrom: undefined, //시작금액
-			amountTo: undefined, //종료금액
+			amountFrom: 0, //시작금액
+			amountTo: 9999999, //종료금액
 			employeeId: undefined, //사용자 식별자
 			employeeIds: undefined, //사용자 식별자
 			month: "당월",
 			filterDate: [useMonth.from(), useMonth.to()],
+			vendorName: "",
 		})
 	)
 
@@ -134,7 +143,7 @@ export const expenseListColumns = createTableColumns<"ExpenseList">([
 	},
 	{
 		title: "금액",
-		dataIndex: "totalAmount",
+		dataIndex: "krwTotalAmount",
 		resizable: true,
 		sorter: {
 			multiple: 6,

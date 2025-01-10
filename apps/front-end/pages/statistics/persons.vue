@@ -1,9 +1,11 @@
 <script setup lang="ts">
 definePageMeta({
-	name: "개인 사용현황",
+	name: "개인별 사용통계",
 })
 </script>
 
 <template>
-	<div>개인 사용현황</div>
+	<page-layout>
+		{{ $router.currentRoute.value.name }}
+	</page-layout>
 </template>

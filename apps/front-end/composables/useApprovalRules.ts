@@ -14,7 +14,7 @@ export const useApprovalRules = () => {
 		return getCompanyCode.value
 			? ((await Promise.resolve(
 					useCFetch<Response<ApprovalRules>>(
-						`/api/v2/master/approvalRules/${getCompanyCode.value}`,
+						`/api/v2/masters/approvalRules/${getCompanyCode.value}`,
 						{
 							method: "GET",
 							params: {
@@ -53,7 +53,7 @@ export const useApprovalRules = () => {
 	 */
 	const agreementOptions = async () => {
 		return await useCFetch<Response<any>>(
-			"/api/v2/master/approvalRules/types/agreementOptionTypes",
+			"/api/v2/masters/approvalRules/types/agreementOptionTypes",
 			{
 				method: "GET",
 			}

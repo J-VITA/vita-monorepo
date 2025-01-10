@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import { materialIcons } from "@/composables/icons"
 import type { Response } from "@/types"
-import { type TreeProps, Form } from "ant-design-vue"
+import type { TreeProps, FormInstance } from "ant-design-vue"
 import type { AccountRoleDetail, AccountRoleForm } from "@/types/master/accounts"
 
-const useForm = Form.useForm
-const props = withDefaults(defineProps<{ show: boolean; data?: AccountRoleDetail }>(), {
-	show: false,
-})
+const { show, data: roleDetailData } = defineProps<{
+	show: boolean
+	data?: AccountRoleDetail
+}>()
 
 const emit = defineEmits<{
 	(e: "update:show", value: boolean): boolean
@@ -16,7 +16,7 @@ const emit = defineEmits<{
 
 const open = computed({
 	get() {
-		return props.show
+		return show
 	},
 	set(value) {
 		emit("update:show", value)
@@ -24,25 +24,22 @@ const open = computed({
 		loading.value = false
 	},
 })
-
 const authStore = useAuthStore()
 const { getCompanyCode } = storeToRefs(authStore)
 
+const formRef = useTemplateRef<FormInstance>("formRef")
 const loading = ref<boolean>(false)
 const searchValue = ref<string>("")
-let oldValue = "" // 초기 oldValue
+const copyTreeData = ref<any[]>([])
 
 const checkedKeys = ref<number[]>([])
-const costCenters = ref<number[]>([])
-const employees = ref<number[]>([])
-
 const expandedKeys = ref<(string | number)[]>([])
 const autoExpandParent = ref<boolean>(true)
 
 const modelRef = ref<AccountRoleForm>({
+	companyCode: getCompanyCode.value,
 	code: "",
 	name: "",
-	companyCode: getCompanyCode.value,
 	description: "",
 	used: true,
 	accountIds: [],
@@ -50,34 +47,20 @@ const modelRef = ref<AccountRoleForm>({
 	employeeIds: [],
 })
 
-const rulesRef = ref<any>({
-	name: [
-		{
-			required: true,
-			message: "권한명은 필수입니다.",
-			trigger: "blur",
-		},
-	],
-	code: [
-		{
-			required: props.data ? false : true,
-			message: "권한코드는 필수입니다.",
-			trigger: "blur",
-		},
-	],
-})
-const { resetFields, validate, validateInfos } = useForm(modelRef, rulesRef)
 const {
 	data: treeData,
 	status,
 	refresh,
 } = await useAsyncData(`accounts-tree-list`, () =>
-	useCFetch<Response<any>>("/api/v2/master/accounts", {
+	useCFetch<Response<any>>("/api/v2/masters/accounts", {
 		method: "GET",
 		params: {
 			companyCode: getCompanyCode.value,
 		},
-	}).then((res: Response<any>) => res.data)
+	}).then((res: Response<any>) => {
+		copyTreeData.value = res.data
+		return res.data
+	})
 )
 
 const onFetch = async (
@@ -85,7 +68,7 @@ const onFetch = async (
 	id?: string | number,
 	data?: AccountRoleForm
 ) => {
-	const url = id ? `/api/v2/master/accountRoles/${id}` : "/api/v2/master/accountRoles"
+	const url = id ? `/api/v2/masters/accountRoles/${id}` : "/api/v2/masters/accountRoles"
 
 	await useCFetch<Response<any>>(url, {
 		method: method,
@@ -103,20 +86,30 @@ const onFetch = async (
 }
 
 /**
- * 트리 필터링 (input 이벤트)
- * @param query
+ * 트리 필터링 New (keyup 이벤트)
+ * @param e Keyboard Event
  */
-const onQueryChanged = async (query: string) => {
-	if (query != oldValue) {
-		refresh().finally(() => {
-			treeData.value = filterTreeData(treeData.value, query)
-		})
+const onQueryChanged = (e: any) => {
+	e.preventDefault()
+
+	const getMatchingKeysInList = (flatTree: any[]) => {
+		const ids = modelRef.value.accountIds?.filter((account) => !account.halfChecked)
+		return ids
+			?.filter((x) => flatTree.some((e) => e.id === x.id)) // ids의 id가 flatTree에 있는지 확인
+			.map((x) => x.id) // 일치하는 id만 반환
 	}
 
-	if (!query) {
-		refresh()
+	searchValue.value = e.target.value
+	if ((isHangulComplete(e.target.value) && e.isComposing) || isNumeric(e.target.value)) {
+		copyTreeData.value = filterTreeData(treeData.value, e.target.value)
 	}
-	oldValue = query
+	if (e.target.value === "") {
+		copyTreeData.value = treeData.value
+	}
+
+	// 검색되는 트리 리스트에 따라 체크키 변동
+	checkedKeys.value =
+		getMatchingKeysInList(transformTreeToFlatArray(copyTreeData.value)) || []
 }
 
 const onExpand: TreeProps["onExpand"] = async (key, info: any) => {
@@ -125,72 +118,72 @@ const onExpand: TreeProps["onExpand"] = async (key, info: any) => {
 }
 
 const onCheck: TreeProps["onCheck"] = (keys, info) => {
-	modelRef.value.accountIds = info.checkedNodes.map((x) => {
-		return { id: x.id }
-	})
+	let checkList: any[] = []
+
+	Array.from(keys as []).map((x) => checkList.push({ id: x, halfChecked: false }))
+
+	Array.from(info.halfCheckedKeys as []).map((x) =>
+		checkList.push({ id: x, halfChecked: true })
+	)
+
+	modelRef.value.accountIds = checkList
 }
 
 const onSubmit = () => {
-	validate()
-		.then(async () => {
+	formRef.value
+		?.validate()
+		.then((res) => {
 			loading.value = true
-			const send = Object.assign({}, modelRef.value)
+			console.log("res", res)
+			console.log("modelRef.value", modelRef.value)
 
-			if (props.data) {
-				onFetch("PATCH", props.data.id, send)
+			const send = Object.assign({}, modelRef.value, {
+				employeeIds: modelRef.value.employeeIds?.map((x) => ({ id: x })),
+				costCenterIds: modelRef.value.costCenterIds?.map((x) => ({ id: x })),
+			})
+
+			if (roleDetailData) {
+				onFetch("PATCH", roleDetailData.id, send)
 			} else {
 				onFetch("POST", undefined, send)
 			}
 		})
-		.catch((err) => {
-			console.error(err)
-		})
+		.catch((err) => console.error(err))
 }
 
-const onAfterClose = () => {
-	loading.value = false
-	checkedKeys.value = []
-	costCenters.value = []
-	employees.value = []
-}
+watch(
+	() => show,
+	(value) => {
+		if (value) {
+			formRef.value?.resetFields()
+			searchValue.value = ""
+			refresh()
+			if (treeData.value) {
+				expandedKeys.value = transformTreeToFlatArray(treeData.value as any, "id").map(
+					(x: any) => x.id
+				)
+			}
+			if (roleDetailData) {
+				modelRef.value = {
+					...roleDetailData,
+					accountIds: roleDetailData.accountList.map((e: any) => {
+						return { id: e.accountId, halfChecked: e.halfChecked }
+					}),
+					costCenterIds: roleDetailData.accountCostCenters?.map(
+						(item) => item.costCenterId
+					),
+					employeeIds: roleDetailData.accountEmployees?.map(
+						(item: any) => item.employeeId
+					),
+				}
 
-onUpdated(() => {
-	resetFields()
-	if (treeData.value) {
-		expandedKeys.value = transformTreeToFlatArray(treeData.value as any, "id").map(
-			(x: any) => x.id
-		)
+				checkedKeys.value = roleDetailData.accountList
+					.filter((x) => !x.halfChecked)
+					.map((x) => x.accountId)
+			}
+		}
 	}
-
-	if (props.show && props.data) {
-		const data = props.data
-		let employ: number[] = []
-		let cost: number[] = []
-
-		modelRef.value.id = data.id
-		modelRef.value.code = data.code
-		modelRef.value.companyCode = data.companyCode
-		modelRef.value.name = data.name
-		modelRef.value.description = data.description
-		modelRef.value.used = data.used
-
-		modelRef.value.accountIds = data.accountList.map((e: any) => {
-			return { id: e.accountId }
-		})
-		modelRef.value.costCenterIds = data.accountCostCenters.map((e: any) => {
-			return { id: e.costCenterId }
-		})
-		modelRef.value.employeeIds = data.accountEmployees.map((e: any) => {
-			return { id: e.employeeId }
-		})
-
-		data.accountList?.forEach((item) => checkedKeys.value.push(item.accountId))
-		data.accountCostCenters?.forEach((item) => cost.push(item.costCenterId))
-		data.accountEmployees?.forEach((item) => employ.push(item.employeeId))
-		employees.value = employ
-		costCenters.value = cost
-	}
-})
+)
 </script>
 <template>
 	<a-modal
@@ -202,52 +195,56 @@ onUpdated(() => {
 		:force-render="true"
 		:destroy-on-close="true"
 		:confirm-loading="loading"
-		:after-close="onAfterClose"
 		@ok="onSubmit"
 	>
 		<a-row :gutter="[15, 15]">
 			<a-col flex="1">
 				<a-form
-					:colon="false"
+					ref="formRef"
 					label-align="left"
+					:model="modelRef"
+					:colon="false"
 					:label-col="{ span: 6 }"
 					:wrapper-col="{ span: 18 }"
 				>
-					<a-form-item label="권한명" v-bind="validateInfos.name">
+					<a-form-item
+						label="권한명"
+						name="name"
+						:rules="[{ required: true, message: '필수값 입니다.' }]"
+					>
 						<a-input v-model:value="modelRef.name" />
 					</a-form-item>
-					<a-form-item label="권한코드" v-bind="validateInfos.code">
-						<a-input v-model:value="modelRef.code" :disabled="props.data !== undefined" />
+					<a-form-item
+						label="권한코드"
+						name="code"
+						:rules="[
+							{ required: roleDetailData ? false : true, message: '필수값 입니다.' },
+						]"
+					>
+						<a-input v-model:value="modelRef.code" :disabled="data !== undefined" />
 					</a-form-item>
-					<a-form-item label="권한설명">
+					<a-form-item label="권한설명" name="description">
 						<a-input v-model:value="modelRef.description" />
 					</a-form-item>
-					<a-form-item label="사용여부">
+					<a-form-item label="사용여부" name="used">
 						<a-switch size="small" v-model:checked="modelRef.used" />
 					</a-form-item>
-					<a-form-item label="코스트센터">
+					<a-form-item label="코스트센터" name="costCenterIds">
 						<eacc-select-multi-table
 							key-props="id"
 							label-prop="workplaceName"
-							url="/api/v2/masters/commons/costCenters"
-							v-model:value="costCenters"
+							url="/api/v2/settings/commons/costCenters"
+							v-model:value="modelRef.costCenterIds"
 							:columns="[
 								{
 									title: '코스트센터',
 									data: (row: any) => row.workplaceName,
 								},
 							]"
-							@update:value="(value) => (costCenters = value)"
-							@selection-change="
-								(value) => {
-									modelRef.costCenterIds = value.map((e: any) => {
-										return { id: e.id }
-									})
-								}
-							"
+							@update:value="(value) => (modelRef.costCenterIds = value)"
 						/>
 					</a-form-item>
-					<a-form-item>
+					<a-form-item name="employeeIds">
 						<template #label>
 							<a-space :size="3">
 								<a-typography-text>기타 사용자</a-typography-text>
@@ -256,13 +253,13 @@ onUpdated(() => {
 										<p>특별한 사용자가 아니라면, 인사 이동시 사용이 용이하도록</p>
 										<p>코스트센터를 등록하는걸 권장합니다.</p>
 									</template>
-									<component :is="materialIcons('m', 'help')" class="popover-help" />
+									<component :is="materialIcons('mso', 'help')" class="popover-help" />
 								</a-popover>
 							</a-space>
 						</template>
 						<eacc-select-multi-table
 							url="/api/v2/masters/commons/employees"
-							v-model:value="employees"
+							v-model:value="modelRef.employeeIds"
 							key-props="id"
 							label-prop="name"
 							:columns="[
@@ -271,14 +268,7 @@ onUpdated(() => {
 								{ title: '부서', data: (row: any) => row.departmentName },
 								{ title: '회사', data: (row: any) => row.companyName },
 							]"
-							@update:value="(value) => (employees = value)"
-							@selection-change="
-								(value) => {
-									modelRef.employeeIds = value.map((e: any) => {
-										return { id: e.id }
-									})
-								}
-							"
+							@update:value="(value) => (modelRef.employeeIds = value)"
 						/>
 					</a-form-item>
 				</a-form>
@@ -286,13 +276,13 @@ onUpdated(() => {
 			<a-col flex="1rem">
 				<a-divider type="vertical" class="full-height mx-none" />
 			</a-col>
-			<a-col flex="32rem">
+			<a-col flex="1">
 				<a-spin :spinning="status === 'pending'">
 					<a-input-search
 						class="mb-sm"
 						v-model:value="searchValue"
 						placeholder="검색"
-						@input="onQueryChanged(searchValue)"
+						@keyup="onQueryChanged"
 					/>
 					<a-tree
 						block-node
@@ -303,7 +293,7 @@ onUpdated(() => {
 						:selectable="false"
 						:show-icon="true"
 						:default-expand-all="true"
-						:tree-data="treeData"
+						:tree-data="copyTreeData"
 						:height="500"
 						:field-names="{
 							children: 'children',
@@ -322,13 +312,43 @@ onUpdated(() => {
 							</template>
 						</template>
 
-						<template #title="{ name }">
+						<!-- <template #title="{ name }">
 							<span v-if="name.indexOf(searchValue) > -1">
 								{{ name.substring(0, name.indexOf(searchValue)) }}
 								<span class="text-error">{{ searchValue }}</span>
 								{{ name.substring(name.indexOf(searchValue) + searchValue.length) }}
 							</span>
 							<span v-else>{{ name }}</span>
+						</template> -->
+						<template #title="{ dataRef }">
+							<span
+								v-if="
+									dataRef.name.indexOf(searchValue) > -1 ||
+									dataRef.code.toString().indexOf(searchValue) > -1
+								"
+							>
+								<span
+									v-if="
+										dataRef.name.includes(searchValue) ||
+										dataRef.code.toString().includes(searchValue)
+									"
+								>
+									{{
+										`${dataRef.name}(${dataRef.code})`.substring(
+											0,
+											`${dataRef.name}(${dataRef.code})`.indexOf(searchValue)
+										)
+									}}
+								</span>
+								<span class="text-error">{{ searchValue }}</span>
+								{{
+									`${dataRef.name}(${dataRef.code})`.substring(
+										`${dataRef.name}(${dataRef.code})`.indexOf(searchValue) +
+											searchValue.length
+									)
+								}}
+							</span>
+							<span v-else>{{ dataRef.name }} ({{ dataRef.code }})</span>
 						</template>
 					</a-tree>
 				</a-spin>

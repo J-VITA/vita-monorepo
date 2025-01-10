@@ -57,7 +57,7 @@ const onSubmit = () => {
 		.then(async () => {
 			loading.value = true
 			await useCFetch<Response<any>>(
-				`/api/v2/master/approvalReceivers${props.itemId ? "/" + props.itemId : ""}`,
+				`/api/v2/masters/approvalReceivers${props.itemId ? "/" + props.itemId : ""}`,
 				{
 					method: props.itemId ? "PATCH" : "POST",
 					body: Object.assign(
@@ -93,7 +93,7 @@ const onAfterClose = () => {
 
 const getApprovalFormTypes = async (): Promise<RApprovalFromType[]> => {
 	const res = await useCFetch<Response<TApprovalFromType>>(
-		"/api/v2/master/approvalReceivers/types/approvalFormTypes"
+		"/api/v2/masters/approvalReceivers/types/approvalFormTypes"
 	)
 	if (res.status === 0 && res.data) {
 		return res.data.map((item: RApprovalFromType) => ({ ...item }))
@@ -131,7 +131,7 @@ watch(
 	async () => {
 		if (open.value && props.itemId) {
 			const res = await useCFetch<TRecipientsReponse>(
-				`/api/v2/master/approvalReceivers/${props.itemId}`
+				`/api/v2/masters/approvalReceivers/${props.itemId}`
 			)
 			if (res.status === 0 && res.data) {
 				const item = res.data

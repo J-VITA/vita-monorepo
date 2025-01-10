@@ -144,7 +144,7 @@ const postPosition = async (body: Positions) => {
 const deletePosition = (id: string | number) => {
 	useCFetch<Response<any>>(`/api/v2/settings/positions/${id}`, {
 		method: "DELETE",
-		body: { id },
+		body: { companyCode: searchParams.companyCode, id },
 	}).then((res: Response<any>) => {
 		if (res.status == 0) {
 			message.success("삭제하였습니다.")

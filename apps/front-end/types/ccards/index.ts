@@ -1,5 +1,7 @@
 import type { Response } from "@/types"
 
+export type CardStatusType = "ISSUE_READY" | "POSSIBILITY" | "ING" | "STOP" | ""
+
 export const CardStatusColor: Record<string, string> = {
 	ISSUE_READY: "default",
 	POSSIBILITY: "green",

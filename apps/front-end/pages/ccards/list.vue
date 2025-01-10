@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import type { Dayjs } from "dayjs"
 import type { ColumnType } from "ant-design-vue/lib/table/interface"
-import { pagination, generateSortParams, pageSizeOptions, type Response } from "@/types"
+import {
+	pagination,
+	generateSortParams,
+	pageSizeOptions,
+	type Response,
+	dateTimeFormat,
+} from "@/types"
 import { CardStatusColor, CardTypeColor } from "@/types/ccards"
 import {
 	type CardManagementListTableData,
@@ -17,7 +23,7 @@ definePageMeta({
 const authStore = useAuthStore()
 const { getCompanyCode, getEmployeeId } = storeToRefs(authStore)
 
-const { searchParams, updateSearchParams } = await useCardManagementListSearch(
+const { searchParams, updateSearchParams } = useCardManagementListSearch(
 	getCompanyCode.value,
 	getEmployeeId.value
 )
@@ -66,7 +72,7 @@ const onSearch = () => {
 const onDelete = async (data: any) => {
 	await Promise.all(
 		data.map((id: number) =>
-			useCFetch<Response<any>>(`/api/v2/card/managements/${id}`, {
+			useCFetch<Response<any>>(`/api/v2/cards/managements/${id}`, {
 				method: "DELETE",
 				params: { id },
 				body: { id },
@@ -87,7 +93,7 @@ const {
 } = await useAsyncData(
 	"card-managements-list",
 	() =>
-		useCFetch<Response<Array<CardManagementListTableData>>>("/api/v2/card/managements", {
+		useCFetch<Response<Array<CardManagementListTableData>>>("/api/v2/cards/managements", {
 			method: "GET",
 			params: {
 				page: searchParams.value.pageNumber,
@@ -123,6 +129,7 @@ const onCardManagement = (id?: number) => {
 						<label>발급일자</label>
 						<a-range-picker
 							v-model:value="searchParams.filterDate"
+							:value-format="dateTimeFormat"
 							@change="onChangeRangePicker"
 						/>
 					</a-space>
@@ -161,7 +168,7 @@ const onCardManagement = (id?: number) => {
 					<eacc-select
 						style="min-width: 10rem"
 						label="카드구분"
-						url="/api/v2/card/managements/types/CardType"
+						url="/api/v2/cards/managements/types/CardType"
 						v-model:value="searchParams.cardType"
 						first
 						:field-names="{ label: 'label', value: 'code' }"
@@ -172,7 +179,7 @@ const onCardManagement = (id?: number) => {
 					<eacc-select
 						style="min-width: 10rem"
 						label="카드상태"
-						url="/api/v2/card/managements/types/CardStatuss"
+						url="/api/v2/cards/managements/types/CardStatuss"
 						v-model:value="searchParams.cardStatus"
 						first
 						:field-names="{ label: 'label', value: 'code' }"
@@ -213,7 +220,14 @@ const onCardManagement = (id?: number) => {
 					@click="onDelete"
 					:disabled="!selectedRowKeys || selectedRowKeys.length === 0"
 				/>
-				<a-button :icon="materialIcons('mso', 'download')">엑셀다운로드</a-button>
+
+				<eacc-excel-button
+					req-type="download"
+					label="엑셀다운로드"
+					file-name="법인카드정보관리"
+					:data="dataSource?.data"
+					:disabled="!dataSource?.data || dataSource?.data.length === 0"
+				/>
 				<a-button
 					type="primary"
 					:icon="materialIcons('mso', 'add_card')"

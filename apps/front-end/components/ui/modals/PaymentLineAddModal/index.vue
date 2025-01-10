@@ -179,8 +179,8 @@ const saveApprovalLines = async (form: any) => {
 	}
 
 	const url = isNew
-		? `/api/v2/master/approvalLines`
-		: `/api/v2/master/approvalLines/${form.id}`
+		? `/api/v2/masters/approvalLines`
+		: `/api/v2/masters/approvalLines/${form.id}`
 	const method = isNew ? "POST" : "PATCH"
 
 	try {

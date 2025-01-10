@@ -45,7 +45,7 @@ const {
 } = await useAsyncData(
 	`cost-centers-tree`,
 	() =>
-		useCFetch<Response<any>>("/api/v2/master/costCenters", {
+		useCFetch<Response<any>>("/api/v2/settings/costCenters", {
 			method: "GET",
 			params: {
 				companyCode: getRole.value === "ROOT" ? "" : getCompanyCode.value,
@@ -70,7 +70,7 @@ const onSubmit = () => {
 			}
 
 			await useCFetch<Response<any>>(
-				`/api/v2/master/checkLines${props.itemId ? "/" + props.itemId : ""}`,
+				`/api/v2/masters/checkLines${props.itemId ? "/" + props.itemId : ""}`,
 				{
 					method: props.itemId ? "PATCH" : "POST",
 					body: Object.assign(
@@ -239,7 +239,7 @@ const onFinalLineRemove = (item: any) => {
 
 const getApprovalFormTypes = async (): Promise<RFinalApprovalFromType[]> => {
 	const res = await useCFetch<Response<TFinalApprovalFromType>>(
-		`/api/v2/master/checkLines/approvalForms/${getCompanyCode.value}`
+		`/api/v2/masters/checkLines/approvalForms/${getCompanyCode.value}`
 	)
 	if (res.status === 0 && res.data) {
 		return res.data.map((item: RFinalApprovalFromType) => ({ ...item }))
@@ -262,7 +262,7 @@ watch(
 	async () => {
 		if (open.value && props.itemId) {
 			const res = await useCFetch<TFinalApproveReponse>(
-				`/api/v2/master/checkLines/${props.itemId}`
+				`/api/v2/masters/checkLines/${props.itemId}`
 			)
 			if (res.status === 0 && res.data) {
 				const item = res.data
@@ -351,7 +351,6 @@ onBeforeRouteLeave(() => {
 				>
 				<a-divider type="horizontal" class="mt-sm mb-sm" />
 				<a-tree
-					class="tree-limit"
 					virtual
 					lazy
 					v-model:checked-keys="checkedKeys"

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ExViewParams, Response, createViewParams } from "@/types"
+import { ExViewParams, Response, createViewParams, dateTimeFormat } from "@/types"
 import type { Data } from "@/types/master/config"
 
 import {
 	CardIssueData,
+	CardIssueRequestStatus,
 	CardIssueViewForm,
 	CardIssueViewFormBrand,
 	CardType,
@@ -14,6 +15,8 @@ type Props = {
 	type: "write" | "read"
 }
 
+const authStore = useAuthStore()
+const { getEmployeeId, getCompanyCode } = storeToRefs(authStore)
 const { getRules } = useExpenseRules()
 const rules = ref<any>()
 
@@ -49,6 +52,24 @@ onMounted(async () => {
 		rules.value = {
 			...res.data,
 		}
+	})
+})
+
+onUnmounted(() => {
+	formData.value = createViewParams<CardIssueViewForm, CardIssueViewFormBrand>({
+		id: undefined,
+		approvalHeaderId: undefined,
+		requestedBy: getEmployeeId.value,
+		requestedByEmployeeIds: [getEmployeeId.value],
+		companyCode: getCompanyCode.value,
+		startDate: useMonth.toDay(),
+		endDate: useMonth.todayEnd(),
+		usedDate: [useMonth.toDay(), useMonth.todayEnd()],
+		cardType: "",
+		cardOwnerEmployeeIds: [],
+		cardOwnerEmployeeId: "",
+		description: "",
+		cardIssueRequestStatus: CardIssueRequestStatus.PENDING,
 	})
 })
 
@@ -95,11 +116,12 @@ defineExpose({
 				show-time
 				show-today
 				v-model:value="formData.usedDate"
+				:value-format="dateTimeFormat"
 				@change="
 					(_, date: [string, string] | [Dayjs, Dayjs]) => {
 						if (date) {
-							formData.startDate = dayjs(date[0])
-							formData.endDate = dayjs(date[1])
+							formData.startDate = date[0]
+							formData.endDate = date[1]
 						} else {
 							formData.startDate = dayjs(undefined)
 							formData.endDate = dayjs(undefined)
@@ -114,7 +136,7 @@ defineExpose({
 		<a-descriptions-item label="신청카드유형">
 			<eacc-select
 				placeholder="신청카드유형"
-				:url="`/api/v2/card/managements/types/CardType`"
+				:url="`/api/v2/cards/managements/types/CardType`"
 				v-model:value="formData.cardType"
 				:field-names="{ label: 'label', value: 'code' }"
 				:on-all-field="false"

@@ -18,7 +18,7 @@ export type CreditCardIssueDetailSearch = ExSearchParams<
 	"CreditCardIssueDetail"
 >
 
-export const useCreditCardIssueDetailSearch = async (companyCode: string) => {
+export const useCreditCardIssueDetailSearch = (companyCode: string) => {
 	const searchParams = ref(
 		createSearchParams<
 			RequestParams<ICreditCardIssueDetailSearchParams>,
@@ -104,11 +104,12 @@ export const columns = createTableColumns<"CreditCardIssueDetail">([
 			multiple: 8,
 		},
 		width: -1,
+		align: "center",
 	},
 	{
 		title: "기능",
 		dataIndex: "actions",
-		width: 160,
+		width: 120,
 	},
 ])
 
@@ -151,16 +152,17 @@ export type CreditCardListData = {
 export type CardIssueManagementListData = {
 	id: number
 	startDate: string
-	endDate: string
-	issueDate: string
+	endDate: string | Dayjs
+	issueDate: string | Dayjs
 	user: string
 	approvedBy: string
-	returnDate: string
+	returnDate: string | Dayjs
 	returnedBy: string
 	returnConfirmedBy: string
 	approvalHeaderId: number
 	cardId: number
 	cardIssueId: number
+	isPast: boolean
 }
 
 export type CardIssuesAdditional = {
@@ -178,4 +180,37 @@ export type CardIssueRequester = {
 	id: number
 	requestedBy: string
 	employeeId: number
+}
+
+export type CardIssueInfo = {
+	id: number
+	startDate: string | Dayjs
+	endDate: string | Dayjs
+	issueDate: string | Dayjs
+	user: string
+	approvedBy: string
+	returnDate: string | Dayjs
+	returnedBy: string
+	returnConfirmedBy: string
+	approvalHeaderId: number
+	card: CreditCardListData
+	cardIssueId: number
+	userEmployeeId: number
+	approvedByEmployeeId: number
+	cardId?: number
+}
+
+export type IssueFormState = {
+	id?: number
+	issueDate?: string | Dayjs
+	userId?: number
+	approvedBy?: number
+	cardId?: number
+}
+export type ReturnFormState = {
+	id?: number
+	returnDate?: string | Dayjs
+	returnedBy?: number
+	approvedBy?: number
+	cardId?: number
 }

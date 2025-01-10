@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { materialIcons } from "@/composables/icons"
-import type { Response } from "@/types"
+import { type Response, dateTimeFormat } from "@/types"
 import type { FormInstance } from "ant-design-vue"
 import { myCardOptions, myCardStatuses } from "@/types/ccards"
 import type { CardIssuesAdditional } from "@/types/ccards/issue"
@@ -32,11 +32,11 @@ const onSubmit = (data: any) => {
 	formRef.value
 		?.validate()
 		.then(async () => {
-			await useCFetch<Response<any>>("/api/v2/card/issues/additional", {
+			await useCFetch<Response<any>>("/api/v2/cards/issues/additional", {
 				method: "POST",
 				body: data,
 			}).then((res) => {
-				emit("refresh", res)
+				emit("refresh", res.data)
 				open.value = false
 			})
 		})
@@ -128,7 +128,8 @@ watch(open, async (newValue) => {
 								class="full-width"
 								v-model:value="field.dates"
 								show-time
-								format="YYYY-MM-DD HH:mm:ss"
+								format="YYYY-MM-DD HH:mm"
+								:value-format="dateTimeFormat"
 								@change="
 									(value) => {
 										field.startDate = value[0]

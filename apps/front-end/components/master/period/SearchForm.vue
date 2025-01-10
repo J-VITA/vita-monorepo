@@ -43,7 +43,7 @@ const props = withDefaults(
 
 const periodStatusTypes = ref<Array<CommonCode>>([])
 
-useCFetch<Response<any>>("/api/v2/master/accountPeriods/types/status", {
+useCFetch<Response<any>>("/api/v2/masters/accountPeriods/types/status", {
 	method: "GET",
 }).then((res: Response<any>) => {
 	periodStatusTypes.value = [

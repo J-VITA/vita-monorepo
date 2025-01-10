@@ -76,3 +76,11 @@ const emit = defineEmits<{
 		:cellSelection="props.cellSelection"
 	/>
 </template>
+
+<style>
+.cell-span {
+	background-color: #f0f0f0;
+	border-bottom: none !important;
+	overflow: visible;
+}
+</style>

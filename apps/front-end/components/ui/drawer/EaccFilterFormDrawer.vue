@@ -1,7 +1,14 @@
 <script lang="ts" setup>
 import { Form } from "ant-design-vue"
-import type { IFormData, Response, IFormType } from "@/types"
+import {
+	type IFormData,
+	type Response,
+	type IFormType,
+	dateTimeFormat,
+	AccountInputMethodTypes,
+} from "@/types"
 import { materialIcons } from "@/composables/icons"
+import { TreeSelect } from "ant-design-vue"
 /**
  * v-model:formData
  */
@@ -36,7 +43,9 @@ const emit = defineEmits(["submit", "update:formData", "update:formDataItem"])
 // const modelRef = ref<any>();
 const rulesRef = ref<any>()
 const useForm = Form.useForm
+const { getRules } = useExpenseRules()
 
+const SHOW_ALL = TreeSelect.SHOW_ALL
 /**
  * any 형태의 UI 정의 할 필드 초기화
  * field 의 url(검색 select) 이 있는 경우 api 호출하여 options 초기화
@@ -68,8 +77,19 @@ formData.value.forEach((e: IFormData) => {
 								return x
 							}) as any),
 						]
+						if (form.name === "accountId") {
+							getRules().then((res) => {
+								if (!res.data) return
+								const isSubAccount =
+									res.data.accountInputMethodTypeName ===
+									AccountInputMethodTypes.SUB_ACCOUNT
+								const updatedOptions = processData(typeInfo.options, isSubAccount)
+
+								typeInfo.options = updatedOptions
+							})
+						}
 						if (
-							!["multi-checkbox", "checkbox"].includes(typeInfo.type) &&
+							!["multi-checkbox", "checkbox", "tree"].includes(typeInfo.type) &&
 							!typeInfo.mode
 						) {
 							if (
@@ -109,6 +129,33 @@ const filterOption = (input: string, option: any, key?: string) => {
 	return option.name.indexOf(input) >= 0
 }
 
+const addDisabledColumn = (treeData: any, isSubAccount: boolean) => {
+	return treeData.map((node: any) => {
+		const isDisabled = isSubAccount
+			? node.accountLevelName === "GROUP" || node.accountLevelName === "SUB_ACCOUNT"
+			: node.accountLevelName === "GROUP"
+		// 자식 노드가 있으면 재귀 호출
+		if (node.children && node.children.length) {
+			return {
+				...node,
+				children: addDisabledColumn(node.children, isSubAccount), // 자식 트리도 처리
+				disabled: isDisabled, // 기본적으로 부모 노드는 disabled 처리
+			}
+		} else {
+			// 자식이 없으면 최하위 노드로 간주하여 선택 가능
+			return {
+				...node,
+				disabled: isDisabled,
+			}
+		}
+	})
+}
+const processData = (treeData: any, isSubAccount: boolean) => {
+	return treeData.map((parentNode: any) => {
+		parentNode = addDisabledColumn([parentNode], isSubAccount)[0]
+		return parentNode
+	})
+}
 const emailSearch = (input: string, name?: any) => {
 	// let res: { value: string }[];
 	// if (!input || input.indexOf('@') >= 0) {
@@ -332,6 +379,27 @@ const onChangeCheckboxGroup = (checkedValues: any[], item: IFormData) => {
 								>
 								</a-auto-complete>
 							</template>
+							<template v-if="item.typeInfo.type === 'tree'">
+								<a-tree-select
+									v-model:value="item.defaultValue[0]"
+									show-search
+									:dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
+									placeholder="계정항목을 선택해주세요."
+									:allow-clear="false"
+									tree-default-expand-all
+									:show-checked-strategy="SHOW_ALL"
+									:tree-data="item.typeInfo.options"
+									:tree-line="true"
+									:field-names="{
+										children: 'children',
+										label: 'name',
+										value: 'id',
+									}"
+									tree-node-filter-prop="name"
+								>
+									<!-- @select="(value: any, option: any) => onChangeTree(value, option, key)" -->
+								</a-tree-select>
+							</template>
 							<template v-if="item.typeInfo.type === 'single-table'">
 								<eacc-select-table
 									v-model:value="item.defaultValue"
@@ -359,7 +427,7 @@ const onChangeCheckboxGroup = (checkedValues: any[], item: IFormData) => {
 									:label-prop="item.typeInfo?.fieldName?.label"
 									:url="item.url"
 									:columns="item.typeInfo.columns"
-									:disabled="false"
+									:disabled="item.disabled"
 									@update:value="(value: any) => (item.defaultValue = value)"
 									@selection-change="
 										(value: any) => (item.defaultValue[`${item.name}-obj`] = value)
@@ -376,10 +444,11 @@ const onChangeCheckboxGroup = (checkedValues: any[], item: IFormData) => {
 							<template v-if="item.typeInfo.type === 'range-picker'">
 								<a-range-picker
 									v-model:value="item.defaultValue"
+									:value-format="dateTimeFormat"
 									:disabled-date="item.disabledDate"
 									:picker="item.picker"
-								>
-								</a-range-picker>
+									@change="emit('update:formDataItem', item)"
+								/>
 							</template>
 						</template>
 						<template v-else>

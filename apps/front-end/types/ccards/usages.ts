@@ -25,7 +25,7 @@ export type CardUsageListSearch = ExSearchParams<
 	"CardUsageList"
 >
 
-export const useCardUsageListSearch = async (
+export const useCardUsageListSearch = (
 	companyCode: string,
 	getEmployeeId: string | number
 ) => {
@@ -128,47 +128,45 @@ export const columns = createTableColumns<"CardUsageList">([
 		customRender: ({ record }) => record.cardUseStateTypeLabel,
 	},
 	{
-		title: "사용금액",
-		dataIndex: "principalAmount",
+		title: "사용금액(KRW)",
+		dataIndex: "totalPrincipalInKrwAmount",
 		sorter: {
 			multiple: 8,
 		},
 		width: -1,
 		align: "right",
-		customRender: ({ text }) => (text ? text.toLocaleString() : 0),
-		// customRender: ({ text, record }) =>
-		//   formatCurrency(text, record.currencyTypeName),
+		customRender: ({ text }) => formatCurrency(text, "KRW"),
 	},
 	// supplyAmount
 	{
-		title: "공급가액",
+		title: "공급가액(KRW)",
 		dataIndex: "supplyAmount",
 		sorter: {
 			multiple: 9,
 		},
 		width: -1,
 		align: "right",
-		customRender: ({ text }) => (text ? text.toLocaleString() : 0),
+		customRender: ({ text }) => formatCurrency(text, "KRW"),
 	},
 	{
-		title: "부가세",
+		title: "부가세(KRW)",
 		dataIndex: "vatAmount",
 		sorter: {
 			multiple: 10,
 		},
 		width: -1,
 		align: "right",
-		customRender: ({ text }) => (text ? text.toLocaleString() : 0),
+		customRender: ({ text }) => formatCurrency(text, "KRW"),
 	},
 	{
-		title: "봉사료",
+		title: "봉사료(KRW)",
 		dataIndex: "tipAmount",
 		sorter: {
 			multiple: 11,
 		},
 		width: -1,
 		align: "right",
-		customRender: ({ text }) => (text ? text.toLocaleString() : 0),
+		customRender: ({ text }) => formatCurrency(text, "KRW"),
 	},
 	{
 		title: "가맹점명",
@@ -256,6 +254,7 @@ export type CardUsageItem = {
 	cardUseStateTypeLabel: string // 카드사용상태명 (미처리, 처리중, 처리완료, 사적비용처리)
 	currencyTypeName: string // 통화유형구분 (KRW, CHF, USD)
 	currencyTypeLabel: string // 통화유형명 (한국, 스위스, 미국)
+	totalPrincipalInKrwAmount: number // 총KRW 원금
 	principalAmount: number // 매입/취소 원금
 	supplyAmount: number // 공급가액
 	vatAmount: number // 부가세

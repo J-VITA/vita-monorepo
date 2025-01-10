@@ -76,6 +76,7 @@ const colDefs = ref([
 		cellRendererParams: (params: any) => {
 			return {
 				params,
+				text: params.value,
 				onClick: (params: any) => emit("openModal", params),
 			}
 		},
@@ -162,10 +163,10 @@ const colDefs = ref([
 		cellRenderer: Badge,
 		cellRendererParams: (params: any) => {
 			const color = params.value
-				? options.state.filter((e) => e.value === params.value)[0].color
+				? options.state.filter((e) => e.value === params.value)[0]?.color
 				: ""
 			const text = params.value
-				? options.state.filter((e) => e.value === params.value)[0].label
+				? options.state.filter((e) => e.value === params.value)[0]?.label
 				: ""
 			return {
 				params,
@@ -231,6 +232,7 @@ const defaultColDef = ref({
 const emit = defineEmits<{
 	(e: "rowSelected", value: Array<UsersManagement>): Array<UsersManagement>
 	(e: "openModal", value: any): any
+	(e: "userData", value: Array<UsersManagement>): void
 }>()
 
 const { user } = useUsers()
@@ -267,6 +269,8 @@ const onGridReady = async (params: any) => {
 					size: props.searchParams.size,
 					sort: params.request.sortModel.map((x: any) => `${x.colId},${x.sort}`),
 				})
+
+				emit("userData", res.data)
 
 				params.success({
 					rowData: res.data,

@@ -125,6 +125,7 @@ interface ICostCenterParams {
 	used: boolean
 	keyword?: string
 	parentIt?: string
+	personalExpenseFlag?: boolean
 }
 
 interface IApplyBudgetRequest {

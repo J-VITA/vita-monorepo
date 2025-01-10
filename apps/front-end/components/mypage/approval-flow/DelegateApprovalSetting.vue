@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs, { Dayjs } from "dayjs"
-import type { Response } from "@/types"
+import { type Response, dateTimeFormat } from "@/types"
 import type { FormInstance } from "ant-design-vue"
 
 type FormState = {
@@ -105,6 +105,7 @@ const post = () => {
 					>
 						<a-range-picker
 							v-model:value="formState.date"
+							:value-format="dateTimeFormat"
 							@change="
 								(_, dateString) => {
 									formState.startDate = dateString[0]

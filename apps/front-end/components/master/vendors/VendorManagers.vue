@@ -5,8 +5,9 @@ import type { Response } from "@/types"
 
 const props = withDefaults(defineProps<{ info: any; dataList: any; load: boolean }>(), {})
 
+const route = useRoute()
+const routePath = computed(() => route.path)
 const showModal = ref<boolean>(false)
-const showExcelUploadModal = ref<boolean>(false)
 const data = ref<any>()
 const manager = ref<any>(undefined)
 
@@ -53,7 +54,7 @@ const onShowModal = async (id?: number) => {
 		//   representative: true,
 		// };
 		//거래처 담당자 상세 조회 API 호출
-		await useCFetch<Response<any>>(`/api/v2/master/vendorManagers/${id}`, {
+		await useCFetch<Response<any>>(`/api/v2/masters/vendorManagers/${id}`, {
 			method: "GET",
 			params: { id },
 		}).then((res: Response<any>) => {
@@ -94,15 +95,16 @@ watch(showModal, (value) => {
 			{{ props.info?.name ? "[" + props.info?.name + "]" : "" }}
 		</a-typography-title>
 		<a-space :size="5">
-			<a-button
-				type="primary"
+			<eacc-excel-button
 				ghost
+				type="primary"
+				url="/api/v2/masters/vendorManagers/validate"
+				req-type="upload"
+				label="엑셀일괄등록"
 				:disabled="props.info === undefined"
-				:icon="materialIcons('mso', 'file_upload')"
-				@click="() => (showExcelUploadModal = true)"
-			>
-				엑셀일괄등록
-			</a-button>
+				:sample-file-key="routePath"
+				@submit="() => emit('refresh')"
+			/>
 			<a-button
 				type="primary"
 				:disabled="props.info === undefined"
@@ -138,9 +140,5 @@ watch(showModal, (value) => {
 		:vendor="props.info"
 		:manager="manager"
 		@update:show="(value) => (showModal = value)"
-	/>
-	<excel-upload-modal
-		:show="showExcelUploadModal"
-		@update:show="(value) => (showExcelUploadModal = value)"
 	/>
 </template>

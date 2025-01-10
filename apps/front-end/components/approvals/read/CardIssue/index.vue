@@ -30,7 +30,6 @@ const cardIssueformRef = useTemplateRef<{
 const emit = defineEmits<{
 	(e: "update:loading", value: boolean): boolean
 	(e: "update:formData", value: FormData): FormData
-	(e: "expenseDetailData", value: any): any
 }>()
 
 const reload = () => {
@@ -95,7 +94,6 @@ defineExpose({
 								ref="cardIssueformRef"
 								v-model:form-data="formData.cardIssueForm"
 								type="read"
-								@on-detail="(params: boolean) => emit('expenseDetailData', params)"
 							/>
 						</a-col>
 						<a-col span="24">

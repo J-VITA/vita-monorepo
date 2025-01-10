@@ -23,7 +23,7 @@ watch(props.data, (args) => {
 				</a-col>
 			</a-row>
 			<a-row :wrap="false" :gutter="10" class="pb-xl">
-				<a-col flex="30%">개인경비 가맹점(거래처) 필수 입력 </a-col>
+				<a-col flex="30%">개인경비 가맹점(거래처) 필수 입력</a-col>
 				<a-col flex="1">
 					<a-flex :gap="15" class="text-secondary">
 						<a-switch size="small" v-model:checked="data.personalExpenseVendorFlag" />
@@ -93,6 +93,25 @@ watch(props.data, (args) => {
 					</template>
 				</a-col>
 			</a-row>
+			<a-row :wrap="false" :gutter="10" class="pb-xl">
+				<!-- 백엔드 개발 안되어 있음 UI 만 있음 -->
+				<a-col flex="30%">외화금액 소수점 자리수 설정</a-col>
+				<a-col flex="1">
+					<a-flex :gap="15" class="mb-md text-secondary">
+						<span
+							>외화금액인 경우 소수점까지 금액을 표기할 수 있습니다. <br />
+							기본값은 2자리 입니다. 예시: $12.34 (2자리 설정시)</span
+						>
+					</a-flex>
+					<eacc-select
+						url="/api/v2/masters/expenseRules/types/decimalPlaces"
+						v-model:value="data.foreignCurrencyDecimalPlaceName"
+						:field-names="{ label: 'label', value: 'code' }"
+						:on-all-field="false"
+						@update:value="(key) => (data.foreignCurrencyDecimalPlaceName = key)"
+					/>
+				</a-col>
+			</a-row>
 		</a-col>
 		<a-col flex="1rem">
 			<a-divider type="vertical" class="full-height mx-none" dashed />
@@ -122,7 +141,7 @@ watch(props.data, (args) => {
 									<a-space :size="6" :wrap="true">
 										<eacc-select
 											:disabled="!data.personalExpensePaymentDateFlag"
-											url="/api/v2/master/expenseRules/types/paymentTypes"
+											url="/api/v2/masters/expenseRules/types/paymentTypes"
 											v-model:value="data.personalExpensePaymentType"
 											:field-names="{ label: 'label', value: 'code' }"
 											:on-all-field="false"
@@ -130,7 +149,7 @@ watch(props.data, (args) => {
 										/>
 										<eacc-select
 											:disabled="!data.personalExpensePaymentDateFlag"
-											url="/api/v2/master/expenseRules/types/dayTypes"
+											url="/api/v2/masters/expenseRules/types/dayTypes"
 											v-model:value="data.personalExpensePaymentDay"
 											:field-names="{ label: 'label', value: 'code' }"
 											:on-all-field="false"
@@ -159,7 +178,7 @@ watch(props.data, (args) => {
 									<a-space :size="6" :wrap="true">
 										<eacc-select
 											:disabled="!data.corporateCreditCardPaymentDateFlag"
-											url="/api/v2/master/expenseRules/types/paymentTypes"
+											url="/api/v2/masters/expenseRules/types/paymentTypes"
 											v-model:value="data.corporateCreditCardPaymentType"
 											:field-names="{ label: 'label', value: 'code' }"
 											:on-all-field="false"
@@ -167,7 +186,7 @@ watch(props.data, (args) => {
 										/>
 										<eacc-select
 											:disabled="!data.corporateCreditCardPaymentDateFlag"
-											url="/api/v2/master/expenseRules/types/dayTypes"
+											url="/api/v2/masters/expenseRules/types/dayTypes"
 											v-model:value="data.corporateCreditCardPaymentDay"
 											:field-names="{ label: 'label', value: 'code' }"
 											:on-all-field="false"
@@ -197,7 +216,7 @@ watch(props.data, (args) => {
 										<span>거래처에 등록된 지급예정일이 출력됩니다.</span>
 										<!-- <eacc-select
                       :disabled="!data.billInvoicePaymentDateFlag"
-                      url="/api/v2/master/expenseRules/types/paymentTypes"
+                      url="/api/v2/masters/expenseRules/types/paymentTypes"
                       v-model:value="data.billInvoicePaymentType"
                       :field-names="{ label: 'label', value: 'code' }"
                       :on-all-field="false"
@@ -207,7 +226,7 @@ watch(props.data, (args) => {
                     />
                     <eacc-select
                       :disabled="!data.billInvoicePaymentDateFlag"
-                      url="/api/v2/master/expenseRules/types/dayTypes"
+                      url="/api/v2/masters/expenseRules/types/dayTypes"
                       v-model:value="data.billInvoicePaymentDay"
                       :field-names="{ label: 'label', value: 'code' }"
                       :on-all-field="false"
@@ -224,34 +243,31 @@ watch(props.data, (args) => {
 								</a-flex>
 							</a-flex>
 						</a-col>
-						<!-- UI 만 있음 -->
+						<!-- 백엔드 개발 안되어 있음 UI 만 있음 -->
 						<a-col :span="24">
 							<a-flex gap="small" vertical>
 								<a-flex :gap="15">
-									<!--  v-model:checked="data.billInvoicePaymentDateFlag"-->
-									<a-switch size="small" />
+									<a-switch size="small" v-model:checked="data.familyEventFlag" />
 									<span class="mock-block">경조금</span>
 								</a-flex>
 								<a-flex :gap="20" class="mb-sm">
 									<a-space :size="6" :wrap="true">
-										<!-- <eacc-select
-                      url="/api/v2/master/expenseRules/types/paymentTypes"
-                      v-model:value="data.billInvoicePaymentType"
-                      :field-names="{ label: 'label', value: 'code' }"
-                      :on-all-field="false"
-                      @update:value="
-                        (key) => (data.billInvoicePaymentType = key)
-                      "
-                    />
-                    <eacc-select
-                      url="/api/v2/master/expenseRules/types/dayTypes"
-                      v-model:value="data.billInvoicePaymentDay"
-                      :field-names="{ label: 'label', value: 'code' }"
-                      :on-all-field="false"
-                      @update:value="
-                        (key) => (data.billInvoicePaymentDay = key)
-                      "
-                    /> -->
+										<eacc-select
+											url="/api/v2/masters/expenseRules/types/paymentTypes"
+											v-model:value="data.familyEventPaymentType"
+											:field-names="{ label: 'label', value: 'code' }"
+											:on-all-field="false"
+											:disabled="!data.familyEventFlag"
+											@update:value="(key) => (data.familyEventPaymentType = key)"
+										/>
+										<eacc-select
+											url="/api/v2/masters/expenseRules/types/dayTypes"
+											v-model:value="data.familyEventPaymentDay"
+											:field-names="{ label: 'label', value: 'code' }"
+											:on-all-field="false"
+											:disabled="!data.familyEventFlag"
+											@update:value="(key) => (data.familyEventPaymentDay = key)"
+										/>
 									</a-space>
 								</a-flex>
 							</a-flex>
@@ -274,7 +290,7 @@ watch(props.data, (args) => {
             <div class="box">
               <eacc-select
                 class="response-select full-width"
-                url="/api/v2/master/expenseRules/types/slipDivisionRoleTypes"
+                url="/api/v2/masters/expenseRules/types/slipDivisionRoleTypes"
                 v-model:value="data.slipDivisionRoleTypeName"
                 :field-names="{ label: 'label', value: 'code' }"
                 :on-all-field="false"

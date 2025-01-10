@@ -212,7 +212,7 @@ onActivated(() => {
 							@input="onQueryChanged(searchQuery)"
 						/>
 						<a-tree
-							class="tree-limit"
+							class="scroll-area is-search"
 							v-model:selected-keys="selectTreeItem"
 							v-model:expanded-keys="expandedKeys"
 							:tree-data="compTreeData"

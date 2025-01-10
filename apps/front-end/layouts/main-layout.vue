@@ -82,6 +82,7 @@ const getBreadcrumbs = () => {
 			</a-layout-header>
 
 			<a-layout-sider
+				v-if="router.currentRoute.value.path !== '/dashboard'"
 				v-model:collapsed="collapsed"
 				collapsible
 				class="sider"
@@ -97,8 +98,19 @@ const getBreadcrumbs = () => {
 					"
 				/>
 			</a-layout-sider>
-			<a-layout class="container" :style="{ marginLeft: collapsed ? '8rem' : '24rem' }">
-				<a-typography-title :level="3" class="page-name">
+			<a-layout
+				class="container"
+				:style="{
+					marginLeft: collapsed
+						? router.currentRoute.value.path === '/dashboard'
+							? ''
+							: '8rem'
+						: router.currentRoute.value.path === '/dashboard'
+							? ''
+							: '24rem',
+				}"
+			>
+				<a-typography-title v-show="route.name" :level="3" class="page-name">
 					{{ route.name }}
 				</a-typography-title>
 				<a-breadcrumb>

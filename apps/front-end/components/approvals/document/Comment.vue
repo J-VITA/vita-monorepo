@@ -110,7 +110,7 @@ const onSave = async (item: CommentType) => {
 			<a-typography-title :level="4" class="ml-none mb-none">
 				의견
 				<a-typography-text type="secondary">
-					({{ comments.length }}건)
+					({{ comments?.length || 0 }}건)
 				</a-typography-text>
 			</a-typography-title>
 		</template>

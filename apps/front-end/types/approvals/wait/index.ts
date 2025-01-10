@@ -22,7 +22,7 @@ export type ApprovalWaitListSearch = ExSearchParams<
 	"ApprovalWaitList"
 >
 
-export const useApprovalWaitListSearch = async (
+export const useApprovalWaitListSearch = (
 	companyCode: string,
 	employeeId: number | string
 ) => {
@@ -73,27 +73,50 @@ export const columns = createTableColumns<"ApprovalWaitList">([
 		resizable: true,
 		align: "center",
 		width: -1,
+		sorter: {
+			multiple: 1,
+		},
+	},
+	{
+		title: "총금액(KRW)",
+		dataIndex: "totalAmount",
+		resizable: true,
+		width: -1,
+		sorter: {
+			multiple: 2,
+		},
+		align: "right",
+		customRender: ({ text }) => formatCurrency(text, "KRW"),
 	},
 	{
 		title: "기안자",
 		dataIndex: "draftEmployeeName",
 		resizable: true,
-		sorter: true,
+		sorter: {
+			multiple: 3,
+		},
 		align: "center",
 		width: 100,
 	},
+
 	{
 		title: "기안일",
 		dataIndex: "draftDateTime",
 		resizable: true,
-		sorter: true,
+		sorter: {
+			multiple: 4,
+		},
 		align: "center",
 		width: -1,
+		customRender: ({ text }) => text && dayjs(text).format("YYYY-MM-DD"),
 	},
 	{
 		title: "결재선",
 		dataIndex: "approvalDetails",
 		resizable: true,
+		sorter: {
+			multiple: 5,
+		},
 		width: -1,
 	},
 ])

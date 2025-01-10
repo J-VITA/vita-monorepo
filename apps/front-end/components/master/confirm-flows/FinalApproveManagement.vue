@@ -20,6 +20,9 @@ const searchParams = defineModel<
 	>
 >("searchParams", { required: true })
 
+const route = useRoute()
+const routePath = computed(() => route.path)
+
 type PropsDataType = {
 	data: Response<Array<RFinalApproveReponse>>
 	pending: boolean
@@ -42,11 +45,10 @@ const selectedRowKeys = ref<(string | number)[]>([])
 const onDelete = (ids: any[]) => {
 	const lastId = ids.map((id: number) => id).at(-1)
 	ids.forEach(async (id: number) => {
-		await useCFetch<Response<any>>(`/api/v2/master/checkLines/${id}`, {
+		await useCFetch<Response<any>>(`/api/v2/masters/checkLines/${id}`, {
 			method: "DELETE",
 			body: { id },
 		}).then((res: Response<any>) => {
-			console.log(">>> ", lastId, id, res)
 			if (res.status === 0) {
 				if (lastId === id) {
 					message.success(`삭제하였습니다.`)
@@ -120,7 +122,15 @@ const onDetail = (id?: string | number) => {
 					@click="onDelete"
 					:disabled="!selectedRowKeys || selectedRowKeys.length === 0"
 				/>
-				<excel-button req-type="upload" size="middle" label="엑셀업로드" />
+				<eacc-excel-button
+					ghost
+					type="primary"
+					url="/api/v2/masters/checkLines/validate"
+					req-type="upload"
+					label="엑셀일괄등록"
+					:sample-file-key="routePath"
+					@submit="() => emit('refresh')"
+				/>
 				<a-button
 					type="primary"
 					:icon="materialIcons('mso', 'add_circle')"

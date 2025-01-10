@@ -60,7 +60,7 @@ export const useOrgzTree = async () => {
 
 		return list({ companyCode })
 			.then((res: any) => res.data.value)
-			.then((data: Response<Array<FilledTree>>) => (data || []) as Array<FilledTree>)
+			.then((data: Array<FilledTree>) => (data || []) as Array<FilledTree>)
 	}
 
 	const getDepartment = async (code: string) => {

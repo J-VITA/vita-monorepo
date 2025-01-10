@@ -23,6 +23,7 @@ const props = withDefaults(
 		showed?: boolean
 		data?: any
 		size?: "small" | "large" | "medium" | "auto"
+		loading?: boolean
 		callback?: (data: any) => any
 	}>(),
 	{
@@ -161,6 +162,7 @@ onBeforeRouteLeave(() => {
 			<a-button
 				type="primary"
 				:danger="props.type === 'error'"
+				:loading="props.loading"
 				@click="value ? emit('update:value', value) : submit(props.data)"
 			>
 				{{ props.btnOkTitle }}

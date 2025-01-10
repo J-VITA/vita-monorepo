@@ -52,7 +52,7 @@ const onSelected = async (info: any) => {
  */
 const getVendorManager = async (vendorId: number | string) => {
 	vendorManagerLoad.value = true
-	await useCFetch<Response<any>>(`/api/v2/master/vendorManagers`, {
+	await useCFetch<Response<any>>(`/api/v2/masters/vendorManagers`, {
 		method: "GET",
 		params: { companyCode: getCompanyCode.value, vendorId },
 	})
@@ -72,7 +72,7 @@ const getVendorManager = async (vendorId: number | string) => {
  */
 const getVendorBank = async (vendorId: number | string) => {
 	vendorBankLoad.value = true
-	await useCFetch<Response<any>>(`/api/v2/master/vendorBankAccounts`, {
+	await useCFetch<Response<any>>(`/api/v2/masters/vendorBankAccounts`, {
 		method: "GET",
 		params: { vendorId },
 	})
@@ -121,7 +121,7 @@ const getVendorBank = async (vendorId: number | string) => {
 					<a-col flex="20rem">
 						<a-form-item label="거래처구분">
 							<eacc-select
-								url="/api/v2/master/vendors/types/vendorTypes"
+								url="/api/v2/masters/vendors/types/vendorTypes"
 								v-model:value="filterParams.vendorTypeCode"
 								:field-names="{ label: 'label', value: 'code' }"
 								:on-all-field="true"

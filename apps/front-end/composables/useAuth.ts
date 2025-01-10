@@ -3,7 +3,7 @@ import type { Apps, Author, Response, User } from "@/types"
 export const useAuth = () => {
 	// const authUser = useAuthUser();
 
-	const { $websocket } = useNuxtApp()
+	// const { $websocket } = useNuxtApp()
 	const appsStore = useAppsStore()
 
 	const authStore = useAuthStore()
@@ -53,28 +53,18 @@ export const useAuth = () => {
 	const logout = async () => {
 		await useCFetch(`/api/v2/auth/logout`, {
 			method: "POST",
+		}).finally(() => {
+			// if ($websocket.status.value === "OPEN") {
+			// 	$websocket.send(
+			// 		JSON.stringify({
+			// 			type: "notification",
+			// 			content: `${getUser.value.name} 님이 로그아웃 하였습니다.`,
+			// 		})
+			// 	)
+			// 	$websocket.close()
+			// }
+			clearStore()
 		})
-			// .then((res: any) => res.data.value)
-			// .then((res: Response<User>) => {
-			//   if (res.status === 0) {
-			//     clearStore();
-			//     return Promise.resolve();
-			//   } else {
-			//     return Promise.reject(`${res.message}`);
-			//   }
-			// })
-			.finally(() => {
-				if ($websocket.status.value === "OPEN") {
-					$websocket.send(
-						JSON.stringify({
-							type: "notification",
-							content: `${getUser.value.name} 님이 로그아웃 하였습니다.`,
-						})
-					)
-					$websocket.close()
-				}
-				clearStore()
-			})
 	}
 
 	const me = async () => {
@@ -101,4 +91,30 @@ export const useAuth = () => {
 		logout,
 		me,
 	}
+}
+
+export const useAdmin = () => {
+	const appsStore = useAppsStore()
+	const { getAccessToken } = storeToRefs(appsStore)
+	const authStore = useAuthStore()
+	const { getRole } = storeToRefs(authStore)
+
+	return computed(() => {
+		if (!getAccessToken.value) return false
+
+		return ["ADMIN", "ROOT"].includes(getRole.value)
+	})
+}
+
+export const useRoot = () => {
+	const appsStore = useAppsStore()
+	const { getAccessToken } = storeToRefs(appsStore)
+	const authStore = useAuthStore()
+	const { getRole } = storeToRefs(authStore)
+
+	return computed(() => {
+		if (!getAccessToken.value) return false
+
+		return ["ROOT"].includes(getRole.value)
+	})
 }

@@ -61,6 +61,8 @@ interface SelectData {
 	refresh?: boolean
 	/** open */
 	open?: boolean
+	/** maxLength */
+	maxLength?: number
 }
 
 const props = withDefaults(defineProps<SelectData>(), {
@@ -135,8 +137,8 @@ const fetchSelectedData = (
 	callback: FetchSelectedDataCallback
 ) => {
 	search().then((data) => {
-		if (data && data.data) {
-			const filteredData = data.data.filter((val: any) =>
+		if (data && data.data && data.data.length > 0) {
+			const filteredData = data.data?.filter((val: any) =>
 				keys.includes(val[props.keyProps])
 			)
 			callback(filteredData)
@@ -159,6 +161,7 @@ const selectionChange = (data: any) => {
 			multiple
 			v-model="modelValue"
 			:label-prop="labelProp"
+			:max="props.maxLength"
 			:key-prop="props.keyProps"
 			:columns="props.columns"
 			:style="props.style ? props.style : {}"

@@ -54,6 +54,7 @@ interface SelectData {
 	first?: boolean
 	showSearch?: boolean
 	showArrow?: boolean
+	filterValues?: string[]
 }
 
 const props = withDefaults(defineProps<SelectData>(), {
@@ -134,10 +135,18 @@ const {
 	})
 		.then((res: Response<any>) => {
 			if (res.status == 0) {
+				let filteredData = res.data
+				// filters가 존재하면 데이터 필터링 적용
+				if (props.filterValues && props.filterValues.length > 0) {
+					filteredData = res.data.filter(
+						(item: any) => !props.filterValues?.includes(item[key])
+					)
+				}
+
 				if (props.onAllField) {
-					options.value = [{ [key]: "", [label]: "전체" }, ...res.data]
+					options.value = [{ [key]: "", [label]: "전체" }, ...filteredData]
 				} else {
-					options.value = res.data
+					options.value = filteredData
 				}
 			}
 		})

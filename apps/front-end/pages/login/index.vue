@@ -7,7 +7,7 @@ definePageMeta({
 	name: "로그인",
 })
 
-const { $websocket } = useNuxtApp()
+// const { $websocket } = useNuxtApp()
 
 // 스토어 생성
 const authStore = useAuthStore()
@@ -55,31 +55,33 @@ const onFinish = async (values: any) => {
 					await menu(formState.value.loginId, data.companyCode)
 
 					const redirect = path() ? path() : "/"
-					if (data.companyCode) {
-						if ($websocket.status.value === "OPEN") {
-							console.log("websocket.status OPEN")
-							$websocket.send(
-								JSON.stringify({
-									type: "private_message",
-									content: `${data.name} 님이 로그인 하였습니다.`,
-									// userId: data.userId,
-									targetUserId: "2", //abc root 관리자 계정
-								})
-							)
-						} else {
-							console.log("WebSocket not connected. Attempting to connect...")
-							$websocket.open()
-							$websocket.send(
-								JSON.stringify({
-									type: "broadcast",
-									// userId: data.userId,
-									content: `${data.name} 님이 로그인 하였습니다.`,
-								})
-							)
-						}
-					}
+					// if (data.companyCode) {
+					// 	if ($websocket.status.value === "OPEN") {
+					// 		console.log("websocket.status OPEN")
+					// 		$websocket.send(
+					// 			JSON.stringify({
+					// 				type: "private_message",
+					// 				content: `${data.name} 님이 로그인 하였습니다.`,
+					// 				// userId: data.userId,
+					// 				targetUserId: "2", //abc root 관리자 계정
+					// 			})
+					// 		)
+					// 	} else {
+					// 		console.log("WebSocket not connected. Attempting to connect...")
+					// 		$websocket.open()
+					// 		$websocket.send(
+					// 			JSON.stringify({
+					// 				type: "broadcast",
+					// 				// userId: data.userId,
+					// 				content: `${data.name} 님이 로그인 하였습니다.`,
+					// 			})
+					// 		)
+					// 	}
+					// }
 
-					await navigateTo(isAdmin.value ? "/settings" : redirect)
+					await navigateTo(isAdmin.value ? "/settings/workplaces" : redirect, {
+						external: true,
+					})
 				} else {
 					console.log("data ", data)
 					_reject(`${data.message}`)

@@ -1,11 +1,24 @@
-import { Dayjs } from "dayjs"
-import { TablePaginationConfig } from "ant-design-vue"
+import dayjs, { Dayjs } from "dayjs"
+import { TablePaginationConfig, UploadFile } from "ant-design-vue"
 import type { ColumnsType } from "ant-design-vue/lib/table/interface"
 
 declare global {
 	export interface Window {
 		daum: any
 		getServerSideDatasource: any
+	}
+}
+
+export const dateTimeFormat = "YYYY-MM-DDTHH:mm:ss.SSS"
+
+export class EaccError extends Error {
+	status: string | number
+
+	constructor(message: string, status: string | number) {
+		super(message)
+		this.name = "eAccountingError"
+		this.status = status
+		Object.setPrototypeOf(this, EaccError.prototype)
 	}
 }
 
@@ -25,6 +38,52 @@ export enum OsType {
 	WEB = "WEB",
 	MOBILE = "MOBILE",
 }
+
+export const E_MONTH = {
+	THAT_MONTH: dayjs().month() + 1,
+	NEXT_MONTH: dayjs().add(1, "month").month() + 1,
+}
+// E_MONTH 객체의 값 타입 정의
+export type E_MONTH = (typeof E_MONTH)[keyof typeof E_MONTH]
+// E_MONTH 객체의 키 타입 정의
+export type E_MONTH_KEYS = keyof typeof E_MONTH
+
+export const E_DAYS = {
+	ONE: 1,
+	TWO: 2,
+	THREE: 3,
+	FOUR: 4,
+	FIVE: 5,
+	SIX: 6,
+	SEVEN: 7,
+	EIGHT: 8,
+	NINE: 9,
+	TEN: 10,
+	ELEVEN: 11,
+	TWELVE: 12,
+	THIRTEEN: 13,
+	FOURTEEN: 14,
+	FIFTEEN: 15,
+	SIXTEEN: 16,
+	SEVENTTEEN: 17,
+	EIGHTEEN: 18,
+	NINETEEN: 19,
+	TWENTY: 20,
+	TWENTY_ONE: 21,
+	TWENTY_TWO: 22,
+	TWENTY_THREE: 23,
+	TWENTY_FOUR: 24,
+	TWENTY_FIVE: 25,
+	TWENTY_SIX: 26,
+	TWENTY_SEVEN: 27,
+	TWENTY_EIGHT: 28,
+	LAST: dayjs().endOf("month").date(),
+}
+
+// E_DAYS 객체의 값 타입 정의
+export type E_DAYS = (typeof E_DAYS)[keyof typeof E_DAYS]
+// E_DAYS 객체의 키 타입 정의
+export type E_DAYS_KEYS = keyof typeof E_DAYS
 
 export const SlipFormType = {
 	/** 지출결의서(통합) */
@@ -119,6 +178,15 @@ type BaseRequestParams = {
 	sort?: Array<any>
 }
 
+export const AccountInputMethodTypes = {
+	/** 계정항목 > 비용항목 */
+	ACCOUNT_SUB_ACCOUNT: "ACCOUNT_SUB_ACCOUNT",
+	/** 비용항목 > 계정항목 */
+	SUB_ACCOUNT_ACCOUNT: "SUB_ACCOUNT_ACCOUNT",
+	/** 비용항목 */
+	SUB_ACCOUNT: "SUB_ACCOUNT",
+}
+
 // export type GenericParams<K extends keyof any, T> = {
 //   [key in K]: T;
 // };
@@ -209,29 +277,35 @@ export interface BreadCrumb {
 	components: any
 }
 
-// export interface Menu {
-//   compCd: string;
-//   menuDc: string;
-//   menuLv: number;
-//   menuNm: string;
-//   menuNo: string;
-//   menuOrder: number;
-//   programFileNm: string;
-//   roleCd: string;
-//   roleCk: string;
-//   upperMenuNo: string;
-//   isCollapsed: boolean;
-//   icon: string;
-//   children: Array<Menu>;
-// }
+type EaccFileProps = {
+	id?: number
+	companyCode: string
+	name?: string
+	fileType: "SLIP" | "RECEIPT" | "APPROVAL" | "BOARD"
+	documentedNumber?: string
+	description?: string
+	seq?: number
+}
 
-// export interface Menus {
-//   counts: any;
-//   menuList: Array<Menu>;
-//   userMenuList: Array<Menu>;
-//   error: Error | null;
-//   pending: boolean;
-// }
+export type EaccFileType = Partial<Brand<`EaccFileTypeBrand`, EaccFileProps>>
+export interface EaccUploadFile<T> extends UploadFile {
+	id?: number
+	companyCode?: string
+	fileTypeName?: string
+	fileTypeLabel?: string
+	path?: string
+	documentNumber?: string
+	description?: string
+	seq?: number
+	originalName?: string
+	downloadUrl?: string
+	fileKind?: string
+	thumbnailName?: string
+	thumbnailUrl?: string
+	thumbnailPath?: string
+	response?: T
+	xhr?: T
+}
 
 export interface Pageable<T> {
 	page: number
@@ -246,8 +320,10 @@ export interface Search {
 }
 
 export interface Code {
+	id: string | number
 	code: string
 	label: string
+	value: string | number
 	used: boolean
 	name: string
 }
@@ -301,9 +377,15 @@ export interface IAddr {
 /**
  * (UI) 검색 필터의 데이터 폼 인터페이스 정의
  */
+type Children = {
+	label?: string
+	value?: string
+}
+
 type SelectField = {
 	label?: string
 	value?: string
+	children?: Children
 }
 
 type FormType = {
@@ -321,6 +403,7 @@ type FormType = {
 		| "multi-table"
 		| "date-picker"
 		| "range-picker"
+		| "tree"
 	options?: Array<any | unknown> | undefined
 	placeholder?: string
 	fieldName?: SelectField
@@ -346,7 +429,7 @@ export interface FormData {
 	refresh?: boolean
 	picker?: Exclude<
 		"time" | "date" | "week" | "month" | "quarter" | "year" | "decade",
-		"datetime" | "decade"
+		"datetime" | "decade" | "input"
 	>
 	disabledDate?: (date: Dayjs) => boolean
 	description?: string

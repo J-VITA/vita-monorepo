@@ -9,9 +9,12 @@ import type { RouteLocationNormalized, NavigationGuardNext } from "vue-router"
 
 export default defineNuxtPlugin((nuxtApp) => {
 	const router = useRouter()
+	const { setRedirect } = useRedirectFrom()
 
 	router.afterEach((page) => {
 		try {
+			useHead({ title: `${page.meta.name}` })
+			setRedirect(page.path)
 			Modal.destroyAll()
 		} catch (err) {
 			console.error("defineNuxtPlugin err ", err)

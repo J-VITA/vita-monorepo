@@ -35,7 +35,7 @@ onUpdated(async () => {
 	if (show && erpSlipId) {
 		//TODO: 전표내역 상세 내역 호출 변경해야함.
 		// data.value = await useCFetch<Response<any>>(
-		//   `/api/v2/slip/expenses/${taxInvoiceId}`,
+		//   `/api/v2/slips/expenses/${taxInvoiceId}`,
 		//   {
 		//     method: 'GET',
 		//   }
@@ -116,47 +116,47 @@ onUpdated(async () => {
 				>
 					<a-descriptions-item label="지출유형">
 						<a-tag color="blue">
-							{{ data?.entityslipHeader?.slipTypeLabel }}
+							{{ data?.slipHeader?.slipTypeLabel }}
 						</a-tag>
 					</a-descriptions-item>
 					<a-descriptions-item label="상태">
 						<a-badge
 							:color="
-								states[data?.entityslipHeader?.slipStatusName]
-									? states[data?.entityslipHeader?.slipStatusName].color
+								states[data?.slipHeader?.slipStatusName]
+									? states[data?.slipHeader?.slipStatusName].color
 									: 'blue'
 							"
-							:text="data?.entityslipHeader?.slipStatusLabel"
+							:text="data?.slipHeader?.slipStatusLabel"
 						/>
 					</a-descriptions-item>
 					<a-descriptions-item label="사용자">
-						{{ data?.entityslipHeader?.evidenceVendorName }}
+						{{ data?.slipHeader?.evidenceVendorName }}
 					</a-descriptions-item>
 					<a-descriptions-item label="사용일자">
-						{{ data?.entityslipHeader?.evidenceDate }}
+						{{ data?.slipHeader?.evidenceDate }}
 					</a-descriptions-item>
 					<a-descriptions-item label="과세유형"> {{}} </a-descriptions-item>
 					<a-descriptions-item label="금액">
-						{{ data?.entityslipHeader?.totalAmount?.toLocaleString() }}
+						{{ data?.slipHeader?.totalAmount?.toLocaleString() }}
 					</a-descriptions-item>
 					<a-descriptions-item label="공급가액">
-						{{ data?.entityslipHeader?.supplyAmount?.toLocaleString() }}
+						{{ data?.slipHeader?.supplyAmount?.toLocaleString() }}
 					</a-descriptions-item>
 					<a-descriptions-item label="부가세">
-						{{ data?.entityslipHeader?.taxAmount?.toLocaleString() }}
+						{{ data?.slipHeader?.taxAmount?.toLocaleString() }}
 					</a-descriptions-item>
 					<a-descriptions-item label="가맹점(거래처)"> {{}} </a-descriptions-item>
 					<a-descriptions-item label="내용">
-						{{ data?.entityslipHeader?.description }}
+						{{ data?.slipHeader?.description }}
 					</a-descriptions-item>
 					<a-descriptions-item label="계정항목"> {{}} </a-descriptions-item>
 					<a-descriptions-item label="코스트센터"> {{}} </a-descriptions-item>
 					<a-descriptions-item label="사업장">
-						{{ data?.entityslipHeader?.workplaceCode }}
+						{{ data?.slipHeader?.workplaceCode }}
 					</a-descriptions-item>
 					<a-descriptions-item label="프로젝트"> {{}} </a-descriptions-item>
 					<a-descriptions-item label="지급예정일">
-						{{ data?.entityslipHeader?.paymentDueDate }}
+						{{ data?.slipHeader?.paymentDueDate }}
 					</a-descriptions-item>
 				</a-descriptions>
 			</a-col>

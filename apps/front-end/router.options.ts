@@ -2,8 +2,9 @@ import type { RouterConfig } from "@nuxt/schema"
 import { createMemoryHistory, createWebHistory } from "vue-router"
 
 export default <RouterConfig>{
+	/** 클라이언트 사이드에서는 웹 히스토리를, 서버 사이드에서는 메모리 히스토리를 사용 */
 	history: (base) =>
-		import.meta.client ? createMemoryHistory(base) : null /* default */,
+		import.meta.client ? createWebHistory(base) : createMemoryHistory(base),
 	routes: (_routes) => {
 		const routeList = [..._routes]
 
@@ -22,6 +23,13 @@ export default <RouterConfig>{
 				// },
 				component: () =>
 					import("@/pages/approvals/processing.vue").then((r) => r.default || r),
+			},
+			{
+				name: "시스템설정",
+				path: "/settings",
+				redirect: "/settings/workplaces",
+				component: () => import("@/pages/settings/index.vue").then((r) => r.default || r),
+				children: [],
 			},
 		])
 	},
