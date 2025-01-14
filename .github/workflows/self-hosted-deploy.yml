@@ -1,0 +1,105 @@
+########################################################################################
+# https://turbo.build/repo/docs/ci/github-actions
+# ****************** secrets 필요 ******************
+# TURBO_TOKEN: 
+# TURBO_TEAM: 
+# *** 프로젝트가 추가 되었을 때 ***
+# Build and run Docker container 부분 스크립트에서 port 를 추가 한다. 
+# 예시)
+# - name: Build and run Docker container
+# uses: appleboy/ssh-action@master
+# with:
+#  .... 내용 생략
+#    docker run -d --name wisexpense-apps -p 80:12000 -p 81:12001 -e PORT=12000 -e ADDTION_PORT=12001 <----이 부분 해당 포트 추가
+#     ... 내용 생략
+# **************************************************
+########################################################################################
+# Deploy to AWS EC2 - AWS EC2에 배포
+name: Deploy to Self-Hosted Server
+
+# Trigger conditions - 트리거 조건
+on:
+  push:
+    branches: ["staging"]
+  pull_request:
+    branches: ["staging"]
+
+# Job definitions - 작업 정의 (self-hosted)
+jobs:
+  build-and-deploy:
+    name: Build and Deploy to Dev
+    environment: self-hosted
+    runs-on: self-hosted
+    timeout-minutes: 30
+
+    # Environment variables - 환경 변수
+    env:
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+      TURBO_CACHE: "remote:rw"
+      
+    steps:
+      - name: Clean workspace
+        run: |
+          if [ -d ".git" ]; then
+            git clean -fdx
+            git reset --hard HEAD
+          fi
+
+      # Checkout repository - 저장소 체크아웃
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # Setup build environment - 빌드 환경 설정
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.4
+
+      # Node.js setup - Node.js 환경 설정
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 21
+          cache: 'pnpm'
+
+      # 의존성 설치
+      - name: Install dependencies
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm recursive install
+
+      # self-hosted 개발용 빌드
+      - name: Build for self-hosted
+        run: |
+          export NODE_OPTIONS="--max-old-space-size=8192"
+          pnpm turbo run build:self-hosted --filter=!./apps/front-design
+
+      # 테스트 실행
+      - name: Run tests
+        run: pnpm turbo run test --filter=!./apps/front-design
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --progress=plain \
+            --build-arg BUILD_ENV=self-hosted \
+            -t wisexpense-apps:latest . 2>&1 | tee build.log
+          cat build.log
+
+      # Docker 빌드 및 실행
+      - name: Build and run Docker container
+        run: |
+          # docker build --build-arg BUILD_ENV=self-hosted -t wisexpense-apps:latest .
+          docker stop wisexpense-apps || true
+          docker rm wisexpense-apps || true
+          docker run -d --name wisexpense-apps \
+            -p 80:12000 \
+            -e NUXT_HOST=0.0.0.0 \
+            -e PORT=12000 \
+            -e NITRO_PORT=12000 \
+            -e NUXT_PORT=12000 \
+            -e NODE_ENV=self-hosted \
+            --restart always wisexpense-apps:latest
