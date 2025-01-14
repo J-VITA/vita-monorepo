@@ -61,8 +61,8 @@ const form = reactive({
 	status: [] as any,
 	workplace: [
 		{ key: "", value: "전체" },
-		{ key: "10", value: "일진씨앤에스" },
-		{ key: "20", value: "일진전기" },
+		{ key: "10", value: "CNS" },
+		{ key: "20", value: "GLOBAL" },
 	],
 })
 

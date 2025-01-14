@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<DataProps>(), {
 const tree: any[] = [
 	{
 		id: "1",
-		name: "일진전기",
+		name: "전기",
 		disabled: true,
 		children: [
 			{
