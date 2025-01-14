@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { TreeSelect } from "ant-design-vue"
 import {
-	type EntityslipHeader,
+	type SlipHeader,
 	FormType,
 	Slip,
 	UpdatedWriterInfo,
@@ -11,7 +11,7 @@ import {
 	SlipDivisionType,
 } from "@/types/expenses"
 
-import { type Response, SlipType } from "@/types"
+import { type Response, SlipType, AccountInputMethodTypes } from "@/types"
 import { createVNode } from "vue"
 import { ExclamationCircleOutlined } from "@ant-design/icons-vue"
 import { deduplicateTreeNodes } from "@/utils"
@@ -32,6 +32,7 @@ const emit = defineEmits<{
 	(e: "update:description", value: string): string
 }>()
 const authStore = useAuthStore()
+const { getRules } = useExpenseRules()
 const { getCompanyCode } = storeToRefs(authStore)
 const SHOW_ALL = TreeSelect.SHOW_ALL
 const accountTreeData = ref<any[]>([])
@@ -44,10 +45,15 @@ const fetchAccountData = async (params: {
 	costCenterId?: number
 	employeeId?: number
 }) => {
-	return await useCFetch<Response<any>>("/api/v2/slip/expenses/account", {
+	const slipTypes = formState.slipHeader.slipType
+	const isCard = slipTypes?.includes("CARD")
+	return await useCFetch<Response<any>>("/api/v2/slips/commons/employee-account", {
 		method: "GET",
 		params: {
 			companyCode: getCompanyCode.value,
+			used: true,
+			personalExpenseFlag: !isCard ? true : undefined,
+			cardFlag: isCard ? true : undefined,
 			...(isRead ? {} : params),
 		},
 	}).then((res: Response<any>) => {
@@ -57,7 +63,7 @@ const fetchAccountData = async (params: {
 }
 
 const fetchExpenseTax = async () => {
-	await useCFetch<Response<any>>("/api/v2/master/taxes", {
+	await useCFetch<Response<any>>("/api/v2/masters/taxes", {
 		method: "GET",
 		params: {
 			companyCode: getCompanyCode.value,
@@ -77,10 +83,11 @@ interface TreeNode {
 }
 
 const onChangeTree = async (item: any, obj: any, key: number) => {
+	console.log("onChangeTree ", obj)
 	if (obj.managementItemFlag) {
 		//관리항목 flag
 		const managementItems = await useCFetch<Response<any>>(
-			`/api/v2/master/managementItems`,
+			`/api/v2/masters/managementItems`,
 			{
 				method: "GET",
 				params: {
@@ -95,7 +102,7 @@ const onChangeTree = async (item: any, obj: any, key: number) => {
 					.sort((a: any, b: any) => a.orderSequence - b.orderSequence) || []
 		)
 
-		formState.entityslipHeader.managementItems = managementItems
+		formState.slipDetails[key].managementItems = managementItems
 		formState.slipDetails[key].taxCode =
 			!!obj && obj.nonDeduction ? SlipTaxType.NON_DEDUCTION : SlipTaxType.DEDUCTION
 		console.log("managementItems ", managementItems)
@@ -111,17 +118,18 @@ const onChangeTree = async (item: any, obj: any, key: number) => {
 const setTexRate = (key: number) => {
 	if (!!formState.slipDetails && formState.slipDetails.length > 0) {
 		const form = formState.slipDetails[key]
-		const divisionFlag = formState.entityslipHeader.divisionSlipFlag
+		const divisionFlag = formState.slipHeader.divisionSlipFlag
+		const slipTypes = formState.slipHeader.slipType
+		const isCard = slipTypes?.includes(SlipDivisionType.CARD)
+		const divisionType =
+			isCard && divisionFlag ? SlipDivisionType.CARD_DIVISION : SlipDivisionType.CARD
+
 		const taxType =
 			form.taxCode === "A" || form.taxCode === SlipTaxType.NON_DEDUCTION
 				? SlipTaxType.NON_DEDUCTION
 				: SlipTaxType.DEDUCTION
-		const divisionType = divisionFlag
-			? SlipDivisionType.CARD_DIVISION
-			: SlipDivisionType.CARD
 		taxRate.value = taxInfoData.value.filter(
-			(x: any) =>
-				x.deductionTypeName === taxType && x.slipEvidenceTypeCode === divisionType
+			(x: any) => x.deductionTypeName === taxType // && x.slipEvidenceTypeCode === divisionType
 		)[0].rate //세금 공제율 계산
 
 		if (taxRate.value > 0 && !isTaxDirectChange.value) {
@@ -134,6 +142,12 @@ const setTexRate = (key: number) => {
 			form.supplyAmount = (form.supplyAmount as number) + form.taxAmount
 			form.taxAmount = 0
 		}
+		if (
+			form.supplyAmount &&
+			form.taxAmount &&
+			SlipDivisionType.PERSONAL_EXPENSE === slipTypes
+		)
+			emit("update:totalAmount", form.supplyAmount + form.taxAmount) // 개인경비 일반 작성폼일 경우에만 총금액 계산
 	}
 }
 
@@ -142,8 +156,11 @@ const descriptionContext = (e: any) => {
 }
 
 const amountUpdate = (key?: number) => {
-	const divisionFlag = formState.entityslipHeader.divisionSlipFlag
-	if (key !== undefined && !divisionFlag) setTexRate(key)
+	const divisionFlag = formState.slipHeader.divisionSlipFlag
+	const slipTypes = formState.slipHeader.slipTypeName
+	const isCard = slipTypes?.includes(SlipDivisionType.CARD)
+
+	if (key !== undefined && !divisionFlag) setTexRate(key) //단일폼일때 세금 비율 계산
 	const taxAmount = formState.slipDetails
 		?.map((x: any) => x.taxAmount || 0)
 		?.reduce((prev, next) => {
@@ -154,11 +171,7 @@ const amountUpdate = (key?: number) => {
 		?.reduce((prev, next) => {
 			return prev + next
 		}, 0)
-	const divisionType = divisionFlag
-		? SlipDivisionType.CARD_DIVISION
-		: SlipDivisionType.CARD
-	if (!formState.entityslipHeader.id || !divisionType.includes("CARD"))
-		emit("update:totalAmount", taxAmount + supplyAmount)
+	if (!isCard) emit("update:totalAmount", taxAmount + supplyAmount) // 개인경비 단일 작성폼일때 총금액 계산
 	emit("update:supplyAmount", supplyAmount)
 	emit("update:taxAmount", taxAmount)
 }
@@ -189,11 +202,13 @@ const onSetTaxAmount = (value: any, key: number) => {
 	const initialForm = initState.slipDetails[key] // initialState는 부모로부터 받은 초기 데이터
 	if (form.supplyAmount === undefined) return
 
-	const divisionFlag = formState.entityslipHeader.divisionSlipFlag
-	const divisionType = divisionFlag
-		? SlipDivisionType.CARD_DIVISION
-		: SlipDivisionType.CARD
-	if (divisionType === SlipDivisionType.CARD) {
+	const divisionFlag = formState.slipHeader.divisionSlipFlag
+	const slipTypes = formState.slipHeader.slipType
+	const isCard =
+		SlipDivisionType.CARD === slipTypes || SlipDivisionType.CARD_DIVISION === slipTypes
+	const divisionType =
+		isCard && divisionFlag ? SlipDivisionType.CARD_DIVISION : SlipDivisionType.CARD
+	if (!slipTypes?.includes("DIVISION")) {
 		//일반 지출 작성 화면
 		form.supplyAmount = initialForm.supplyAmount || 0
 		form.taxAmount = initialForm.taxAmount || 0
@@ -213,6 +228,7 @@ const onSetTaxAmount = (value: any, key: number) => {
 				form.supplyAmount = initialForm.supplyAmount
 				form.taxAmount = initialForm.taxAmount
 				form.taxCode = "B"
+				console.log("공제")
 			}
 		}
 	}
@@ -254,12 +270,40 @@ const removeExpenseDetail = (idx: number) => {
 				if (formState.slipDetails && formState.slipDetails.length > 1) {
 					formState.slipDetails.splice(idx, 1)
 					if (formState.slipDetails.length === 1) {
-						formState.entityslipHeader.divisionSlipFlag = false
+						formState.slipHeader.divisionSlipFlag = false
 					}
 					amountUpdate()
 				}
 			})
 		},
+	})
+}
+
+const addDisabledColumn = (treeData: any, isSubAccount: boolean) => {
+	return treeData.map((node: any) => {
+		const isDisabled = isSubAccount
+			? node.accountLevelName === "GROUP" || node.accountLevelName === "SUB_ACCOUNT"
+			: node.accountLevelName === "GROUP"
+		// 자식 노드가 있으면 재귀 호출
+		if (node.children && node.children.length) {
+			return {
+				...node,
+				children: addDisabledColumn(node.children, isSubAccount), // 자식 트리도 처리
+				disabled: isDisabled, // 기본적으로 부모 노드는 disabled 처리
+			}
+		} else {
+			// 자식이 없으면 최하위 노드로 간주하여 선택 가능
+			return {
+				...node,
+				disabled: isDisabled,
+			}
+		}
+	})
+}
+const processData = (treeData: any, isSubAccount: boolean) => {
+	return treeData.map((parentNode: any) => {
+		parentNode = addDisabledColumn(parentNode, isSubAccount)
+		return parentNode
 	})
 }
 
@@ -272,7 +316,8 @@ watch(
 	(newList) => {
 		if (newList) {
 			const fetchData = async () => {
-				const newAccountTreeData = [...accountTreeData.value]
+				let newAccountTreeData = [...accountTreeData.value]
+
 				for (let index = 0; index < newList.length; index++) {
 					const item = newList[index]
 					const prevValue = prevValues.value[index] || {}
@@ -294,8 +339,15 @@ watch(
 						prevValues.value[index] = { ...item }
 					}
 				}
-				accountTreeData.value = newAccountTreeData
-				console.log("newAccountTreeData: ", newAccountTreeData)
+				getRules().then((res) => {
+					if (!res.data) return
+					newAccountTreeData = processData(
+						newAccountTreeData,
+						res.data.accountInputMethodTypeName === AccountInputMethodTypes.SUB_ACCOUNT
+					)
+					accountTreeData.value = newAccountTreeData
+					// console.log("newAccountTreeData: ", newAccountTreeData, formSlipType)
+				})
 			}
 			fetchData()
 		}
@@ -311,7 +363,6 @@ onMounted(async () => {
 			const params: { costCenterId?: number; employeeId?: number } = {}
 			if (item.costCenterId) params.costCenterId = item.costCenterId
 			if (item.employeeId) params.employeeId = item.employeeId
-			console.log("item.costCenterId : ", item.costCenterId)
 			newAccountTreeData[index] = await fetchAccountData(params)
 		}
 		accountTreeData.value = newAccountTreeData
@@ -320,7 +371,7 @@ onMounted(async () => {
 })
 </script>
 <template>
-	<template v-if="!!formState.entityslipHeader.divisionSlipFlag">
+	<template v-if="!!formState.slipHeader.divisionSlipFlag">
 		<a-row :gutter="40">
 			<a-divider type="horizontal" class="full-height mt-sm mb-md" />
 			<a-col
@@ -347,7 +398,7 @@ onMounted(async () => {
 					</a-button>
 				</a-flex>
 				<a-form-item
-					v-if="formState.entityslipHeader.divisionSlipFlag"
+					v-if="formState.slipHeader.divisionSlipFlag"
 					label="참석자"
 					has-feedback
 					:name="['slipDetails', key, 'employee']"
@@ -389,7 +440,7 @@ onMounted(async () => {
 									form.employeeId = b
 									form.workplaceCode = c
 									form.costCenterId = formState.slipDetails[key].costCenterId || d
-									if (!formState.entityslipHeader.id) form.accountId = undefined
+									if (!formState.slipHeader.id) form.accountId = undefined
 								}
 							}
 						"
@@ -418,7 +469,7 @@ onMounted(async () => {
 					]"
 				>
 					<eacc-select
-						url="/api/v2/slip/expenses/types/deductionTypes"
+						url="/api/v2/slips/expenses/types/deductionTypes"
 						placeholder="과세유형을 선택하세요."
 						v-model:value="form.taxCode"
 						:field-names="{ label: 'label', value: 'code' }"
@@ -498,10 +549,11 @@ onMounted(async () => {
 				>
 					<eacc-select
 						v-model:value="form.costCenterId"
-						:url="`/api/v2/slip/expenses/costCenter?employeeId=${form.employeeId}`"
+						:url="`/api/v2/slips/commons/employee-costCenter?employeeId=${form.employeeId}`"
 						:params="{
 							companyCode: getCompanyCode,
 							employeeId: form.employeeId,
+							used: true,
 						}"
 						placeholder="코스트센터를 선택해주세요."
 						:refresh="form.employeeId ? true : false"
@@ -542,7 +594,7 @@ onMounted(async () => {
 					</a-tree-select>
 				</a-form-item>
 				<a-form-item
-					v-for="(item, index) in formState.entityslipHeader.managementItems"
+					v-for="(item, index) in form.managementItems"
 					:key="item.id"
 					:label="item.managementItemName"
 					:name="['managementItems', index, 'value']"
@@ -630,7 +682,7 @@ onMounted(async () => {
 				]"
 			>
 				<eacc-select
-					url="/api/v2/slip/expenses/types/deductionTypes"
+					url="/api/v2/slips/expenses/types/deductionTypes"
 					placeholder="과세유형을 선택하세요."
 					v-model:value="form.taxCode"
 					:field-names="{ label: 'label', value: 'code' }"
@@ -709,15 +761,15 @@ onMounted(async () => {
 				]"
 			>
 				<eacc-select
-					:url="`/api/v2/slip/expenses/costCenter?employeeId=${form.employeeId}`"
+					:url="`/api/v2/slips/commons/employee-costCenter?employeeId=${form.employeeId}`"
 					:params="{
 						companyCode: getCompanyCode,
 						employeeId: form.employeeId,
+						used: true,
 					}"
 					v-model:value="form.costCenterId"
 					placeholder="코스트센터를 선택해주세요."
 					:refresh="form.employeeId ? true : false"
-					first
 					:field-names="{ label: 'name', value: 'id' }"
 					:on-all-field="false"
 					:disabled="isRead"
@@ -755,7 +807,7 @@ onMounted(async () => {
 				</a-tree-select>
 			</a-form-item>
 			<a-form-item
-				v-for="(item, index) in formState.entityslipHeader.managementItems"
+				v-for="(item, index) in form.managementItems"
 				:key="item.id"
 				:label="item.managementItemName"
 				:name="['managementItems', index, 'value']"

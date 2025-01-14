@@ -122,7 +122,7 @@ const postVendor = (item: VendorType) => {
 	const body = item
 	body.vendorFlag = false
 	body.employeeVendorFlag = true
-	useCFetch<Response<any>>(`/api/v2/master/vendors`, {
+	useCFetch<Response<any>>(`/api/v2/masters/vendors`, {
 		method: "POST",
 		body,
 	})
@@ -147,7 +147,7 @@ const patchVendor = (item: VendorType) => {
 	const body = item
 	body.vendorFlag = false
 	body.employeeVendorFlag = true
-	useCFetch<Response<any>>(`/api/v2/master/vendors/${item.id}`, {
+	useCFetch<Response<any>>(`/api/v2/masters/vendors/${item.id}`, {
 		method: "PATCH",
 		body,
 	})
@@ -234,7 +234,7 @@ watchEffect(async () => {
 						has-feedback
 					>
 						<eacc-select
-							url="/api/v2/master/vendors/types/vendorTypes"
+							url="/api/v2/masters/vendors/types/vendorTypes"
 							v-model:value="vendorInfo.vendorType"
 							:field-names="{ label: 'label', value: 'code' }"
 							:on-all-field="false"

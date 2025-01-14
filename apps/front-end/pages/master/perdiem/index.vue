@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import PerdiemStandardInfo from "@/components/perdiem/list/PerdiemStandardInfo.vue"
-import EmployeeGrade from "@/components/perdiem/list/EmployeeGrade.vue"
-import PerdiemAllowance from "@/components/perdiem/list/PerdiemAllowance.vue"
+import PerdiemStandardInfo from "@/components/master/perdiem/list/PerdiemStandardInfo.vue"
+import EmployeeGrade from "@/components/master/perdiem/list/EmployeeGrade.vue"
+import PerdiemAllowance from "@/components/master/perdiem/list/PerdiemAllowance.vue"
+import TravelExpenseType from "@/components/master/perdiem/list/TravelExpenseType.vue"
 import type { TabPaneProps } from "ant-design-vue"
 
 definePageMeta({
@@ -24,6 +25,11 @@ const componentTabs = ref<TabPaneProps["tab"]>([
 		tab: shallowRef(PerdiemAllowance),
 		tabKey: 2,
 		id: "출장 급지관리",
+	},
+	{
+		tab: shallowRef(TravelExpenseType),
+		tabKey: 3,
+		id: "출장비 유형관리",
 	},
 ])
 </script>

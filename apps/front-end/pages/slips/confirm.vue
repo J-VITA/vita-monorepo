@@ -5,33 +5,70 @@ import { iwxGrid } from "@iwx/ui"
 import type {
 	GridApi,
 	GridOptions,
+	GridReadyEvent,
 	ICellRendererParams,
 	ValueFormatterParams,
 } from "@iwx/ui"
-import type { FormInstance } from "ant-design-vue"
+import { type FormInstance } from "ant-design-vue"
 import {
-	type IFormData,
-	type IFormType,
-	type Response,
 	type RequestParams,
 	pageSizeOptions,
+	dateTimeFormat,
+	pageSize,
+	SlipType,
+	SlipFormType,
+	Response,
 } from "@/types"
 import type { Dayjs } from "dayjs"
-import { classifications, states } from "@/types/expenses"
+import { monthFormat } from "@/types/expenses"
+import {
+	columnTypes,
+	DataType,
+	getRowStyle,
+	ISlipsDataType,
+	options,
+} from "@/types/slips/list"
+import {
+	TSlipConfirmSearch,
+	useConfirmSearch,
+	useSlipConfirmColumns,
+} from "@/types/slips/confirm"
 
 definePageMeta({
-	name: "전표확정",
+	name: "전표검인/확정",
 })
+
+const authStore = useAuthStore()
+const { getCompanyCode, getEmployeeId, getDepartmentId } = storeToRefs(authStore)
 
 const { getColumns, setColumns } = useAgGridColumn()
 
 // 결재문서 상세보기
-const isDocumentDetail = ref<boolean>(false)
-const documentId = ref<number>(0)
+const showDocument = ref<boolean>(false)
+const slipFormId = ref<string | number | undefined>(undefined)
+const slipFormType = ref<SlipFormType | undefined>(undefined)
 
 // 지출내역 상세보기
-const isShowExpenseDetail = ref<boolean>(false)
-const expenseDetailData = ref<any>()
+const showDetail = ref<boolean>(false)
+const expenseFormId = ref<string | number | undefined>(undefined)
+
+const formId = computed({
+	get() {
+		return slipFormId.value
+	},
+	set(value: string | number) {
+		slipFormId.value = value
+	},
+})
+
+const expenseId = computed({
+	get() {
+		return expenseFormId.value
+	},
+	set(value: string | number) {
+		expenseFormId.value = value
+	},
+})
 
 //검인자 변경
 const formRef = useTemplateRef<FormInstance>("formRef")
@@ -42,68 +79,107 @@ const changeCheckerData = ref<{ checker: number | undefined; data: any }>({
 	data: undefined,
 })
 
-const localeText = {
-	page: "개",
-	more: "더보기",
-	to: "-",
-	of: "/",
-	next: "다음",
-	last: "마지막",
-	first: "처음",
-	previous: "이전",
-	loadingOoo: "로딩 중...",
-	size: "페이지옵션",
-	// 추가적인 텍스트 번역...
+// 검인/확정/반려 모달 안 테이블 collapse falg
+const isTableCollapse = ref<boolean>(true)
+
+//반려
+const showRejectModal = ref<boolean>(false)
+const rejectModalData = ref<{ comment: string }>({
+	comment: "",
+})
+const rejectModalLoading = ref<boolean>(false)
+
+//일괄 검인/확정
+const showBatchModal = ref<boolean>(false)
+const batchModalData = ref<{ comment: string }>({
+	comment: "",
+})
+const batchModalLoading = ref<boolean>(false)
+
+//확대/축소
+const isExpand = ref<boolean>(false)
+
+const { searchParams: params, updateSearchParams } = useConfirmSearch(
+	getCompanyCode.value,
+	getEmployeeId.value,
+	getDepartmentId.value
+)
+
+const searchParams = computed({
+	get() {
+		return params.value
+	},
+	set(value: RequestParams<TSlipConfirmSearch>) {
+		// params.value = value
+		updateSearchParams({
+			...value,
+		})
+	},
+})
+const { checks, slipsManagementTypes, slipsManagementStatus } = useSlips()
+const {
+	data: slipsData,
+	error: slipsError,
+	status: slipsStatus,
+	execute: slipsExecute,
+	refresh: slipsRefresh,
+} = await checks(searchParams)
+const { data: slipTypeOptions } = await slipsManagementTypes()
+const { data: slipStatusOptions } = await slipsManagementStatus()
+
+const gridApi = shallowRef<GridApi<DataType>>()
+
+const gridKey = ref(0)
+
+const gridOptions = {
+	overlayLoadingTemplate:
+		'<span class="ag-overlay-loading-center">데이터를 불러오는 중입니다.</span>',
+	groupDisplayType: "multipleColumns",
+	// 그룹 컬럼 순서 유지
+	applyColumnState: {
+		applyOrder: false,
+	},
 }
 
-const selectedRows = ref<Array<any>>([])
-const isExpand = ref<boolean>(false)
-const filterDate = ref<[Dayjs, Dayjs]>()
-const searchParams = ref<any>({
-	page: 1,
-	size: 10,
-	startDate: "",
-	endDate: "",
-	confirmUser: "",
-	slipStatus: ["SEAL_STANDBY", "CONFIRM"],
-	slipType: [
-		"PERSONAL_EXPENSE",
-		"DIVISION_PERSONAL_EXPENSE",
-		"CARD",
-		"E_TAX_INVOICE",
-		"TAX_INVOICE",
-	],
-})
-const gridApi = shallowRef<GridApi<any>>()
-const columnDefs = ref<GridOptions<any>["columnDefs"]>([
+const onGridDestroyed = () => {
+	gridKey.value++
+}
+
+const columnDefs = ref<GridOptions<ISlipsDataType>["columnDefs"]>([
 	{
-		field: "slipNo",
+		field: "slipNumber",
 		headerName: "전표번호",
-		headerClass: "ag-center-header bold",
+		headerClass: "ag-center-header",
+		minWidth: 200,
 		headerCheckboxSelection: true,
-		checkboxSelection: true,
+		checkboxSelection: (params: any) => {
+			return params?.data?.slipNumber ? true : false
+		},
 		cellRenderer: Link,
 		cellRendererParams: (params: ICellRendererParams) => {
 			return {
 				params,
+				text: params.value,
 				onClick: (params: any) => {
-					console.log(params)
-					// data 를 받으면 해당 데이터로 디테일 내역 통신하고 모달 오픈
-					expenseDetailData.value = params
-					isShowExpenseDetail.value = true
+					expenseFormId.value = params.id
+					showDetail.value = true
 				},
 			}
 		},
 	},
 	{
-		field: "slipType",
-		headerName: "유형",
-		headerClass: "ag-center-header bold",
+		field: "slipTypeName",
+		headerName: "전표유형",
+		headerClass: "ag-center-header",
 		cellClass: "text-center",
 		cellRenderer: ColorTag,
 		cellRendererParams: (params: ICellRendererParams) => {
-			const color = classifications[params.value].color
-			const text = classifications[params.value].text
+			const color = params.value
+				? options.expense.filter((e) => e.value === params.value)?.[0].color || "red"
+				: ""
+			const text = params.value
+				? options.expense.filter((e) => e.value === params.value)?.[0].label || "유형없음"
+				: ""
 			return {
 				params,
 				color,
@@ -111,78 +187,31 @@ const columnDefs = ref<GridOptions<any>["columnDefs"]>([
 			}
 		},
 	},
+	// {
+	// 	field: "group",
+	// 	headerName: "결재문서번호",
+	// 	headerClass: "ag-center-header",
+	// 	minWidth: 200,
+	// 	showRowGroup: true,
+	// 	cellStyle: { fontWeight: 700 },
+	//   initialPinned: false,
+	//   cellRenderer: "agGroupCellRenderer",
+	//   cellRendererParams: {
+	// 		suppressPadding: true,
+	// 	},
+	// },
 	{
-		field: "used",
-		headerName: "사용일자",
-		headerClass: "ag-center-header bold",
-	},
-	{
-		field: "workplaceName",
-		headerName: "사업장",
-		headerClass: "ag-center-header bold",
-	},
-	{
-		field: "costCenterName",
-		headerName: "코스트센터명",
-		headerClass: "ag-center-header bold",
-	},
-	{
-		field: "user",
-		headerName: "사용자",
-		headerClass: "ag-center-header bold",
-	},
-	{
-		field: "storeName",
-		headerName: "가맹점(거래처)",
-		headerClass: "ag-center-header bold",
-	},
-	{
-		field: "totalAmount",
-		headerName: "총금액",
-		headerClass: "ag-center-header bold",
-		type: "currency",
-	},
-	{
-		field: "supplyAmount",
-		headerName: "공급가액",
-		headerClass: "ag-center-header bold",
-		type: "currency",
-	},
-	{
-		field: "taxAmount",
-		headerName: "부가세",
-		headerClass: "ag-center-header bold",
-		type: "currency",
-	},
-	{
-		field: "accountName",
-		headerName: "계정/비용항목",
-		headerClass: "ag-center-header bold",
-	},
-	{
-		field: "slipStatus",
-		headerName: "상태",
-		headerClass: "ag-center-header bold",
-		cellRenderer: Badge,
-		cellRendererParams: (params: ICellRendererParams) => {
-			const color = states[params.value].color
-			const text = states[params.value].text
-			return {
-				params,
-				color,
-				text,
-			}
-		},
-	},
-	{
-		field: "documentNo",
+		field: "approvalNumber",
+		headerClass: "ag-center-header",
 		headerName: "결재문서번호",
-		headerClass: "ag-center-header bold",
+		minWidth: 200,
+		// rowGroup: true,
+		// hide: false,
 	},
 	{
-		field: "documentNo",
+		field: "approvalHeaderId",
 		headerName: "결재문서",
-		headerClass: "ag-center-header bold",
+		headerClass: "ag-center-header",
 		cellStyle: { textAlign: "center" },
 		cellRenderer: IconLink,
 		cellRendererParams: (params: ICellRendererParams) => {
@@ -191,140 +220,134 @@ const columnDefs = ref<GridOptions<any>["columnDefs"]>([
 				params,
 				icon,
 				onClick: (params: any) => {
-					console.log(params)
-					documentId.value = params.id
-					isDocumentDetail.value = true
+					// data 를 받으면 해당 데이터로 디테일 내역 통신하고 모달 오픈
+					slipFormId.value = params.approvalHeaderId as string | number
+					if (params.slipTypeName === SlipType.PERSONAL_EXPENSE) {
+						slipFormType.value = SlipFormType.PERSONAL_EXPENSE_FORM
+					} else if (params.slipTypeName === SlipType.CARD) {
+						slipFormType.value = SlipFormType.CARD_FORM
+					} else {
+						slipFormType.value = params.slipTypeName
+					}
+					showDocument.value = true
 				},
 			}
 		},
 	},
 	{
-		field: "cardApprovalDate",
+		field: "accountingDate",
+		headerName: "사용일자",
+		headerClass: "ag-center-header",
+	},
+	{
+		field: "workplaceName",
+		headerName: "사업장",
+		headerClass: "ag-center-header",
+	},
+	{
+		field: "costCenterName",
+		rowGroup: false,
+		headerName: "코스트센터명",
+		headerClass: "ag-center-header",
+	},
+	{
+		field: "employeeName",
+		headerName: "사용자",
+		headerClass: "ag-center-header",
+	},
+	{
+		field: "evidenceVendorName",
+		headerName: "증빙거래처",
+		headerClass: "ag-center-header",
+	},
+	{
+		field: "paymentVendorName",
+		headerName: "지급거래처",
+		headerClass: "ag-center-header",
+	},
+	{
+		field: "krwTotalAmount",
+		headerName: "총금액",
+		headerClass: "ag-center-header",
+		type: "currency",
+	},
+	{
+		field: "krwSupplyAmount",
+		headerName: "공급가액",
+		headerClass: "ag-center-header",
+		type: "currency",
+	},
+	{
+		field: "krwTaxAmount",
+		headerName: "부가세",
+		headerClass: "ag-center-header",
+		type: "currency",
+		valueParser: (params) => {
+			const parsedValue = params.newValue.replace(/,/g, "")
+			return Number(parsedValue || 0)
+		},
+		valueFormatter: (params: ValueFormatterParams) => {
+			if (params.value == null) return "0"
+			return params.value.toLocaleString("ko-KR")
+		},
+	},
+	{
+		field: "account",
+		headerName: "계정/비용과목",
+		valueFormatter: (params: ValueFormatterParams) => {
+			return params.value ? params.value.name : ""
+		},
+	},
+	{
+		field: "slipStatusName",
+		headerName: "상태",
+		headerClass: "ag-center-header",
+		cellRenderer: Badge,
+		cellRendererParams: (params: ICellRendererParams) => {
+			const color = params.value
+				? options.state.filter((e) => e.value === params.value)[0]?.color
+				: ""
+			const text = params.value
+				? options.state.filter((e) => e.value === params.value)[0]?.label
+				: ""
+			return {
+				params,
+				color,
+				text,
+			}
+		},
+	},
+
+	{
+		field: "cardApprovalDateTime",
 		headerName: "카드승인일시",
-		headerClass: "ag-center-header bold",
+		headerClass: "ag-center-header",
 	},
 	{
 		field: "cardApprovalNumber",
 		headerName: "카드승인번호",
-		headerClass: "ag-center-header bold",
+		headerClass: "ag-center-header",
 	},
 	{
 		field: "projectName",
 		headerName: "프로젝트명",
-		headerClass: "ag-center-header bold",
+		headerClass: "ag-center-header",
 	},
 	{
 		field: "paymentDueDate",
 		headerName: "지급예정일",
-		headerClass: "ag-center-header bold",
+		headerClass: "ag-center-header",
 	},
 	{
-		field: "currentSealUser",
+		field: "checkEmployeeName",
 		headerName: "현재검인자",
-		headerClass: "ag-center-header bold",
+		headerClass: "ag-center-header",
 	},
-	{
-		field: "nextSealUser",
-		headerName: "다음검인자",
-		headerClass: "ag-center-header bold",
-	},
-])
-const rowData = ref<any[]>([])
-
-// 상세필터
-const formData = ref<Array<IFormData>>([
-	{
-		name: "creatorByName",
-		label: "작성자",
-		url: "/api/v2/members/list",
-		typeInfo: {
-			type: "auto",
-			fieldName: { label: "name", value: "name" },
-		} as IFormType,
-		defaultValue: "",
-	},
-
-	{
-		name: "tradeByName",
-		label: "가맹점(거래처)",
-		url: `/api/v2/masters/commons/vendors`,
-		typeInfo: {
-			type: "single-table",
-			fieldName: { label: "name", value: "code" },
-			columns: [
-				{ title: "가맹점명", data: (row: any) => row.name },
-				{ title: "구분", data: (row: any) => row.vendorTypeLabel },
-				{
-					title: "사용여부",
-					data: (row: any) => (row.used ? "사용중" : "미사용"),
-				},
-			],
-		} as IFormType,
-		defaultValue: [],
-	},
-	{
-		name: "accountId",
-		label: "계정/비용항목",
-		url: `/api/v2/masters/commons/accounts`,
-		rules: [
-			{
-				required: false,
-				type: "array",
-			},
-		],
-		typeInfo: {
-			type: "single-table",
-			fieldName: { label: "name", value: "id" },
-			columns: [
-				{ title: "계정과목", data: (row: any) => row.name },
-				{ title: "설명", data: (row: any) => row.description },
-				{
-					title: "사용여부",
-					data: (row: any) => (row.used ? "사용중" : "미사용"),
-				},
-			],
-		} as IFormType,
-		defaultValue: [],
-	},
-	{
-		name: "projectName",
-		label: "프로젝트명",
-		defaultValue: "",
-	},
-	{
-		name: "costCenterId",
-		label: "코스트센터",
-		url: `/api/v2/masters/commons/costCenters`,
-		typeInfo: {
-			type: "single-table",
-			fieldName: { label: "workplaceName", value: "id" },
-			columns: [
-				{
-					title: "코스트센터",
-					data: (row: any) => row.workplaceName,
-				},
-			],
-		} as IFormType,
-		defaultValue: [],
-	},
-	{
-		name: "internalAttendanceName",
-		label: "내부참석자명",
-		defaultValue: "",
-	},
-	{
-		name: "externalAttendanceName",
-		label: "외부참석자명",
-		defaultValue: "",
-	},
-	{
-		name: "amount",
-		label: "지출금액",
-		defaultValue: [0, 0],
-		typeInfo: {
-			type: "amount",
-		} as IFormType,
-	},
+	// {
+	// 	field: "nextSealUser",
+	// 	headerName: "다음검인자",
+	// 	headerClass: "ag-center-header",
+	// },
 ])
 
 const onExpand = () => {
@@ -335,18 +358,31 @@ const onChangeRangePicker = (
 	value: [string, string] | [Dayjs, Dayjs],
 	dateString: [string, string]
 ) => {
-	console.log("onChangeRangePicker", value, dateString)
-	searchParams.value.startDate = dateString[0]
-	searchParams.value.endDate = dateString[1]
+	searchParams.value.searchDateFrom = dateString[0]
+	searchParams.value.searchDateTo = dateString[1]
 }
 
-// 상세필터
-const submit = (value: any) => {
-	console.log("상세필터 submit", value)
+const onReset = () => {
+	updateSearchParams({
+		companyCode: getCompanyCode.value,
+		filterDate: [useMonth.twoMonthsAgo(), useMonth.currentMonth()],
+		searchDateFrom: useMonth.twoMonthsAgo().format(monthFormat),
+		searchDateTo: useMonth.currentMonth().format(monthFormat),
+		employeeId: getEmployeeId.value,
+		employeeIds: [getEmployeeId.value],
+		checkEmployeeId: getEmployeeId.value,
+		checkEmployeeIds: [getEmployeeId.value],
+		departmentId: getDepartmentId.value,
+		departmentIds: [getDepartmentId.value],
+		pageNumber: 0,
+		size: pageSize,
+		first: true,
+		last: true,
+		sort: [],
+	})
 }
-
 const onSearch = (params: any) => {
-	console.log("search params :", params)
+	slipsRefresh()
 }
 
 const onColumnVisible = (event: any) => {
@@ -364,47 +400,16 @@ const onColumnMoved = (event: any) => {
 	setColumns("slipsConfirmColumnState", columnState)
 }
 
-const onGridReady = async (params: any) => {
+const onGridReady = async (params: GridReadyEvent<DataType>) => {
 	gridApi.value = params.api
-	let items: any[] = []
-	for (let i = 1; i < 21; i++) {
-		const item = {
-			id: i,
-			slipNo: "2024-BD-00001",
-			slipType: "PERSONAL_EXPENSE",
-			used: "2024-07-10",
-			workplaceName: "본사",
-			costCenterName: "마케팅본부",
-			user: "김길동",
-			storeName: "편의점",
-			totalAmount: 660000,
-			supplyAmount: 600000,
-			taxAmount: 60000,
-			accountName: "복리후생[판관비] > 식대",
-			slipStatus: "SEAL_STANDBY",
-			documentNo: "AP-20230710-02",
-			cardApprovalDate: "",
-			cardApprovalNumber: "",
-			projectName: "",
-			paymentDueDate: "2024-03-31",
-			currentSealUser: "콩순이",
-			nextSealUser: "김재무",
-		}
-		items.push(item)
+
+	const savedColumnState = await Promise.race([getColumns("slipsConfirmColumnState")])
+	if (savedColumnState) {
+		gridApi.value!.applyColumnState({
+			state: savedColumnState,
+			applyOrder: true,
+		})
 	}
-
-	rowData.value = items
-
-	// const savedColumnState = await Promise.race([
-	//   getColumns('slipsConfirmColumnState'),
-	// ]);
-
-	// if (savedColumnState) {
-	//   gridApi.value!.applyColumnState({
-	//     state: savedColumnState,
-	//     applyOrder: true,
-	//   });
-	// }
 }
 
 /**
@@ -418,48 +423,139 @@ const onRowSelected = (params: any) => {
 	const rowData = rowNode.data
 
 	if (isSelected) {
-		selectedRows.value.push(rowNode.data)
+		const approvalNumber = rowData.approvalNumber
+		params.api.forEachNode((node: any) => {
+			if (node.data.approvalNumber === approvalNumber && !node.isSelected()) {
+				node.setSelected(true)
+			}
+		})
 	} else {
-		const index = selectedRows.value.findIndex((row) => row.id === rowData.id)
-		if (index > -1) {
-			selectedRows.value.splice(index, 1)
+		const approvalNumber = rowData.approvalNumber
+		params.api.forEachNode((node: any) => {
+			if (node.data.approvalNumber === approvalNumber && node.isSelected()) {
+				node.setSelected(false)
+			}
+		})
+	}
+}
+
+const handleSlipNumberClick = (record: any) => {
+	expenseFormId.value = record.id
+	showDetail.value = true
+}
+const modalColumns = useSlipConfirmColumns(handleSlipNumberClick)
+
+const isCheckOpenModal = (type: "SEAL" | "REJECT"): boolean => {
+	if (gridApi?.value) {
+		const rowNode = gridApi.value.getSelectedRows()
+
+		const approvalHeaderIds = rowNode.map((node: any) => ({ id: node.approvalHeaderId }))
+		if (_isEmpty(approvalHeaderIds)) {
+			message.error("선택된 전표가 없습니다.")
+			return false
 		}
+		const checkEmployeeId = rowNode.map((node: any) => node.checkEmployeeId)
+
+		if (!checkEmployeeId.includes(getEmployeeId.value)) {
+			message.error(
+				`현재 ${type === "SEAL" ? "검인" : "반려"}할 수 없는 전표가 존재합니다.`
+			)
+			return false
+		}
+
+		return true
+	}
+	return false
+}
+
+/**
+ * 일괄 반려
+ * @param data
+ */
+const onReject = async (data: { comment: string }) => {
+	if (gridApi?.value) {
+		const rowNode = gridApi.value.getSelectedRows()
+
+		const approvalHeaderIds = removeDuplicatesByKey(
+			rowNode.map((node: any) => ({ id: node.approvalHeaderId })),
+			"id"
+		)
+
+		rejectModalLoading.value = true
+		await useCFetch<Response<any>>(`/api/v2/slips/managements/reject`, {
+			method: "PATCH",
+			body: {
+				companyCode: getCompanyCode.value,
+				approvalHeaderIds,
+				comment: data.comment,
+				loginEmployeeId: getEmployeeId.value,
+			},
+		})
+			.then((response: Response<any>) => {
+				if (response.status === 0) {
+					showRejectModal.value = false
+					rejectModalData.value.comment = ""
+					message.success("반려 되었습니다.")
+					slipsRefresh()
+				}
+			})
+			.finally(() => (rejectModalLoading.value = false))
 	}
 }
 
 /**
  * 일괄검인 버튼 Action
  */
-const onbatchSeal = () => {
-	Modal.confirm({
-		title: "검인/확정하시겠습니까?",
-		content:
-			"다음 검인자에게 검인을 요청합니다. \n 마지막 검인순서라면 전표는 확정됩니다.",
-		icon: materialIcons("mso", "error"),
-		okText: "확인",
-		cancelText: "취소",
-		async onOk() {
-			try {
-				return await new Promise((resolve, reject) => {
-					setTimeout(resolve, 1000)
-				}).then(() => {
+const onBatchSeal = async (data: { comment: string }) => {
+	if (gridApi?.value) {
+		const rowNode = gridApi.value.getSelectedRows()
+
+		const approvalHeaderIds = removeDuplicatesByKey(
+			rowNode.map((node: any) => ({ id: node.approvalHeaderId })),
+			"id"
+		)
+
+		batchModalLoading.value = true
+		await useCFetch<Response<any>>(`/api/v2/slips/managements/check`, {
+			method: "PATCH",
+			body: {
+				companyCode: getCompanyCode.value,
+				approvalHeaderIds,
+				comment: data.comment,
+				loginEmployeeId: getEmployeeId.value,
+			},
+		})
+			.then((response: Response<any>) => {
+				if (response.status === 0) {
+					showBatchModal.value = false
+					batchModalData.value.comment = ""
 					message.success("검인/확정되었습니다.")
-				})
-			} catch {
-				return console.log("Oops errors!")
-			}
-		},
-	})
+					slipsRefresh()
+				}
+			})
+			.finally(() => (batchModalLoading.value = false))
+	}
 }
 
 /**
  * 검인자 변경 모달 Submit
  */
-const onShowChangeChecker = () => {
-	changeCheckerData.value.checker = undefined
-	changeCheckerData.value.data = undefined
+const isShowChangeChecker = () => {
+	if (gridApi?.value) {
+		const rowNode = gridApi.value.getSelectedRows()
 
-	isChangeChecker.value = true
+		const approvalHeaderIds = rowNode.map((node: any) => ({ id: node.approvalHeaderId }))
+		if (_isEmpty(approvalHeaderIds)) {
+			message.error("선택된 전표가 없습니다.")
+			return false
+		}
+
+		changeCheckerData.value.checker = undefined
+		changeCheckerData.value.data = undefined
+
+		return true
+	}
+	return false
 }
 const onChangeCheckerFinish = (data: any) => {
 	formRef.value
@@ -468,17 +564,41 @@ const onChangeCheckerFinish = (data: any) => {
 			try {
 				changeCheckerLoading.value = true
 				return await new Promise((resolve, reject) => {
-					setTimeout(Math.random() > 0.5 ? resolve : reject, 1000)
-					console.log("검인자 변경 모달 Submit", data)
+					// setTimeout(Math.random() > 0.5 ? resolve : reject, 1000)
+					if (gridApi?.value) {
+						const rowNode = gridApi.value.getSelectedRows()
+						const approvalHeaderIds = removeDuplicatesByKey(
+							rowNode.map((node: any) => ({ id: node.approvalHeaderId })),
+							"id"
+						)
+						useCFetch<Response<any>>(`/api/v2/slips/managements/change`, {
+							method: "PATCH",
+							body: {
+								companyCode: getCompanyCode.value,
+								approvalHeaderIds,
+								loginEmployeeId: getEmployeeId.value,
+								checkEmployeeId: data.checker[0],
+							},
+						})
+							.then((response: Response<any>) =>
+								response.status === 0 ? resolve(response) : reject(response)
+							)
+							.catch((error: Response<any>) => reject(error))
+					} else {
+						reject({
+							status: -1,
+							data: { message: "gridApi is not defined" },
+						})
+					}
 				}).then(() => {
 					changeCheckerLoading.value = false
 					message.success(
 						`${changeCheckerData.value.data[0].name} ${changeCheckerData.value.data[0].gradeName}으로 검인자 변경이 완료되었습니다.`
 					)
+					slipsRefresh()
 				})
 			} catch {
-				changeCheckerLoading.value = false
-				return message.error("검인자 변경에 실패하였습니다.")
+				return (changeCheckerLoading.value = false)
 			} finally {
 				isChangeChecker.value = false
 			}
@@ -487,11 +607,26 @@ const onChangeCheckerFinish = (data: any) => {
 			console.log("error", error)
 		})
 }
+
 onMounted(() => {
-	filterDate.value = [useMonth.lastFrom(), useMonth.to()]
-	searchParams.value.startDate = useMonth.lastFrom().format("YYYY-MM-DD")
-	searchParams.value.endDate = useMonth.to().format("YYYY-MM-DD")
-	searchParams.value.confirmUser = "전체"
+	onGridDestroyed()
+})
+
+onBeforeRouteLeave(() => {
+	showDocument.value = false
+	slipFormId.value = undefined
+	slipFormType.value = undefined
+
+	showDetail.value = false
+
+	showBatchModal.value = false
+	batchModalData.value.comment = ""
+	showRejectModal.value = false
+	rejectModalData.value.comment = ""
+	isTableCollapse.value = true
+	isChangeChecker.value = false
+	changeCheckerData.value.checker = undefined
+	changeCheckerData.value.data = undefined
 })
 </script>
 
@@ -510,66 +645,141 @@ onMounted(() => {
 				<a-col>
 					<a-space>
 						<label>기간설정</label>
-						<a-range-picker v-model:value="filterDate" @change="onChangeRangePicker" />
+						<a-range-picker
+							v-model:value="searchParams.filterDate"
+							picker="month"
+							:value-format="dateTimeFormat"
+							@change="onChangeRangePicker"
+						/>
 					</a-space>
 				</a-col>
 				<a-col>
 					<a-space>
 						<span>검인자</span>
-						<a-select
-							style="width: 12rem"
-							v-model:value="searchParams.confirmUser"
-							:options="[
-								{ label: '전체', value: '전체' },
-								{ label: '홍길동', value: '홍길동' },
-								{ label: '나회계', value: '나회계' },
+						<eacc-select-table
+							:url="`/api/v2/slips/managements/commons/employees`"
+							:params="{
+								companyCode: searchParams.companyCode,
+								joined: true,
+							}"
+							refresh
+							v-model:value="searchParams.checkEmployeeIds"
+							key-props="id"
+							label-prop="name"
+							:columns="[
+								{ title: '이름', data: (row: any) => row.name },
+								{ title: '직위', data: (row: any) => row.gradeName },
+								{
+									title: '코스트센터',
+									data: (row: any) => row.costCenterName,
+								},
+								{ title: '회사', data: (row: any) => row.companyName },
+								{ title: '사업장', data: (row: any) => row.workplaceName },
 							]"
+							@update:value="(value: any) => (searchParams.checkEmployeeId = value[0])"
 						/>
 					</a-space>
 				</a-col>
 				<a-col>
-					<eacc-filter-button
-						v-model:form-data="formData"
-						@update:form-data="(params: any) => (formData = params)"
-						:loading="false"
-						:icon="materialIcons('mso', 'filter_alt')"
-						@submit="submit"
-					>
-						상세필터
-					</eacc-filter-button>
+					<a-space>
+						<span>작성부서</span>
+						<eacc-select-table
+							url="/api/v2/slips/managements/commons/departments"
+							:params="{
+								companyCode: searchParams.companyCode,
+								used: true,
+							}"
+							v-model:value="searchParams.departmentIds"
+							key-props="id"
+							label-prop="name"
+							:columns="[
+								{ title: '이름', data: (row: any) => row.name },
+								{ title: '직위', data: (row: any) => row.gradeName },
+								{
+									title: '코스트센터',
+									data: (row: any) => row.costCenterName,
+								},
+								{ title: '회사', data: (row: any) => row.companyName },
+								{ title: '사업장', data: (row: any) => row.workplaceName },
+							]"
+							@update:value="(value: any) => (searchParams.departmentId = value[0])"
+						/>
+					</a-space>
 				</a-col>
 				<a-col>
+					<a-space>
+						<span>작성자</span>
+						<eacc-select-table
+							:url="`/api/v2/slips/managements/commons/employees`"
+							:params="{
+								companyCode: searchParams.companyCode,
+								joined: true,
+							}"
+							refresh
+							v-model:value="searchParams.employeeIds"
+							key-props="id"
+							label-prop="name"
+							:columns="[
+								{ title: '이름', data: (row: any) => row.name },
+								{ title: '직위', data: (row: any) => row.gradeName },
+								{
+									title: '코스트센터',
+									data: (row: any) => row.costCenterName,
+								},
+								{ title: '회사', data: (row: any) => row.companyName },
+								{ title: '사업장', data: (row: any) => row.workplaceName },
+							]"
+							@update:value="(value: any) => (searchParams.employeeId = value[0])"
+						/>
+					</a-space>
+				</a-col>
+				<a-col>
+					<a-space class="mr-lg">
+						<span>전표상태</span>
+						<a-select
+							style="width: 20rem"
+							v-model:value="searchParams.slipStatus"
+							mode="multiple"
+							placeholder="전표상태를 선택해주세요."
+							:options="slipStatusOptions?.data"
+							:max-tag-count="2"
+						>
+							<template #maxTagPlaceholder="omittedValues">
+								<span>외 {{ omittedValues.length }}</span>
+							</template>
+						</a-select>
+					</a-space>
+					<a-space>
+						<span>전표유형</span>
+						<a-select
+							style="width: 20rem"
+							v-model:value="searchParams.slipType"
+							mode="multiple"
+							placeholder="전표유형을 선택해주세요."
+							:options="slipTypeOptions?.data"
+							:max-tag-count="2"
+						>
+							<template #maxTagPlaceholder="omittedValues">
+								<span>외 {{ omittedValues.length }}</span>
+							</template>
+						</a-select>
+					</a-space>
+				</a-col>
+				<a-col>
+					<a-button
+						:icon="materialIcons('mso', 'rotate_left')"
+						@click="onReset"
+						:loading="slipsStatus === 'pending'"
+					>
+						초기화
+					</a-button>
 					<eacc-button
 						component-is="search"
 						:data="searchParams"
 						:modal-open="false"
+						:loading="slipsStatus === 'pending'"
 						@click="onSearch"
 					/>
-				</a-col>
-				<a-col span="24">
-					<a-space class="mr-lg">
-						<span>전표상태</span>
-						<a-checkbox-group
-							v-model:value="searchParams.slipStatus"
-							:options="[
-								{ label: '검인대기', value: 'SEAL_STANDBY' },
-								{ label: '확정', value: 'CONFIRM' },
-							]"
-						/>
-					</a-space>
-					<a-space>
-						<span>지출유형</span>
-						<a-checkbox-group
-							v-model:value="searchParams.slipType"
-							:options="[
-								{ label: '개인경비', value: 'PERSONAL_EXPENSE' },
-								{ label: '개인경비분할', value: 'DIVISION_PERSONAL_EXPENSE' },
-								{ label: '법인카드', value: 'CARD' },
-								{ label: '전자세금계산서', value: 'E_TAX_INVOICE' },
-								{ label: '수기세금계산서', value: 'TAX_INVOICE' },
-							]"
-						/>
-					</a-space>
 				</a-col>
 			</a-row>
 
@@ -584,44 +794,55 @@ onMounted(() => {
 						{{ isExpand ? "축소" : "확대" }}
 					</a-button>
 					<a-space :size="5">
-						<a-button :icon="materialIcons('mso', 'download')"> 엑셀다운로드 </a-button>
-						<a-button :icon="materialIcons('mso', 'person')" @click="onShowChangeChecker">
+						<eacc-excel-button
+							req-type="download"
+							size="middle"
+							label="엑셀다운로드"
+							file-name="전표검인/확정"
+							:data="slipsData?.data"
+							:disabled="!slipsData?.data || slipsData?.data.length === 0"
+						/>
+						<a-button
+							:icon="materialIcons('mso', 'person')"
+							@click="() => (isChangeChecker = isShowChangeChecker())"
+						>
 							검인자 변경
+						</a-button>
+						<a-button
+							danger
+							:icon="materialIcons('mso', 'cancel')"
+							@click="() => (showRejectModal = isCheckOpenModal('REJECT'))"
+						>
+							반려
 						</a-button>
 						<a-button
 							type="primary"
 							:icon="materialIcons('mso', 'select_check_box')"
-							@click="onbatchSeal"
+							@click="() => (showBatchModal = isCheckOpenModal('SEAL'))"
 						>
 							일괄 검인/확정
 						</a-button>
 						<a-select
 							v-model:value="searchParams.size"
 							:options="pageSizeOptions"
-							@change="
-								(params) => {
-									searchParams.page = 1
-								}
-							"
 							value-field="key"
 							text-field="label"
 						/>
 					</a-space>
 				</a-flex>
 				<iwx-grid
-					:row-data="rowData"
-					:column-types="{
-						currency: {
-							aggFunc: 'sum',
-							cellStyle: { textAlign: 'right' },
-							valueFormatter: (params: ValueFormatterParams) =>
-								params.value ? Number(params.value).toLocaleString() : params.value,
-						},
-					}"
+					:key="gridKey"
+					group-display-type="custom"
+					:grid-options="gridOptions"
+					:row-data="slipsData?.data"
+					:column-types="columnTypes"
 					row-selection="multiple"
 					:default-col-def="{ flex: 1, minWidth: 150 }"
 					:column-defs="columnDefs"
-					:class="`ag-theme-quartz full`"
+					:get-row-style="getRowStyle"
+					:group-default-expanded="-1"
+					:class="`ag-theme-quartz custom`"
+					:suppressColumnVirtualisation="true"
 					:cell-selection="true"
 					:suppress-menu-hide="true"
 					:suppress-row-click-selection="true"
@@ -629,33 +850,54 @@ onMounted(() => {
 					:pagination="true"
 					:pagination-page-size="searchParams.size"
 					:pagination-page-size-selector="pageSizeOptions.map((item) => item.key)"
-					:locale-text="localeText"
+					:autoGroupColumnDef="{
+						flex: 1,
+						minWidth: 280,
+						field: 'approvalNumber',
+					}"
 					@grid-ready="onGridReady"
 					@column-moved="onColumnMoved"
 					@column-resized="onColumnResized"
 					@column-visible="onColumnVisible"
 					@row-selected="onRowSelected"
+					:locale-text="AG_GRID_LOCALE_KO"
 				/>
 			</div>
 		</template>
 		<template #modal>
 			<!--  지출 상세 모달-->
-			<expense-detail-modal
-				:show="isShowExpenseDetail"
-				:data="expenseDetailData"
+			<eacc-slip-detail-modal
+				v-if="gridApi"
+				:show="showDetail"
+				:expense-id="expenseId"
+				:total="
+					!isTableCollapse
+						? (gridApi.getSelectedRows().length ?? 0)
+						: (slipsData?.data.length ?? 0)
+				"
+				:slip-data="!isTableCollapse ? gridApi.getSelectedRows() : slipsData?.data"
 				@update:show="
 					(value: boolean) => {
-						isShowExpenseDetail = value
-						expenseDetailData = null
+						showDetail = value
 					}
 				"
 			/>
 			<!-- 결재문서 상세 모달 -->
 			<document-preview-modal
-				:show="isDocumentDetail"
-				:id="documentId"
+				v-if="formId && slipFormType"
+				:show="showDocument"
+				:id="formId"
+				:slip-type="compCase(slipFormType)"
 				:completed="true"
-				@update:show="(value: boolean) => (isDocumentDetail = value)"
+				@update:show="
+					(value) => {
+						showDocument = value
+						if (!value) {
+							slipFormId = undefined
+							slipFormType = undefined
+						}
+					}
+				"
 			/>
 			<!-- 검인자 변경 모달 -->
 			<field-modal
@@ -694,18 +936,180 @@ onMounted(() => {
 								v-model:value="field.checker"
 								key-props="id"
 								label-prop="name"
-								url="/api/v2/masters/commons/employees"
+								:url="`/api/v2/slips/managements/commons/employees`"
+								:params="{
+									companyCode: getCompanyCode,
+									joined: true,
+								}"
 								:columns="[
-									{ title: '사업장', data: (row: any) => row.workplaceName },
-									{ title: '부서', data: (row: any) => row.department },
-									{ title: '직위', data: (row: any) => row.gradeName },
 									{ title: '이름', data: (row: any) => row.name },
+									{ title: '직위', data: (row: any) => row.gradeName },
+									{
+										title: '부서',
+										data: (row: any) => row.departmentName,
+									},
+									{ title: '회사', data: (row: any) => row.companyName },
+									{ title: '사업장', data: (row: any) => row.workplaceName },
 								]"
 								@update:value="(value: any) => (field.checker = value)"
 								@selection-change="(value: any) => (field.data = value)"
 							/>
 						</a-form-item>
 					</a-form>
+				</template>
+			</field-modal>
+			<!-- 반려 모달 -->
+			<field-modal
+				title="반려"
+				:showed="showRejectModal"
+				:field="rejectModalData"
+				:loading="rejectModalLoading"
+				cancel-text="취소"
+				@closed="
+					() => {
+						showRejectModal = false
+						isTableCollapse = true
+					}
+				"
+				@submit="onReject"
+				:size="isTableCollapse ? 'small' : 'large'"
+			>
+				<template #content="{ field }">
+					<a-flex align="start" class="mb-lg" :gap="10">
+						<component
+							:is="materialIcons('mso', 'cancel')"
+							class="text-error"
+							style="font-size: 3rem"
+						/>
+						<div>
+							<a-typography-title :level="4"> 전표를 반려하겠습니까? </a-typography-title>
+							<a-typography-paragraph class="mb-none">
+								결재문서내 모든 전표가 반려되며 기안자는 문서를 재기안 해야 합니다.
+							</a-typography-paragraph>
+						</div>
+					</a-flex>
+
+					<a-form
+						label-align="left"
+						:model="field"
+						:wrapper-col="{
+							offset: isTableCollapse ? 2 : 1,
+							span: isTableCollapse ? 22 : 23,
+						}"
+						:label-col="{
+							offset: isTableCollapse ? 2 : 1,
+							span: isTableCollapse ? 22 : 23,
+						}"
+						:colon="false"
+					>
+						<a-form-item
+							name="comment"
+							label="반려의견"
+							:rules="[{ required: false, message: '필수값 입니다.' }]"
+						>
+							<a-textarea
+								class="fixed"
+								allow-clear
+								v-model:value="field.comment"
+								show-count
+								:auto-size="{
+									minRows: 2,
+									maxRows: 6,
+									adjustOnResize: true,
+									resize: 'none',
+								}"
+								placeholder="반려의견을 입력하세요."
+								:maxlength="1000"
+							>
+							</a-textarea>
+						</a-form-item>
+					</a-form>
+					<collapse-table
+						v-if="gridApi"
+						v-model:value="isTableCollapse"
+						:row-data="gridApi.getSelectedRows()"
+						:columns="modalColumns"
+						title="검인반려될 전표 목록"
+					></collapse-table>
+				</template>
+			</field-modal>
+
+			<!-- 일괄 검인/확정 모달 -->
+			<field-modal
+				title="검인/확정"
+				:showed="showBatchModal"
+				:field="batchModalData"
+				:loading="batchModalLoading"
+				cancel-text="취소"
+				@closed="
+					() => {
+						showBatchModal = false
+						isTableCollapse = true
+					}
+				"
+				@submit="onBatchSeal"
+				:size="isTableCollapse ? 'small' : 'large'"
+			>
+				<template #content="{ field }">
+					<a-flex align="start" class="mb-lg" :gap="10">
+						<component
+							:is="materialIcons('mso', 'error')"
+							class="text-warning"
+							style="font-size: 3rem"
+						/>
+						<div>
+							<a-typography-title :level="4">
+								검인/확정 하시겠습니까?
+							</a-typography-title>
+							<a-typography-paragraph class="mb-none">
+								다음 검인자에게 검인을 요청합니다.<br />마지막 검인순서라면 전표는
+								확정됩니다.
+							</a-typography-paragraph>
+						</div>
+					</a-flex>
+
+					<a-form
+						label-align="left"
+						:model="field"
+						:wrapper-col="{
+							offset: isTableCollapse ? 2 : 1,
+							span: isTableCollapse ? 22 : 23,
+						}"
+						:label-col="{
+							offset: isTableCollapse ? 2 : 1,
+							span: isTableCollapse ? 22 : 23,
+						}"
+						:colon="false"
+					>
+						<a-form-item
+							name="comment"
+							label="검인의견"
+							:rules="[{ required: false, message: '필수값 입니다.' }]"
+						>
+							<a-textarea
+								class="fixed"
+								allow-clear
+								v-model:value="field.comment"
+								show-count
+								:auto-size="{
+									minRows: 2,
+									maxRows: 6,
+									adjustOnResize: true,
+									resize: 'none',
+								}"
+								placeholder="검인의견을 입력하세요."
+								:maxlength="1000"
+							>
+							</a-textarea>
+						</a-form-item>
+					</a-form>
+					<collapse-table
+						v-if="gridApi"
+						v-model:value="isTableCollapse"
+						:row-data="gridApi.getSelectedRows()"
+						:columns="modalColumns"
+						title="검인확정될 전표 목록"
+					></collapse-table>
 				</template>
 			</field-modal>
 		</template>

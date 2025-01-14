@@ -703,7 +703,7 @@ watch(
 				has-feedback
 			>
 				<eacc-select
-					:url="`/api/v2/masters/commons/costCenters${getRole === 'ROOT' ? '?companyCode=' + modelRef.companyCode : '?companyCode=' + getCompanyCode}`"
+					:url="`/api/v2/settings/commons/costCenters${getRole === 'ROOT' ? '?companyCode=' + modelRef.companyCode : '?companyCode=' + getCompanyCode}`"
 					:on-all-field="false"
 					refresh
 					v-model:value="modelRef.costCenterCode"

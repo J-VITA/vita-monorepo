@@ -49,7 +49,7 @@ export type AapprovedListSearch = ExSearchParams<
 	"AapprovedList"
 >
 
-export const useAapprovedListSearch = async (
+export const useAapprovedListSearch = (
 	companyCode: string,
 	employeeId: number | string
 ) => {
@@ -115,15 +115,14 @@ export const columns = createTableColumns<"AapprovedList">([
 		resizable: true,
 	},
 	{
-		title: "총금액",
+		title: "총금액(KRW)",
 		dataIndex: "totalAmount",
 		sorter: {
 			multiple: 5,
 		},
 		width: -1,
 		resizable: true,
-		// customRender: ({ text }) =>
-		//   text.toLocaleString('ko-KR', { style: 'currency', currency: 'KRW' }),
+		customRender: ({ text }) => formatCurrency(text, "KRW"),
 	},
 	{
 		title: "기안자",
@@ -142,6 +141,7 @@ export const columns = createTableColumns<"AapprovedList">([
 		},
 		width: -1,
 		resizable: true,
+		customRender: ({ text }) => text && dayjs(text).format("YYYY-MM-DD"),
 	},
 	{
 		title: "완료일",
@@ -151,6 +151,7 @@ export const columns = createTableColumns<"AapprovedList">([
 		},
 		width: -1,
 		resizable: true,
+		customRender: ({ text }) => text && dayjs(text).format("YYYY-MM-DD"),
 	},
 	{
 		title: "결재선",

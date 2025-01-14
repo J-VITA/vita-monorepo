@@ -2,9 +2,9 @@
 import type { Response } from "@/types"
 import { DownOutlined } from "@ant-design/icons-vue"
 import type { MenuProps, FormInstance } from "ant-design-vue"
-import type { FormState } from "./type"
+import type { CardIssueInfo, ReturnFormState } from "@/types/ccards/issue"
 
-const cardId = defineModel<number | undefined>("cardId")
+const rowId = defineModel<number>("rowId")
 
 const emit = defineEmits<{
 	(e: "refresh", value: any): void
@@ -18,49 +18,37 @@ const isRequestModal = ref<boolean>(false)
 
 const isConfirmModal = ref<boolean>(false)
 const formRef = useTemplateRef<FormInstance>("formRef")
-const formState = ref<Partial<FormState>>({
-	returnDate: $dayjs(),
-	cardId: cardId.value,
-	user: "",
+const cardIssueInfo = ref<CardIssueInfo>()
+const formState = ref<ReturnFormState>({
+	returnDate: "",
+	approvedBy: 0,
 })
 
 const isCancelModal = ref<boolean>(false)
 
-const { data, refresh } = await useAsyncData(
-	"card-issues-management-return-request",
-	() =>
-		useCFetch<Response<any>>(
-			`/api/v2/card/issues/management/return/request/${cardId.value}`,
-			{
-				method: "GET",
-				params: {
-					cardId: cardId.value,
-				},
-			}
-		),
-	{
-		immediate: false,
-		watch: [cardId],
-		transform: (res) => {
-			console.log(res.data)
-			formState.value.cardId = cardId.value
-			formState.value.cardName = res.data.card.name
-			formState.value.cardNumber = res.data.card.number
-			formState.value.user = res.data.user
-			formState.value.returnedBy = res.data.card.userId
-			formState.value.approvedBy = res.data.approvedBy
-			formState.value.startDate = res.data.startDate
-			formState.value.endDate = res.data.endDate
-			formState.value.returnDate = res.data.returnDate
-				? $dayjs(res.data.returnDate)
-				: $dayjs()
-			return res.data
-		},
-	}
-)
+const onDropdownClick = async () => {
+	cardIssueInfo.value = await useCFetch<Response<CardIssueInfo>>(
+		`/api/v2/cards/issues/management/info/${rowId.value}`,
+		{
+			method: "GET",
+			params: {
+				id: rowId.value,
+			},
+		}
+	).then((res) => res.data)
+}
 
-const handleClick: MenuProps["onClick"] = (e: any) => {
-	refresh()
+const handleClick: MenuProps["onClick"] = async (e: any) => {
+	formState.value.id = cardIssueInfo.value?.id
+	formState.value.cardId = cardIssueInfo.value?.card.id
+	formState.value.returnDate = cardIssueInfo.value?.returnDate
+		? $dayjs(cardIssueInfo.value?.returnDate)
+		: $dayjs()
+	formState.value.returnedBy = cardIssueInfo.value?.userEmployeeId
+	formState.value.approvedBy = cardIssueInfo.value?.approvedBy
+		? cardIssueInfo.value?.approvedByEmployeeId
+		: undefined
+
 	if (e.key === "request") {
 		isRequestModal.value = true
 	} else if (e.key === "confirm") {
@@ -74,55 +62,66 @@ const onRequestSubmit = (data: any) => {
 	console.log("onRequestSubmit", data)
 }
 
-const onConfirmSubmit = (data: any) => {
-	console.log("onConfirmSubmit", data)
-
+const onConfirmSubmit = (formData: ReturnFormState) => {
 	formRef.value
 		?.validate()
 		.then(async () => {
-			await useCFetch<Response<any>>("/api/v2/card/issues/management/return", {
+			await useCFetch<Response<any>>("/api/v2/cards/issues/management/return", {
 				method: "PATCH",
-				body: data,
+				body: {
+					...formData,
+					approvedBy: formData.approvedBy,
+				},
 			}).then((res) => {
-				console.log(res)
+				if (res.status === 0) {
+					emit("refresh", res.data)
+					message.success("반납확인 완료")
+				}
 				isConfirmModal.value = false
-				emit("refresh", res)
 			})
 		})
 		.catch((err) => console.error(err))
 }
 
-const onCancelSubmit = async (data: any) => {
-	console.log("onCancelSubmit", data)
+const onCancelSubmit = async (formData: ReturnFormState) => {
+	console.log("onCancelSubmit", formData)
 
-	await useCFetch<Response<any>>("/api/v2/card/issues/management/cancelReturn", {
+	await useCFetch<Response<any>>("/api/v2/cards/issues/management/cancelReturn", {
 		method: "PATCH",
-		body: data,
+		body: formData,
 	}).then((res) => {
-		console.log(res)
+		if (res.status === 0) {
+			emit("refresh", res.data)
+			message.error("반납취소 완료")
+		}
 		isCancelModal.value = false
-		emit("refresh", res)
 	})
 }
 </script>
 <template>
-	<a-dropdown :trigger="['click']" :disabled="!data">
-		<a-button :icon="h(DownOutlined)" class="row-reverse"> 반납 </a-button>
+	<a-dropdown :trigger="['click']">
+		<a-button :icon="h(DownOutlined)" class="row-reverse" @click="onDropdownClick">
+			반납
+		</a-button>
 		<template #overlay>
 			<a-menu @click="handleClick">
-				<a-menu-item :icon="materialIcons('mso', 'notifications')" key="request">
+				<a-menu-item
+					:icon="materialIcons('mso', 'notifications')"
+					key="request"
+					:disabled="true"
+				>
 					수령요청
 				</a-menu-item>
 				<a-menu-divider />
-				<a-menu-item :icon="materialIcons('mso', 'check_circle')" key="confirm">
+				<a-menu-item
+					:icon="materialIcons('mso', 'check_circle')"
+					key="confirm"
+					:disabled="cardIssueInfo?.returnDate ? true : false"
+				>
 					반납확인
 				</a-menu-item>
 				<a-menu-divider />
-				<a-menu-item
-					:icon="materialIcons('mso', 'cancel')"
-					key="cancel"
-					:disabled="!formState.approvedBy"
-				>
+				<a-menu-item :icon="materialIcons('mso', 'cancel')" key="cancel">
 					반납취소
 				</a-menu-item>
 			</a-menu>
@@ -132,7 +131,7 @@ const onCancelSubmit = async (data: any) => {
 	<confirm-modal
 		:showed="isRequestModal"
 		:icon="() => materialIcons('mso', 'error_outline')"
-		:data="data"
+		:data="formState"
 		modal-title-text="반납요청"
 		title="법인카드 반납요청 알림을 전송할까요?"
 		type="warning"
@@ -150,13 +149,20 @@ const onCancelSubmit = async (data: any) => {
 				:label-style="{ width: '30%' }"
 			>
 				<a-descriptions-item label="카드정보">
-					{{ data.card.name }} / {{ formatCardNumber(data.card.number) }}
+					{{ cardIssueInfo?.card?.name }} /
+					{{
+						cardIssueInfo?.card?.number
+							? formatCardNumber(cardIssueInfo?.card?.number)
+							: ""
+					}}
 				</a-descriptions-item>
-				<a-descriptions-item label="수령자">{{ data.user }}</a-descriptions-item>
+				<a-descriptions-item label="수령자">{{
+					cardIssueInfo?.user
+				}}</a-descriptions-item>
 				<a-descriptions-item label="사용기간">
-					<template v-if="data.startDate">
-						{{ $dayjs(data.startDate).format("YYYY-MM-DD HH:mm:ss") }} ~
-						{{ $dayjs(data.endDate).format("YYYY-MM-DD HH:mm:ss") }}
+					<template v-if="cardIssueInfo?.startDate && cardIssueInfo?.endDate">
+						{{ $dayjs(cardIssueInfo.startDate).format("YYYY-MM-DD HH:mm") }} ~
+						{{ $dayjs(cardIssueInfo.endDate).format("YYYY-MM-DD HH:mm") }}
 					</template>
 				</a-descriptions-item>
 			</a-descriptions>
@@ -188,18 +194,18 @@ const onCancelSubmit = async (data: any) => {
 								show-time
 								class="full-width"
 								v-model:value="field.returnDate"
-								format="YYYY-MM-DD HH:mm:ss"
+								format="YYYY-MM-DD HH:mm"
 							/>
 						</a-form-item>
 					</a-descriptions-item>
 					<a-descriptions-item label="반납자">
-						<a-form-item name="approvedBy">
-							<a-input v-model:value="field.user" :disabled="true" />
+						<a-form-item name="returnedBy">
+							<a-input :value="cardIssueInfo?.user" :disabled="true" />
 						</a-form-item>
 					</a-descriptions-item>
 					<a-descriptions-item label="반납확인자">
 						<a-form-item
-							name="returnedBy"
+							name="approvedBy"
 							:rules="[{ required: true, message: '필수값 입니다.' }]"
 						>
 							<eacc-select
@@ -239,16 +245,21 @@ const onCancelSubmit = async (data: any) => {
 				:label-style="{ width: '30%' }"
 			>
 				<a-descriptions-item label="카드정보">
-					{{ formState.cardName }} / {{ formatCardNumber(formState.cardNumber!) }}
+					{{ cardIssueInfo?.card?.name }} /
+					{{
+						cardIssueInfo?.card?.number
+							? formatCardNumber(cardIssueInfo?.card?.number)
+							: ""
+					}}
 				</a-descriptions-item>
-				<a-descriptions-item label="반납자">{{
-					formState.returnedBy
-				}}</a-descriptions-item>
+				<a-descriptions-item label="반납자">
+					{{ cardIssueInfo?.user }}
+				</a-descriptions-item>
 				<a-descriptions-item label="반납일">
-					{{ $dayjs(formState.returnDate).format("YYYY-MM-DD HH:mm:ss") }}
+					{{ $dayjs(cardIssueInfo?.returnDate).format("YYYY-MM-DD HH:mm") }}
 				</a-descriptions-item>
 				<a-descriptions-item label="반납확인자">
-					{{ formState.approvedBy }}
+					{{ cardIssueInfo?.approvedBy }}
 				</a-descriptions-item>
 			</a-descriptions>
 		</template>

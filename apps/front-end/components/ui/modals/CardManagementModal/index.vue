@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Response } from "@/types"
+import { type Response, dateTimeFormat } from "@/types"
 import type { FormInstance } from "ant-design-vue"
 import {
 	initialFormState,
@@ -15,7 +15,7 @@ const { show, formId } = defineProps<{
 
 const emit = defineEmits<{
 	(e: "update:show", value: boolean): void
-	(e: "refresh"): void
+	(e: "refresh", value: any): void
 }>()
 
 const open = computed({
@@ -46,8 +46,8 @@ const onSubmit = () => {
 			console.log("onSubmit", formState.value)
 
 			const url = formId
-				? `/api/v2/card/managements/${formId}`
-				: `/api/v2/card/managements`
+				? `/api/v2/cards/managements/${formId}`
+				: `/api/v2/cards/managements`
 			await useCFetch<Response<ResponseItem>>(url, {
 				method: formId ? "PATCH" : "POST",
 				body: {
@@ -65,7 +65,7 @@ const onSubmit = () => {
 			}).then((res: Response<ResponseItem>) => {
 				if (res.status === 0) {
 					message.success(formId ? "카드가 수정되었습니다." : "카드가 등록되었습니다.")
-					emit("refresh")
+					emit("refresh", res.data)
 					open.value = false
 				}
 			})
@@ -74,7 +74,7 @@ const onSubmit = () => {
 }
 
 const onDelete = async () => {
-	await useCFetch<Response<any>>(`/api/v2/card/managements/${formId}`, {
+	await useCFetch<Response<any>>(`/api/v2/cards/managements/${formId}`, {
 		method: "DELETE",
 		params: {
 			id: formId,
@@ -85,7 +85,7 @@ const onDelete = async () => {
 	}).then((res: Response<any>) => {
 		if (res.status === 0) {
 			message.success("카드가 삭제되었습니다.")
-			emit("refresh")
+			emit("refresh", res.data)
 			open.value = false
 		}
 	})
@@ -96,7 +96,7 @@ watch(
 	async (value) => {
 		if (value) {
 			loading.value = true
-			await useCFetch<Response<any>>(`/api/v2/card/managements/${formId}`, {
+			await useCFetch<Response<any>>(`/api/v2/cards/managements/${formId}`, {
 				method: "GET",
 				params: {
 					id: formId,
@@ -176,7 +176,7 @@ watch(
 						<a-form-item :flex="1" label="카드사" name="cardCompanyType">
 							<eacc-select
 								placeholder="선택해주세요."
-								url="/api/v2/card/managements/types/CardCompanyType"
+								url="/api/v2/cards/managements/types/CardCompanyType"
 								v-model:value="formState.cardCompanyType"
 								:field-names="{ label: 'label', value: 'code' }"
 								:on-all-field="false"
@@ -193,7 +193,7 @@ watch(
 						>
 							<eacc-select
 								placeholder="선택해주세요."
-								url="/api/v2/card/managements/types/CardUseType"
+								url="/api/v2/cards/managements/types/CardUseType"
 								v-model:value="formState.cardUseType"
 								:field-names="{ label: 'label', value: 'code' }"
 								:on-all-field="false"
@@ -309,7 +309,7 @@ watch(
 								>
 									<eacc-select
 										placeholder="선택해주세요."
-										url="/api/v2/card/managements/types/BankType"
+										url="/api/v2/cards/managements/types/BankType"
 										v-model:value="formState.bankType"
 										:field-names="{ label: 'label', value: 'code' }"
 										:on-all-field="false"
@@ -340,7 +340,7 @@ watch(
 							<eacc-select
 								class="full-width"
 								placeholder="선택해주세요."
-								url="/api/v2/master/expenseRules/types/dayTypes"
+								url="/api/v2/masters/expenseRules/types/dayTypes"
 								v-model:value="formState.paymentDayType"
 								:field-names="{ label: 'label', value: 'code' }"
 								:on-all-field="false"
@@ -356,7 +356,7 @@ watch(
 						>
 							<eacc-select
 								placeholder="선택해주세요."
-								url="/api/v2/card/managements/types/CardType"
+								url="/api/v2/cards/managements/types/CardType"
 								v-model:value="formState.cardType"
 								:field-names="{ label: 'label', value: 'code' }"
 								:on-all-field="false"
@@ -437,6 +437,7 @@ watch(
 							<a-range-picker
 								class="full-width"
 								v-model:value="formState.usedDate"
+								:value-format="dateTimeFormat"
 								@change="
 									(value) => {
 										formState.startDate = value[0]

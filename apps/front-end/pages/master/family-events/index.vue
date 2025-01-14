@@ -7,7 +7,13 @@ import {
 	SelectProps,
 	FormInstance,
 } from "ant-design-vue"
-import { type Response, type RequestParams, pageSizeOptions, pagination } from "@/types"
+import {
+	type Response,
+	type RequestParams,
+	pageSizeOptions,
+	pagination,
+	dateTimeFormat,
+} from "@/types"
 import type {
 	FamilyEventsItem,
 	FamilyEventsParams,
@@ -20,6 +26,9 @@ definePageMeta({
 
 const { $dayjs } = useNuxtApp()
 const searchFilterDate = ref<[Dayjs, Dayjs]>()
+
+const route = useRoute()
+const routePath = computed(() => route.path)
 
 const familyEventFormRef = ref<FormInstance>()
 const authStore = useAuthStore()
@@ -116,9 +125,9 @@ const columns = ref<ColumnsType<any>>([
 const {
 	data: eventData,
 	pending,
-	refresh,
+	refresh: eventRefresh,
 } = await useAsyncData("family-events-list", () =>
-	useIFetch<Response<Array<FamilyEventsItem>>>("/api/v2/master/familyEvents", {
+	useIFetch<Response<Array<FamilyEventsItem>>>("/api/v2/masters/familyEvents", {
 		method: "GET",
 		params: searchParams.value,
 	})
@@ -127,7 +136,7 @@ const {
 )
 
 const onSearch = () => {
-	refresh()
+	eventRefresh()
 }
 
 const onChangeRangePicker = (
@@ -140,7 +149,7 @@ const onChangeRangePicker = (
 
 const showModal = async (id?: number) => {
 	if (id) {
-		await useIFetch<Response<FamilyEventsItem>>(`/api/v2/master/familyEvents/${id}`, {
+		await useIFetch<Response<FamilyEventsItem>>(`/api/v2/masters/familyEvents/${id}`, {
 			method: "GET",
 			params: { companyCode: getCompanyCode.value },
 		})
@@ -198,7 +207,7 @@ const handleResizeColumn = (w: number, col: ColumnType<any>) => {
 const onDelete = (users: number[]) => {
 	let num = 0
 	users.forEach(async (id) => {
-		await useIFetch<Response<any>>(`/api/v2/master/familyEvents/${id}`, {
+		await useIFetch<Response<any>>(`/api/v2/masters/familyEvents/${id}`, {
 			method: "DELETE",
 			body: {
 				id: id,
@@ -212,7 +221,7 @@ const onDelete = (users: number[]) => {
 				if (num === users.length) {
 					message.success(`${num}개의 프로젝트가 삭제 되었습니다.`)
 					selectedRowKeys.value = []
-					refresh()
+					eventRefresh()
 				}
 			})
 	})
@@ -230,8 +239,8 @@ const onSubmit = (data: FamilyEventsParams) => {
 			const send = Object.assign({}, data)
 			delete send.method
 			const url = data.id
-				? `/api/v2/master/familyEvents/${data.id}`
-				: "/api/v2/master/familyEvents"
+				? `/api/v2/masters/familyEvents/${data.id}`
+				: "/api/v2/masters/familyEvents"
 			await useIFetch<Response<any>>(url, {
 				method: data.id ? "PATCH" : "POST",
 				body: send,
@@ -242,7 +251,7 @@ const onSubmit = (data: FamilyEventsParams) => {
 					isShowFamilyEventModal.value = false
 					familyEventFormRef.value?.resetFields()
 					message.success(res.message)
-					refresh()
+					eventRefresh()
 				})
 		})
 		.catch((err) => {
@@ -270,6 +279,7 @@ onMounted(() => {
 						<a-form-item label="기간설정">
 							<a-range-picker
 								v-model:value="searchFilterDate"
+								:value-format="dateTimeFormat"
 								picker="month"
 								@change="onChangeRangePicker"
 							/>
@@ -293,6 +303,22 @@ onMounted(() => {
 				<a-col></a-col>
 				<a-col>
 					<a-space :size="5">
+						<eacc-excel-button
+							req-type="download"
+							label="엑셀다운로드"
+							file-name="경조금관리"
+							:data="eventData?.data"
+							:disabled="!eventData?.data || eventData?.data.length === 0"
+						/>
+						<eacc-excel-button
+							ghost
+							type="primary"
+							url="/api/v2/masters/familyEvents/validate"
+							req-type="upload"
+							label="엑셀일괄등록"
+							:sample-file-key="routePath"
+							@submit="() => eventRefresh()"
+						/>
 						<eacc-button
 							component-is="delete"
 							:data="selectedRowKeys"
@@ -405,7 +431,7 @@ onMounted(() => {
 							has-feedback
 						>
 							<eacc-select
-								url="/api/v2/master/familyEvents/types/familyEventTypes"
+								url="/api/v2/masters/familyEvents/types/familyEventTypes"
 								:on-all-field="false"
 								v-model:value="modalField.familyEventTypeName"
 								:field-names="{ label: 'label', value: 'code' }"
@@ -438,6 +464,7 @@ onMounted(() => {
 									<a-range-picker
 										class="full-width"
 										v-model:value="field.filterDate"
+										:value-format="dateTimeFormat"
 										@change="
 											(_, dateString) => {
 												modalField.startDate = dateString[0]

@@ -5,7 +5,7 @@ import { type FormData, calculateTotalAmount } from "@/types/approvals/document"
 import type { GridApi, GridOptions } from "@iwx/ui"
 import { Link } from "@/components/ui"
 import { Search, BudgetActualFormData, BudgetActualDetailData } from "@/types/budgets"
-import { type Response, pageSizeOptions } from "@/types"
+import { type Response, pageSizeOptions, dateTimeFormat } from "@/types"
 import type { FormInstance } from "ant-design-vue"
 import { iwxGrid } from "@iwx/ui"
 import budgetActualsDetailModal from "~/components/budgets/budgetActualsDetailModal.vue"
@@ -125,9 +125,9 @@ const columnDefs = ref<GridOptions<any>["columnDefs"]>([
 				const accountValue = `${accountParentsName} > ${accountName}`
 
 				return {
-					value: accountValue,
 					onClick: (params: any) => onOpenActualModal(params, true),
 					data: params.data,
+					text: accountValue,
 				}
 			}
 		},
@@ -322,7 +322,7 @@ const {
 	status: costCenterStatus,
 	refresh: costCenterRefresh,
 } = await useAsyncData(`budget--actual-cost-center-search-list`, () =>
-	useIFetch<any>("/api/v2/master/costCenters", {
+	useIFetch<any>("/api/v2/settings/costCenters", {
 		method: "GET",
 		params: {
 			companyCode: getCompanyCode.value,
@@ -345,7 +345,7 @@ const {
 	status: accountStauts,
 	refresh: accoountRefresh,
 } = await useAsyncData(`budget-actual-account-search-list`, () =>
-	useIFetch<any>("/api/v2/master/accounts", {
+	useIFetch<any>("/api/v2/masters/accounts", {
 		method: "GET",
 		params: {
 			companyCode: getCompanyCode.value,
@@ -403,6 +403,7 @@ const onOpenActualModal = (data: any, value: boolean) => {
 							<a-range-picker
 								v-model:value="filterDate"
 								@change="onChangeRangePicker"
+								:value-format="dateTimeFormat"
 								picker="month"
 							/>
 						</a-form-item>
@@ -548,12 +549,13 @@ const onOpenActualModal = (data: any, value: boolean) => {
 							>
 								인쇄
 							</a-button>
-							<a-button
-								:icon="materialIcons('mso', 'file_download')"
-								@click="() => console.log('엑셀다운로드')"
-							>
-								엑셀다운로드
-							</a-button>
+							<eacc-excel-button
+								req-type="download"
+								label="엑셀다운로드"
+								file-name="예산신청내역"
+								:data="budgetActualsData"
+								:disabled="!budgetActualsData || budgetActualsData.length === 0"
+							/>
 							<a-select
 								v-model:value="searchParams.size"
 								:options="pageSizeOptions"
@@ -572,8 +574,7 @@ const onOpenActualModal = (data: any, value: boolean) => {
 					:grid-options="gridOptions"
 					:column-defs="columnDefs"
 					:default-col-def="defaultColDef"
-					:class="`ag-theme-quartz`"
-					:style="{ width: '100%', height: '40rem' }"
+					:class="`ag-theme-quartz custom`"
 					:cell-selection="false"
 					:suppress-menu-hide="true"
 					:stop-editing-when-cells-lose-focus="false"

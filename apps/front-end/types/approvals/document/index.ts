@@ -69,9 +69,9 @@ export type CardIssueViewForm = {
 	requestedBy: string | number //신청자 Identifier
 	requestedByEmployeeIds: (string | number)[] //신청자명 (select table 용)
 	companyCode?: string //회사코드
-	startDate: Dayjs //사용기간 시작일
-	endDate: Dayjs //사용기간 종료일
-	usedDate: [Dayjs, Dayjs] //사용기간
+	startDate: Dayjs | string //사용기간 시작일
+	endDate: Dayjs | string //사용기간 종료일
+	usedDate: [Dayjs, Dayjs] | [string, string] //사용기간
 	cardType: CardType // 신청카드유형
 	cardIssueRequestStatus: CardIssueRequestStatus
 	cardOwnerEmployeeIds: (string | number)[] // 카드소유자 (eacc-select-table 용)
@@ -109,16 +109,50 @@ export interface CardIssueData {
 }
 
 export type FamilyEventViewForm = {
-	actualDate: string | Dayjs //발생일자
-	employeeId: string | number //신청자 Id
-	employeeIds: (string | number)[] //신청자 Id (select table 용)
-	familEventType: string | number // 경조구분
-	expendAmount: number // 신청금액(회사지급액)
-	mutualYn: string // 상조용품
-	wreathYn: string // 경조화환
-	expendDate: string // 지급예정일
+	id?: number //카드 불출 요청 Identifier
+	approvalHeaderId?: number //전자결재 헤더 Identifier
+	slipHeaderId?: number
+	companyCode?: string //회사코드
+	eventDate: string | Dayjs //발생일자
+	requestEmployeeId: string | number //신청자 Id
+	requestEmployeeIds: (string | number)[] //신청자 Id (select table 용)
+	familyEventTypeName: string // 경조구분
+	accountId?: number //계정항목
+	familyEventAmount: number // 신청금액(회사지급액)
+	mutualAidFlag: boolean // 상조용품
+	wreathFlag: boolean // 경조화환
+	paymentDueDate: string | Dayjs // 지급예정일
 }
 export type FamilyEventFormBrand = "FamilyEventViewFormBrand"
+
+export interface FamilyEventData {
+	id: number
+	slipHeaderId: number
+	approvalHeaderId: number
+	eventDate: string | Dayjs //발생일자
+	requestEmployeeId: string | number //신청자 Id
+	requestEmployeeIs: (string | number)[] //신청자 Id (select table 용)
+	familyEventTypeName: string | number // 경조구분
+	accountId?: number //계정항목
+	familyEventAmount: number // 신청금액(회사지급액)
+	mutualAidFlag: boolean // 상조용품
+	wreathFlag: boolean // 경조화환
+	paymentDueDate: string // 지급예정일
+}
+
+export type TFamilyEventAction = {
+	id: number
+	companyCode: string
+	familyEventTypeName: string
+	familyEventTypeLabel: string
+	startDate: string
+	endDate: string
+	familyEventAmount: number
+	vacationDay: number
+	mutualAidFlag: boolean
+	wreathFlag: boolean
+	description: string
+}
 
 interface IFormData {
 	id: string | number
@@ -192,14 +226,16 @@ export const initFormData = {
 		cardIssueRequestStatus: CardIssueRequestStatus.PENDING,
 	}),
 	familyEventForm: createViewParams<FamilyEventViewForm, FamilyEventFormBrand>({
-		actualDate: dayjs(),
-		employeeId: "",
-		employeeIds: [],
-		familEventType: "",
-		expendAmount: 0,
-		mutualYn: "",
-		wreathYn: "",
-		expendDate: "",
+		eventDate: dayjs(),
+		requestEmployeeId: "",
+		requestEmployeeIds: [],
+		companyCode: "",
+		familyEventTypeName: "",
+		accountId: undefined,
+		familyEventAmount: 0,
+		mutualAidFlag: false,
+		wreathFlag: false,
+		paymentDueDate: "",
 	}),
 }
 
@@ -345,6 +381,7 @@ export const gridOptions: GridOptions<any> = {
  * COMPLETED : 결재완료,
  * REJECTED: 반려
  * WITHDRAWN : 회수
+ * READ: 잃기전용 (preview, print 에서 사용)
  */
 export type DocumentStatusType =
 	| "SAVED"
@@ -352,12 +389,14 @@ export type DocumentStatusType =
 	| "COMPLETED"
 	| "REJECTED"
 	| "WITHDRAWN"
+	| "READ"
 export const DocumentStatus = {
-	saved: "SAVED",
-	progress: "PROGRESS",
-	completed: "COMPLETED",
-	rejected: "REJECTED",
-	withdrawn: "WITHDRAWN",
+	saved: "SAVED" as DocumentStatusType,
+	progress: "PROGRESS" as DocumentStatusType,
+	completed: "COMPLETED" as DocumentStatusType,
+	rejected: "REJECTED" as DocumentStatusType,
+	withdrawn: "WITHDRAWN" as DocumentStatusType,
+	read: "READ" as DocumentStatusType,
 }
 
 /**

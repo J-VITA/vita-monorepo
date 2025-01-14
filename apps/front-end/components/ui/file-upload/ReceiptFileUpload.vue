@@ -2,7 +2,7 @@
 import { materialIcons } from "@/composables/icons"
 import type { UploadChangeParam, UploadProps, UploadFile } from "ant-design-vue"
 import { UploadRequestOption, RcFile } from "ant-design-vue/es/vc-upload/interface"
-import { Response } from "@/types"
+import { EaccUploadFile, EaccFileType, Response } from "@/types"
 import { createVNode } from "vue"
 import { ExclamationCircleOutlined } from "@ant-design/icons-vue"
 
@@ -13,18 +13,8 @@ interface CustomRequestOptions
 	onError: (error: Error) => void
 }
 
-type FileProps = {
-	id?: number
-	companyCode: string
-	name?: string
-	fileType: string
-	documentedNumber?: string
-	description?: string
-	seq?: number
-}
-
 const { fileProps } = defineProps<{
-	fileProps: FileProps
+	fileProps: EaccFileType
 	isRead: boolean
 }>()
 
@@ -51,13 +41,16 @@ const customUploadRequest = async (options: CustomRequestOptions) => {
 
 		await useCFetch<Response<any>>("/api/v2/files", {
 			method: "POST",
+			params: {
+				storageType: "LOCAL",
+			},
 			body: formData,
 		})
 			.then((res: Response<any>) => {
 				if (res.status === 0) {
 					console.log("Upload request ", res)
 					const uploadedFile = res.data[0]
-					const newFile: UploadFile<FileProps> = {
+					const newFile: UploadFile<EaccFileType> = {
 						id: uploadedFile.id,
 						uid: uploadedFile.id,
 						name: uploadedFile.name,
@@ -75,7 +68,7 @@ const customUploadRequest = async (options: CustomRequestOptions) => {
 						fileList: attachmentFileList.value
 							? [...attachmentFileList.value, newFile]
 							: [newFile],
-					} as UploadChangeParam<UploadFile<FileProps>>)
+					} as UploadChangeParam<EaccUploadFile<EaccFileType>>)
 				} else {
 					throw new Error("업로드 실패")
 				}
@@ -89,7 +82,7 @@ const customUploadRequest = async (options: CustomRequestOptions) => {
 	}
 }
 
-const handleChange = (info: UploadChangeParam<UploadFile<FileProps>>) => {
+const handleChange = (info: UploadChangeParam<EaccUploadFile<EaccFileType>>) => {
 	const { file, fileList } = info
 
 	console.log("attachmentChange > ", info)
@@ -104,17 +97,17 @@ const handleChange = (info: UploadChangeParam<UploadFile<FileProps>>) => {
 		case "done":
 			console.log("attachmentChange done ", info)
 			emit("update:fileList", [file])
-			message.success(`${file.name} 파일이 성공적으로 업로드되었습니다.`)
+			message.success(`${file.originalName} 파일이 성공적으로 업로드되었습니다.`)
 			break
 
 		case "error":
-			message.error(`${file.name} 파일 업로드에 실패했습니다.`)
+			message.error(`${file.originalName} 파일 업로드에 실패했습니다.`)
 			break
 
 		case "removed":
 			deleteFileFromServer(file.uid)
 				.then(() => {
-					message.success(`${file.name} 파일이 성공적으로 삭제되었습니다.`)
+					message.success(`${file.originalName} 파일이 성공적으로 삭제되었습니다.`)
 					// 삭제된 파일을 화면에서 제거
 					if (attachmentFileList.value) {
 						attachmentFileList.value = attachmentFileList.value.filter(
@@ -125,7 +118,7 @@ const handleChange = (info: UploadChangeParam<UploadFile<FileProps>>) => {
 					}
 				})
 				.catch((error) => {
-					message.error(`${file.name} 파일 삭제 중 오류가 발생했습니다.`)
+					message.error(`${file.originalName} 파일 삭제 중 오류가 발생했습니다.`)
 					console.error("파일 삭제 오류:", error)
 					// 삭제 실패 시 파일 목록을 원래대로 복구
 					attachmentFileList.value = attachmentFileList.value?.concat(file) || [file]
@@ -158,7 +151,7 @@ const handleRemove = () => {
 			onOk() {
 				deleteFileFromServer(file.uid)
 					.then(() => {
-						message.success(`${file.name} 파일이 성공적으로 삭제되었습니다.`)
+						message.success(`${file.originalName} 파일이 성공적으로 삭제되었습니다.`)
 						// 삭제된 파일을 화면에서 제거
 						if (attachmentFileList.value) {
 							attachmentFileList.value = attachmentFileList.value.filter(
@@ -169,7 +162,7 @@ const handleRemove = () => {
 						}
 					})
 					.catch((error) => {
-						message.error(`${file.name} 파일 삭제 중 오류가 발생했습니다.`)
+						message.error(`${file.originalName} 파일 삭제 중 오류가 발생했습니다.`)
 						console.error("파일 삭제 오류:", error)
 						// 삭제 실패 시 파일 목록을 원래대로 복구
 						attachmentFileList.value = attachmentFileList.value?.concat(file) || [file]
@@ -188,41 +181,32 @@ const handleDownload = async () => {
 		const file = attachmentFileList.value[0]
 
 		try {
+			console.log("downloaded file: ", file)
 			// API를 통해 파일 다운로드
-			const response = await useCFetch<Response<any>>(
-				`/api/v2/files/download/${file.uid ?? file.id}`,
-				{
-					method: "GET",
-					responseType: "blob",
-					params: {
-						id: file.uid,
-						companyCode: fileProps.companyCode,
-						name: file.name,
-						fileType: fileProps.fileType,
-						documentedNumber: fileProps.documentedNumber,
-						description: fileProps.description,
-						seq: fileProps.seq,
-					},
-				}
-			)
+			const response = await useCFetch<Blob>(`/api/v2/files/download/${file.name}`, {
+				method: "GET",
+				responseType: "blob",
+				params: {
+					fileName: file.name,
+					// id: file.uid,
+					// companyCode: fileProps.companyCode,
+					// name: file.name,
+					// fileType: fileProps.fileType,
+					// documentedNumber: fileProps.documentedNumber,
+					// description: fileProps.description,
+					// seq: fileProps.seq,
+				},
+			})
 
-			if (response.status !== 0) {
+			if (!response) {
 				throw new Error("파일 다운로드 실패")
 			}
 
-			// 파일 이름 가져오기
-			const contentDisposition = response.data.name
-			let fileName = file.name || "download"
-			if (contentDisposition) {
-				const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/i)
-				if (fileNameMatch) {
-					fileName = fileNameMatch[1]
-				}
-			}
+			// 파일 이름 세팅
+			const fileName = file?.originalName || file?.name || "download"
 
 			// 파일 다운로드
-			const blob = await response.data.blob()
-			const url = window.URL.createObjectURL(blob)
+			const url = window.URL.createObjectURL(response)
 			const link = document.createElement("a")
 			link.href = url
 			link.download = fileName
@@ -284,7 +268,7 @@ const deleteFileFromServer = async (fileUid?: number | string) => {
 			@click.stop
 		>
 			<!-- {{attachmentFileList}} -->
-			<a-flex :gap="5" justify="flex-end" class="btn-box">
+			<a-flex :gap="5" justify="flex-end" class="btn-box" v-if="!isRead">
 				<a-button
 					size="small"
 					:icon="materialIcons('mso', 'download')"

@@ -42,7 +42,7 @@ const { data } = await useAsyncData(
 	`approval-form-types`,
 	async () =>
 		useCFetch<Response<Array<any>>>(
-			"/api/v2/master/approvalForms/types/approvalFormTypes",
+			"/api/v2/masters/approvalForms/types/approvalFormTypes",
 			{
 				method: "GET",
 			}

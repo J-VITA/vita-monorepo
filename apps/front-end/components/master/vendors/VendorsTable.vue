@@ -47,6 +47,9 @@ const props = withDefaults(
 	{}
 )
 
+const route = useRoute()
+const routePath = computed(() => route.path)
+
 const emit = defineEmits<{
 	(e: "select", value: any): void
 	(e: "pagination", value: any): any
@@ -61,6 +64,8 @@ const searchParams = ref({
 	keyword: "",
 	vendorTypeCode: "AP",
 	used: undefined,
+	vendorFlag: true,
+	employeeVendorFlag: false,
 })
 
 const activeRow = ref<number>(-1)
@@ -104,14 +109,13 @@ const columns = ref<ColumnsType<any>>([
 // const showModal = ref<boolean>(false);
 const showVendorModal = ref<boolean>(false)
 const showEmployeeVendorModal = ref<boolean>(false)
-const showExcelUploadModal = ref<boolean>(false)
 
 const {
 	data,
 	status,
 	refresh: vendorRefresh,
 } = await useAsyncData("master-vendors-list", () =>
-	useCFetch<Response<any>>("/api/v2/master/vendors", {
+	useCFetch<Response<any>>("/api/v2/masters/vendors", {
 		method: "GET",
 		params: {
 			...searchParams.value,
@@ -212,7 +216,7 @@ const customRow = (record: any) => {
  * @param id
  */
 const getVendor = async (id: number | string) => {
-	return await useCFetch<Response<Vendor>>(`/api/v2/master/vendors/${id}`, {
+	return await useCFetch<Response<Vendor>>(`/api/v2/masters/vendors/${id}`, {
 		method: "GET",
 		params: { id },
 	}).then((res: Response<Vendor>) => res.data)
@@ -244,20 +248,22 @@ watch(props, (data) => {
 	<a-flex gap="small" justify="space-between" align="center" class="mb-sm" wrap="wrap">
 		<a-typography-title :level="4" class="page-title"> 거래처 목록 </a-typography-title>
 		<a-space :size="5">
-			<a-button
-				:icon="materialIcons('mso', 'file_download')"
-				@click="() => console.log('엑셀다운로드')"
-			>
-				엑셀다운로드
-			</a-button>
-			<a-button
-				type="primary"
+			<eacc-excel-button
+				req-type="download"
+				label="엑셀다운로드"
+				file-name="거래처관리"
+				:data="data?.data"
+				:disabled="!data?.data || data?.data.length === 0"
+			/>
+			<eacc-excel-button
 				ghost
-				:icon="materialIcons('mso', 'file_upload')"
-				@click="() => (showExcelUploadModal = true)"
-			>
-				엑셀일괄등록
-			</a-button>
+				type="primary"
+				url="/api/v2/masters/vendors/validate"
+				req-type="upload"
+				label="엑셀일괄등록"
+				:sample-file-key="routePath"
+				@submit="() => vendorRefresh()"
+			/>
 			<a-dropdown :trigger="['click']">
 				<a-button type="primary" :icon="materialIcons('mso', 'add_circle')"
 					>거래처 등록</a-button
@@ -351,9 +357,5 @@ watch(props, (data) => {
 		:vendor-info="modelRef"
 		@update:open="(value: boolean) => (showEmployeeVendorModal = value)"
 		@refresh="updateVendorModal"
-	/>
-	<excel-upload-modal
-		:show="showExcelUploadModal"
-		@update:show="(value) => (showExcelUploadModal = value)"
 	/>
 </template>

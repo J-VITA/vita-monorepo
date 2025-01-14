@@ -1,12 +1,18 @@
 <script setup lang="ts">
-import { Response } from "@/types"
 import { CreditCardListData } from "@/types/ccards/issue"
-import { CardStatusColor } from "@/types/ccards"
-
-const authStore = useAuthStore()
-const { getCompanyCode, getEmployeeId } = storeToRefs(authStore)
+import { CardStatusColor, CardStatusType } from "@/types/ccards"
 
 const cardId = defineModel<number | undefined>("cardId")
+const cardStatus = defineModel<CardStatusType>("cardStatus")
+
+const { data, status } = defineProps<{
+	data?: CreditCardListData[]
+	status?: string
+}>()
+
+const emit = defineEmits<{
+	(e: "refresh", value: any): void
+}>()
 
 const isCardManagement = ref<boolean>(false)
 const formId = ref<number>(0)
@@ -18,24 +24,10 @@ const handleClickCardNumber = (item: CreditCardListData) => {
 	}
 }
 
-const { data, status, refresh } = await useAsyncData(
-	`credit-card-issue-my-cards`,
-	() =>
-		useCFetch<Response<Array<CreditCardListData>>>("/api/v2/cards/commons/my-cards", {
-			method: "GET",
-			params: {
-				companyCode: getCompanyCode.value,
-				employeeId: getEmployeeId.value,
-			},
-		}),
-	{
-		default: () => [],
-		transform: (res) => {
-			if (res.data && res.data.length > 0) cardId.value = res.data[0].id
-			return res.data
-		},
-	}
-)
+const onCardClick = (item: CreditCardListData) => {
+	cardId.value = item.id
+	cardStatus.value = item.cardStatusName as CardStatusType
+}
 </script>
 <template>
 	<a-flex vertical class="full-height">
@@ -57,7 +49,7 @@ const { data, status, refresh } = await useAsyncData(
 				<a-list-item
 					:key="item.id"
 					:class="{ active: item.id === cardId }"
-					@click="cardId = item.id"
+					@click="onCardClick(item)"
 				>
 					<template #extra>
 						<component
@@ -102,6 +94,6 @@ const { data, status, refresh } = await useAsyncData(
 		:show="isCardManagement"
 		:form-id="formId"
 		@update:show="(value) => (isCardManagement = value)"
-		@refresh="refresh()"
+		@refresh="(data) => emit('refresh', data)"
 	/>
 </template>

@@ -37,6 +37,7 @@ const tabs = ref<TabPaneProps["tab"]>([
 	},
 ])
 const { getRules } = useExpenseRules()
+const { $bus } = useNuxtApp()
 
 const { data, refresh } = await useAsyncData(`expense-roles-list`, () =>
 	getRules().then((res: Response<Data>) => ({
@@ -50,6 +51,8 @@ const { data, refresh } = await useAsyncData(`expense-roles-list`, () =>
 		corporateCreditCardPaymentDay: res.data?.corporateCreditCardPaymentDayName || "",
 		billInvoicePaymentType: res.data?.billInvoicePaymentTypeName || "",
 		billInvoicePaymentDay: res.data?.billInvoicePaymentDayName || "",
+		familyEventPaymentType: res.data?.familyEventPaymentTypeName || "",
+		familyEventPaymentDay: res.data?.familyEventPaymentDayName || "",
 		arTaxInvoiceManagerIds: res.data?.arTaxInvoiceManager
 			? [res.data?.arTaxInvoiceManager]
 			: [],
@@ -65,18 +68,23 @@ const onChange = async (params: Data) => {
 
 	const body = Object.assign({}, params, {
 		cardManagers: params.cardManagers.map((x: any) => ({ id: x })),
-		apTaxInvoiceManagers: params.apTaxInvoiceManagers.map((x: any) => ({
+		budgetManagers: params.budgetManagers.map((x: any) => ({ id: x })),
+		apTaxInvoiceManagers: params.apTaxInvoiceManagers.map((x: any) => ({ id: x })),
+		apTaxInvoiceManageDepartments: params.apTaxInvoiceManageDepartments.map((x: any) => ({
 			id: x,
 		})),
-		budgetManagers: params.budgetManagers.map((x: any) => ({ id: x })),
 	})
 
-	await useCFetch<Response<any>>(`/api/v2/master/expenseRules/${params.id}`, {
+	await useCFetch<Response<any>>(`/api/v2/masters/expenseRules/${params.id}`, {
 		method: "PATCH",
 		body,
 	})
 		.then((res: Response<any>) => {
-			if (res.status !== 0) refresh()
+			if (res.status !== 0) {
+				refresh()
+			}
+
+			$bus.emit("setMasterSubMenusOpend", undefined)
 		})
 		.finally(() => (loading.value = false))
 }

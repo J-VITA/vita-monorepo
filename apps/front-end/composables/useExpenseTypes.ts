@@ -16,7 +16,7 @@ export const useExpenseTypes = () => {
 	const getExpenseType = async (type: ExpensesCodeType) => {
 		return await Promise.resolve(
 			useIFetch<Response<Array<CommonCode>>>(
-				`/api/v2/slip/expenses/types/${stringToCamelCase(type)}`,
+				`/api/v2/slips/expenses/types/${stringToCamelCase(type)}`,
 				{
 					method: "GET",
 				}

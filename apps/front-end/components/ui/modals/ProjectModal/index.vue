@@ -59,8 +59,8 @@ const onSubmit = () => {
 		.then(async () => {
 			loading.value = true
 			const url = props.node
-				? `/api/v2/master/projects/${props.node.id}`
-				: "/api/v2/master/projects"
+				? `/api/v2/masters/projects/${props.node.id}`
+				: "/api/v2/masters/projects"
 
 			await useCFetch<Response<any>>(url, {
 				method: props.node ? "PATCH" : "POST",

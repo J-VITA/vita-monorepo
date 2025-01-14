@@ -3,61 +3,104 @@ import { materialIcons } from "@/composables/icons"
 import { iwxGrid } from "@iwx/ui"
 import type {
 	GroupCellRendererParams,
-	IServerSideGetRowsParams,
 	GridApi,
 	GridOptions,
 	ICellRendererParams,
+	ValueFormatterParams,
+	GridReadyEvent,
+	RowSpanParams,
+	CellClassParams,
 } from "@iwx/ui"
-import type { TreeSelectProps, RadioChangeEvent } from "ant-design-vue"
-import type { Dayjs } from "dayjs"
+import { type RadioChangeEvent } from "ant-design-vue"
 import { Link, IconLink, Badge, ColorTag } from "@/components/ui"
 import {
 	type DataType,
-	type SearchParams,
 	options,
 	columnTypes,
 	getRowStyle,
-	getData,
-} from "./list"
+	TSlipSearch,
+	SlipActivityType,
+	ISlipsDataType,
+} from "@/types/slips/list"
+import {
+	Code,
+	createSearchParams,
+	dateTimeFormat,
+	RequestParams,
+	Response,
+} from "@/types"
+
+const authStore = useAuthStore()
+const { getCompanyId } = storeToRefs(authStore)
+
+const searchParams = defineModel<
+	ReturnType<typeof createSearchParams<RequestParams<TSlipSearch>, "ISlipSearch">>
+>("searchParams", { required: true })
+
+type PropsDataType = {
+	data: Response<Array<any>>
+	pending: boolean
+	activeKey: Ref<SlipActivityType>
+	slipStatusOptions: Array<Code>
+	slipTypeOptions: Array<Code>
+	slipProject: Array<Code>
+}
+const {
+	data: lineData,
+	pending,
+	activeKey,
+	slipStatusOptions,
+	slipTypeOptions,
+} = defineProps<PropsDataType>()
 
 const emit = defineEmits<{
+	(
+		e: "update:searchParams",
+		value: RequestParams<TSlipSearch>
+	): RequestParams<TSlipSearch>
 	(e: "onDetail", value: { row: any; total: number }): void
 	(e: "onDocument", value: any): void
+	(e: "refresh"): void
+	(e: "reset"): void
 }>()
 
 const isExpand = ref<boolean>(false)
-const filterDate = ref<[Dayjs, Dayjs]>()
-const searchParams = ref<SearchParams>({
-	startDate: "",
-	endDate: "",
-	// workplaceCode: '전체',
-	costCenter: undefined,
-	accountCostItem: undefined,
-	user: "전체",
-	storeName: "",
-	expenditureType: [],
-	state: [],
-	size: 10,
-})
+const isTotalChecked = ref<boolean>(true)
 
 const monthType = ref<number | undefined>(undefined)
-const costCenterTreeData = ref<TreeSelectProps["treeData"]>([])
-const accountData = ref<any[]>([])
 
 const gridApi = shallowRef<GridApi<DataType>>()
-let columnApi: any = null
-const pinnedBottomRowData = ref<GridOptions<DataType>["pinnedBottomRowData"]>([])
+const gridKey = ref(0)
+
+const gridOptions = {
+	overlayLoadingTemplate:
+		'<span class="ag-overlay-loading-center">데이터를 불러오는 중입니다.</span>',
+	suppressRowTransform: true,
+}
+
+const onGridDestroyed = () => {
+	gridKey.value++
+}
+// const pinnedBottomRowData = ref<GridOptions<DataType>["pinnedBottomRowData"]>([])
 
 const { getColumns, setColumns } = useAgGridColumn()
-const columnDefs = ref<GridOptions<DataType>["columnDefs"]>([
+
+const defaultColDef = ref({
+	filter: false,
+	sortable: true,
+	// flex: 1,
+	minWidth: 150,
+})
+
+const columnDefs = ref<GridOptions<ISlipsDataType>["columnDefs"]>([
 	{
 		field: "group",
 		headerName: "코스트센터",
 		minWidth: 200,
 		pinned: "left",
 		showRowGroup: true,
-		cellRenderer: "agGroupCellRenderer",
 		cellStyle: { fontWeight: 700 },
+		cellRenderer: "agGroupCellRenderer",
 		cellRendererParams: {
 			suppressPadding: true,
 			totalValueGetter: (params: GroupCellRendererParams) => {
@@ -66,34 +109,117 @@ const columnDefs = ref<GridOptions<DataType>["columnDefs"]>([
 		},
 	},
 	{
-		field: "costCenter",
+		field: "costCenterName",
 		headerName: "코스트센터",
 		rowGroup: true,
 		hide: true,
 	},
 	{
-		field: "slipNo",
+		field: "slipNumber",
 		headerName: "전표번호",
+		rowSpan: (params: RowSpanParams<ISlipsDataType>) => {
+			if (params.data?.slipNumber) {
+				let count = 1
+				let currentRowIndex = params.node?.rowIndex ?? 0
+
+				// 현재 행이 그룹의 첫 번째 행인 경우에만 rowSpanStartIndex를 설정 그렇지 않다면 -1 값으로 매칭되지 않도록 세팅
+				if (
+					currentRowIndex === 0 ||
+					params.api.getDisplayedRowAtIndex(currentRowIndex - 1)?.data?.slipNumber !==
+						params.data.slipNumber
+				) {
+					params.data.rowSpanStartIndex = currentRowIndex
+				} else {
+					params.data.rowSpanStartIndex = -1
+				}
+
+				while (true) {
+					const nextRow = params.api.getDisplayedRowAtIndex(currentRowIndex + count)
+					if (!nextRow || nextRow.data?.slipNumber !== params.data.slipNumber) {
+						break
+					}
+					count++
+				}
+
+				params.data.rowSpan = count
+				return count
+			}
+			return 1
+		},
+		cellClassRules: {
+			"cell-span": (params: CellClassParams<ISlipsDataType>) => {
+				const rowSpan = params.data?.rowSpan ?? 0
+				return !!rowSpan && rowSpan > 1
+			},
+		},
 		cellRenderer: Link,
 		cellRendererParams: (params: ICellRendererParams) => {
+			const rowSpanStartIndex = params.data?.rowSpanStartIndex ?? 0
+			if (params.node.rowIndex !== rowSpanStartIndex) {
+				return {
+					params: undefined,
+				} // 병합된 셀의 첫 번째 행이 아닌 경우 빈 문자열 반환
+			}
 			return {
 				params,
+				text: params.value,
 				onClick: (params: DataType) => {
-					emit("onDetail", { row: params, total: getData.length })
+					emit("onDetail", { row: params, total: lineData.data?.length || 0 })
 				},
 			}
 		},
 	},
 	{
-		field: "expenditureType",
-		headerName: "지출유형",
+		field: "slipTypeName",
+		headerName: "전표유형",
+		cellStyle: { "text-align": "center" },
 		cellRenderer: ColorTag,
+		rowSpan: (params: RowSpanParams<ISlipsDataType>) => {
+			if (params.data?.slipNumber) {
+				let count = 1
+				let currentRowIndex = params.node?.rowIndex ?? 0
+
+				// 현재 행이 그룹의 첫 번째 행인 경우에만 rowSpanStartIndex를 설정 그렇지 않다면 -1 값으로 매칭되지 않도록 세팅
+				if (
+					currentRowIndex === 0 ||
+					params.api.getDisplayedRowAtIndex(currentRowIndex - 1)?.data?.slipNumber !==
+						params.data.slipNumber
+				) {
+					params.data.rowSpanStartIndex = currentRowIndex
+				} else {
+					params.data.rowSpanStartIndex = -1
+				}
+
+				while (true) {
+					const nextRow = params.api.getDisplayedRowAtIndex(currentRowIndex + count)
+					if (!nextRow || nextRow.data?.slipNumber !== params.data.slipNumber) {
+						break
+					}
+					count++
+				}
+
+				params.data.rowSpan = count
+				return count
+			}
+			return 1
+		},
+		cellClassRules: {
+			"cell-span": (params: CellClassParams<ISlipsDataType>) => {
+				const rowSpan = params.data?.rowSpan ?? 0
+				return !!rowSpan && rowSpan > 1
+			},
+		},
 		cellRendererParams: (params: ICellRendererParams) => {
+			const rowSpan = params.data?.rowSpan ?? 0
+			const rowSpanStartIndex = params.data?.rowSpanStartIndex ?? 0
+			if (params.node.rowIndex !== rowSpanStartIndex) {
+				return null // 병합된 셀의 첫 번째 행이 아닌 경우 빈 문자열 반환
+			}
 			const color = params.value
-				? options.expense.filter((e) => e.value === params.value)[0].color
+				? options.expense.filter((e) => e.value === params.value)?.[0].color || "red"
 				: ""
 			const text = params.value
-				? options.expense.filter((e) => e.value === params.value)[0].label
+				? options.expense.filter((e) => e.value === params.value)?.[0].label || "유형없음"
 				: ""
 			return {
 				params,
@@ -102,36 +228,128 @@ const columnDefs = ref<GridOptions<DataType>["columnDefs"]>([
 			}
 		},
 	},
-	{ field: "useDate", headerName: "사용일자" },
-	{ field: "author", headerName: "작성자" },
-	{ field: "user", headerName: "사용자" },
-	{ field: "store", headerName: "가맹점(거래처)" },
 	{
-		field: "totalAmount",
+		field: "slipEvidenceTypeLabel",
+		headerName: "증빙유형",
+		cellStyle: { "text-align": "center" },
+		rowSpan: (params: RowSpanParams<ISlipsDataType>) => {
+			if (params.data?.slipNumber) {
+				let count = 1
+				let currentRowIndex = params.node?.rowIndex ?? 0
+
+				// 현재 행이 그룹의 첫 번째 행인 경우에만 rowSpanStartIndex를 설정 그렇지 않다면 -1 값으로 매칭되지 않도록 세팅
+				if (
+					currentRowIndex === 0 ||
+					params.api.getDisplayedRowAtIndex(currentRowIndex - 1)?.data?.slipNumber !==
+						params.data.slipNumber
+				) {
+					params.data.rowSpanStartIndex = currentRowIndex
+				} else {
+					params.data.rowSpanStartIndex = -1
+				}
+
+				while (true) {
+					const nextRow = params.api.getDisplayedRowAtIndex(currentRowIndex + count)
+					if (!nextRow || nextRow.data?.slipNumber !== params.data.slipNumber) {
+						break
+					}
+					count++
+				}
+
+				params.data.rowSpan = count
+				return count
+			}
+			return 1
+		},
+		cellClassRules: {
+			"cell-span": (params: CellClassParams<ISlipsDataType>) => {
+				const rowSpan = params.data?.rowSpan ?? 0
+				return !!rowSpan && rowSpan > 1
+			},
+		},
+		cellRenderer: (params: ICellRendererParams) => {
+			const rowSpan = params.data?.rowSpan ?? 0
+			const rowSpanStartIndex = params.data?.rowSpanStartIndex ?? 0
+			if (params.node.rowIndex !== rowSpanStartIndex) {
+				return "" // 병합된 셀의 첫 번째 행이 아닌 경우 빈 문자열 반환
+			}
+			if (params.data?.divisionSlipFlag) {
+				return `${params.value} 분할`
+			}
+			if (params.value == null) return ""
+			return params.value
+		},
+	},
+	{ field: "accountingDate", type: "date", headerName: "사용일자" },
+	{ field: "writerName", headerName: "작성자" },
+	{ field: "employeeName", headerName: "사용자" },
+	{ field: "evidenceVendorName", headerName: "증빙거래처" },
+	{ field: "paymentVendorName", headerName: "지급거래처" },
+	{
+		field: "krwTotalAmount",
 		headerName: "총금액",
 		type: "currency",
+		cellRenderer: (params: ICellRendererParams) => {
+			if (!isTotalChecked.value && params.node.group) {
+				return ""
+			}
+			if (params.value == null) return ""
+			return params.value.toLocaleString("ko-KR")
+		},
 	},
 	{
-		field: "supplyValue",
+		field: "krwSupplyAmount",
 		headerName: "공급가액",
 		type: "currency",
+		cellRenderer: (params: ICellRendererParams) => {
+			if (!isTotalChecked.value && params.node.group) {
+				return ""
+			}
+			if (params.value == null) return ""
+			return params.value.toLocaleString("ko-KR")
+		},
 	},
 	{
-		field: "vat",
+		field: "krwTaxAmount",
 		headerName: "부가세",
 		type: "currency",
+		cellRenderer: (params: ICellRendererParams) => {
+			if (!isTotalChecked.value && params.node.group) {
+				return ""
+			}
+			if (params.value == null) return ""
+			return params.value.toLocaleString("ko-KR")
+		},
+		valueParser: (params) => {
+			const parsedValue = params.newValue.replace(/,/g, "")
+			return Number(parsedValue || 0)
+		},
+		valueFormatter: (params: ValueFormatterParams) => {
+			if (params.value == null) return "0"
+			return params.value.toLocaleString("ko-KR")
+		},
+		// valueGetter: (params: ValueGetterParams) => {
+		//   return Number(params.data.krwTaxAmount);
+		// },
 	},
-	{ field: "accountCostItem", headerName: "계정/비용과목" },
 	{
-		field: "status",
+		field: "account",
+		headerName: "계정/비용과목",
+		valueFormatter: (params: ValueFormatterParams) => {
+			return params.value ? params.value.name : ""
+		},
+	},
+	{ field: "costCenterName", headerName: "코스트센터" },
+	{
+		field: "slipStatusName",
 		headerName: "상태",
 		cellRenderer: Badge,
 		cellRendererParams: (params: ICellRendererParams) => {
 			const color = params.value
-				? options.state.filter((e) => e.value === params.value)[0].color
+				? options.state.filter((e) => e.value === params.value)[0]?.color
 				: ""
 			const text = params.value
-				? options.state.filter((e) => e.value === params.value)[0].label
+				? options.state.filter((e) => e.value === params.value)[0]?.label
 				: ""
 			return {
 				params,
@@ -141,9 +359,9 @@ const columnDefs = ref<GridOptions<DataType>["columnDefs"]>([
 		},
 	},
 	{ field: "description", headerName: "내용" },
-	{ field: "paymentDocumentNo", headerName: "결재문서번호" },
+	{ field: "approvalNumber", headerName: "결재문서번호" },
 	{
-		field: "paymentDocumentNo",
+		field: "approvalHeaderId",
 		headerName: "결재문서",
 		cellStyle: { textAlign: "center" },
 		cellRenderer: IconLink,
@@ -158,22 +376,11 @@ const columnDefs = ref<GridOptions<DataType>["columnDefs"]>([
 			}
 		},
 	},
-	{ field: "cardApprovalDate", headerName: "카드승인일시" },
-	{ field: "cardApprovalNo", headerName: "카드승인번호" },
-	{ field: "project", headerName: "프로젝트" },
-	{ field: "projectCode", headerName: "프로젝트코드" },
+	// { field: "cardApprovalDate", headerName: "카드승인일시" },
+	// { field: "cardApprovalNo", headerName: "카드승인번호" },
+	// { field: "project", headerName: "프로젝트" },
+	// { field: "projectCode", headerName: "프로젝트코드" },
 ])
-const dropdownStyle = ref({ maxHeight: "40rem", overflow: "auto" })
-const expenditureType = ref({
-	indeterminate: false,
-	checkAll: false,
-	checkedList: [],
-})
-const state = ref({
-	indeterminate: false,
-	checkAll: false,
-	checkedList: [],
-})
 
 const calculateTotalAmount = (data: any, value: string): number => {
 	return data.reduce((total: number, item: any) => total + item[value], 0)
@@ -184,34 +391,16 @@ const onExpand = () => {
 }
 
 const onReset = () => {
-	console.log("onSearch searchParams.value:", searchParams.value)
+	monthType.value = undefined
+
+	emit("reset")
 }
 const onSearch = () => {
-	console.log("onSearch searchParams.value:", searchParams.value)
+	emit("refresh")
 }
-
-const onGridReady = async (params: any) => {
+const onGridReady = async (params: GridReadyEvent<DataType>) => {
 	gridApi.value = params.api
-	columnApi = params.columnApi
 
-	const datasource = {
-		getRows: async (params: IServerSideGetRowsParams) => {
-			params.success({
-				rowData: getData,
-			})
-
-			pinnedBottomRowData.value = [
-				{
-					group: "총계",
-					totalAmount: calculateTotalAmount(getData, "totalAmount"),
-					supplyValue: calculateTotalAmount(getData, "supplyValue"),
-					vat: calculateTotalAmount(getData, "vat"),
-				},
-			]
-		},
-	}
-
-	gridApi.value!.setGridOption("serverSideDatasource", datasource)
 	const savedColumnState = await Promise.race([getColumns("slipsCostColumnState")])
 	if (savedColumnState) {
 		gridApi.value!.applyColumnState({
@@ -240,77 +429,58 @@ const changeMonth = (e: RadioChangeEvent) => {
 	const from = e.target.value === 0 ? useMonth.lastFrom() : useMonth.from()
 	const to = e.target.value === 0 ? useMonth.lastTo() : useMonth.to()
 
-	filterDate.value = [from, to]
-	searchParams.value.startDate = from.format("YYYY-MM-DD")
-	searchParams.value.endDate = to.format("YYYY-MM-DD")
+	searchParams.value.filterDate = [from, to]
+	searchParams.value.searchDateFrom = from.format("YYYY-MM-DD")
+	searchParams.value.searchDateTo = to.format("YYYY-MM-DD")
 }
 
 onMounted(() => {
-	filterDate.value = [useMonth.lastFrom(), useMonth.to()]
-	searchParams.value.startDate = useMonth.lastFrom().format("YYYY-MM-DD")
-	searchParams.value.endDate = useMonth.to().format("YYYY-MM-DD")
-
-	costCenterTreeData.value = [
-		{
-			label: "연구소",
-			value: "1",
-			children: [
-				{ label: "연구소 1-1", value: "1-1", children: [] },
-				{ label: "연구소 1-2", value: "1-2", children: [] },
-			],
-		},
-		{
-			label: "경영관리",
-			value: "2",
-			children: [],
-		},
-		{
-			label: "R&D",
-			value: "3",
-			children: [],
-		},
-		{
-			label: "사업부",
-			value: "4",
-			children: [],
-		},
-	]
-	accountData.value = [
-		{ label: "복리후생비[판관비]", value: "1" },
-		{ label: "회의비", value: "1-1" },
-		{ label: "식대", value: "1-2" },
-		{ label: "시내교통비", value: "2" },
-		{ label: "운송비", value: "3" },
-	]
+	if (pending) {
+		gridApi.value?.setGridOption("loading", true)
+	}
 })
 
 watch(
-	() => state.value.checkedList,
-	(val) => {
-		state.value.indeterminate = !!val.length && val.length < options.state.length
-		state.value.checkAll = val.length === options.state.length
-	}
+	() => pending,
+	(isLoading) => {
+		if (isLoading) {
+			gridApi.value?.setGridOption("loading", true)
+		} else {
+			gridApi.value?.setGridOption("loading", false)
+		}
+	},
+	{ immediate: true }
 )
+
 watch(
-	() => expenditureType.value.checkedList,
-	(val) => {
-		expenditureType.value.indeterminate =
-			!!val.length && val.length < options.expense.length
-		expenditureType.value.checkAll = val.length === options.expense.length
+	() => isTotalChecked.value,
+	(flag) => {
+		if (gridApi.value) {
+			gridApi.value.redrawRows()
+			// gridApi.value.refreshClientSideRowModel('group');
+		}
 	}
 )
+
+defineExpose({
+	onGridDestroyed,
+})
 </script>
 <template>
 	<a-descriptions
 		class="search-area mb-md"
 		size="small"
 		bordered
-		:column="{ xxl: 3, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }"
+		:column="{ xxl: 6, xl: 3, lg: 3, md: 3, sm: 1.5, xs: 1 }"
 		:label-style="{ width: '12rem' }"
 	>
 		<template #extra>
 			<a-space :size="5">
-				<a-button :icon="materialIcons('mso', 'rotate_left')" @click="onReset">
+				<a-button
+					:icon="materialIcons('mso', 'rotate_left')"
+					@click="onReset"
+					:loading="pending"
+				>
 					초기화
 				</a-button>
 				<eacc-button
@@ -318,18 +488,21 @@ watch(
 					size="middle"
 					:modal-open="false"
 					:data="searchParams"
+					:loading="pending"
 					@click="onSearch"
 				/>
 			</a-space>
 		</template>
-		<a-descriptions-item label="기간설정">
+		<!-- 첫 번째 세트 start -->
+		<a-descriptions-item label="기간설정" :span="2">
 			<a-space :wrap="true" :size="5">
 				<a-range-picker
-					v-model:value="filterDate"
+					v-model:value="searchParams.filterDate"
+					:value-format="dateTimeFormat"
 					@change="
 						(_, dateString) => {
-							searchParams.startDate = dateString[0]
-							searchParams.endDate = dateString[1]
+							searchParams.searchDateFrom = dateString[0]
+							searchParams.searchDateTo = dateString[1]
 						}
 					"
 				/>
@@ -345,156 +518,229 @@ watch(
 				/>
 			</a-space>
 		</a-descriptions-item>
-		<a-descriptions-item label="사업장">
-			<a-select></a-select>
-			<!-- <eacc-select
-        url="/api/v2/masters/commons/companies"
-        v-model:value="searchParams.user"
-        :field-names="{ label: 'name', value: 'id' }"
-        @update:value="(value) => (searchParams.user = value)"
-      /> -->
-		</a-descriptions-item>
-
-		<a-descriptions-item label="사용자">
-			<eacc-select
-				url="/api/v2/masters/commons/employees"
-				v-model:value="searchParams.user"
-				:field-names="{ label: 'name', value: 'id' }"
-				@update:value="(value) => (searchParams.user = value)"
+		<a-descriptions-item label="사업장" :span="1">
+			<eacc-select-table
+				url="/api/v2/slips/managements/commons/companies"
+				:params="{
+					code: searchParams.companyCode,
+					placeType: 'WORKPLACE',
+					parentId: getCompanyId,
+				}"
+				v-model:value="searchParams.workplaceCodes"
+				key-props="workplaceCode"
+				label-prop="workplaceName"
+				:columns="[
+					{ title: '회사', data: (row: any) => row.name },
+					{ title: '사업장명', data: (row: any) => row.workplaceName },
+					{ title: '유형', data: (row: any) => row.placeTypeLabel },
+				]"
+				@update:value="(value: any) => (searchParams.workplaceCode = value[0])"
 			/>
 		</a-descriptions-item>
-		<a-descriptions-item label="코스트센터">
-			<a-tree-select
-				multiple
-				v-model:value="searchParams.costCenter"
-				show-search
-				:tree-line="true"
-				:dropdown-style="dropdownStyle"
-				placeholder="전체"
-				allow-clear
-				tree-default-expand-all
-				:tree-data="costCenterTreeData"
-				tree-node-filter-prop="label"
-				:max-tag-count="2"
-				@change="
-					(value) => {
-						console.log(value)
-					}
-				"
-			>
-				<template #maxTagPlaceholder="omittedValues">
-					<span>외 {{ omittedValues.length }}</span>
-				</template>
-			</a-tree-select>
+		<a-descriptions-item label="부서" :span="1">
+			<eacc-select-table
+				url="/api/v2/slips/managements/commons/departments"
+				:params="{
+					companyCode: searchParams.companyCode,
+					used: true,
+				}"
+				v-model:value="searchParams.departmentIds"
+				key-props="id"
+				label-prop="name"
+				:columns="[
+					{ title: '이름', data: (row: any) => row.name },
+					{ title: '직위', data: (row: any) => row.gradeName },
+					{
+						title: '코스트센터',
+						data: (row: any) => row.costCenterName,
+					},
+					{ title: '회사', data: (row: any) => row.companyName },
+					{ title: '사업장', data: (row: any) => row.workplaceName },
+				]"
+				@update:value="(value: any) => (searchParams.departmentId = value[0])"
+			/>
 		</a-descriptions-item>
-		<a-descriptions-item label="계정/비용항목">
+		<a-descriptions-item label="코스트센터" :span="2">
+			<eacc-select-table
+				url="/api/v2/slips/managements/commons/costCenters"
+				:params="{
+					companyCode: searchParams.companyCode,
+					used: true,
+				}"
+				v-model:value="searchParams.costCenterIds"
+				key-props="id"
+				label-prop="workplaceName"
+				:columns="[
+					{
+						title: '코스트센터',
+						data: (row: any) => row.workplaceName,
+					},
+				]"
+				@update:value="(value: any) => (searchParams.costCenterId = value[0])"
+			/>
+		</a-descriptions-item>
+
+		<!-- 첫 번째 세트 end -->
+		<!-- 두 번째 세트 start -->
+		<a-descriptions-item label="사용자" :span="2">
+			<eacc-select-table
+				:url="`/api/v2/slips/managements/commons/employees`"
+				:params="{
+					companyCode: searchParams.companyCode,
+					joined: true,
+					departmentId: searchParams.departmentId,
+				}"
+				refresh
+				v-model:value="searchParams.employeeIds"
+				key-props="id"
+				label-prop="name"
+				:columns="[
+					{ title: '이름', data: (row: any) => row.name },
+					{ title: '직위', data: (row: any) => row.gradeName },
+					{
+						title: '코스트센터',
+						data: (row: any) => row.costCenterName,
+					},
+					{ title: '회사', data: (row: any) => row.companyName },
+					{ title: '사업장', data: (row: any) => row.workplaceName },
+				]"
+				@update:value="(value: any) => (searchParams.employeeId = value[0])"
+			/>
+		</a-descriptions-item>
+		<a-descriptions-item label="계정/비용항목" :span="1">
+			<eacc-select-table
+				url="/api/v2/slips/managements/commons/accounts"
+				:params="{
+					companyCode: searchParams.companyCode,
+					used: true,
+				}"
+				v-model:value="searchParams.accountIds"
+				key-props="id"
+				label-prop="name"
+				:columns="[
+					{ title: '계정명', data: (row: any) => row.name },
+					{ title: '계정레벨', data: (row: any) => row.accountLevelLabel },
+					{ title: '계정유형', data: (row: any) => row.accountGroupTypeLabel },
+					{
+						title: '설명',
+						data: (row: any) => row.description,
+					},
+				]"
+				@update:value="(value: any) => (searchParams.accountId = value[0])"
+			/>
+		</a-descriptions-item>
+		<a-descriptions-item label="지급거래처" :span="1">
+			<a-input v-model:value="searchParams.paymentVendorName" />
+		</a-descriptions-item>
+		<a-descriptions-item label="증빙거래처" :span="2">
+			<a-input v-model:value="searchParams.evidenceVendorName" />
+		</a-descriptions-item>
+		<!-- 두 번째 세트 end -->
+		<!-- 세 번째 세트 start -->
+		<a-descriptions-item
+			label="전표유형"
+			:span="3"
+			:content-style="{ 'min-width': '50rem', 'max-width': '50rem' }"
+		>
 			<a-select
-				v-model:value="searchParams.accountCostItem"
+				style="width: 100%"
+				v-model:value="searchParams.slipType"
 				mode="multiple"
-				placeholder="전체"
-				:options="accountData"
-				:max-tag-count="2"
+				placeholder="전표유형을 선택해주세요."
+				:options="slipTypeOptions"
+				:max-tag-count="5"
 			>
 				<template #maxTagPlaceholder="omittedValues">
 					<span>외 {{ omittedValues.length }}</span>
 				</template>
 			</a-select>
 		</a-descriptions-item>
-		<a-descriptions-item label="가맹점(거래처)">
-			<a-input v-model:value="searchParams.storeName" />
+		<a-descriptions-item
+			label="전표상태"
+			:span="3"
+			:content-style="{ 'max-width': '50rem' }"
+		>
+			<a-select
+				style="width: 100%"
+				v-model:value="searchParams.slipStatus"
+				mode="multiple"
+				placeholder="전표상태를 선택해주세요."
+				:options="slipStatusOptions"
+				:max-tag-count="5"
+			>
+				<template #maxTagPlaceholder="omittedValues">
+					<span>외 {{ omittedValues.length }}</span>
+				</template>
+			</a-select>
 		</a-descriptions-item>
-
-		<a-descriptions-item label="지출유형">
-			<a-space :wrap="true" :size="2">
-				<a-checkbox
-					v-model:checked="expenditureType.checkAll"
-					:indeterminate="expenditureType.indeterminate"
-					@change="
-						(e: any) => {
-							Object.assign(expenditureType, {
-								checkedList: e.target.checked ? options.expense.map((e) => e.value) : [],
-								indeterminate: false,
-							})
-							searchParams.expenditureType = expenditureType.checkedList
-						}
-					"
-				>
-					전체
-				</a-checkbox>
-				<a-checkbox-group
-					v-model:value="expenditureType.checkedList"
-					:options="options.expense"
-					@change="(val: any) => (searchParams.expenditureType = val)"
-				/>
-			</a-space>
-		</a-descriptions-item>
-		<a-descriptions-item label="전표상태">
-			<a-space :wrap="true" :size="2">
-				<a-checkbox
-					v-model:checked="state.checkAll"
-					:indeterminate="state.indeterminate"
-					@change="
-						(e: any) => {
-							Object.assign(state, {
-								checkedList: e.target.checked ? options.state.map((e) => e.value) : [],
-								indeterminate: false,
-							})
-							searchParams.state = state.checkedList
-						}
-					"
-				>
-					전체
-				</a-checkbox>
-				<a-checkbox-group
-					v-model:value="state.checkedList"
-					:options="options.state"
-					@change="(val: any) => (searchParams.state = val)"
-				/>
-			</a-space>
-		</a-descriptions-item>
+		<!-- 세 번째 세트 end -->
 	</a-descriptions>
-
 	<div :class="['grid-area', { expand: isExpand }]">
 		<a-flex align="center" justify="space-between" class="mb-sm">
-			<a-button
-				:icon="materialIcons('mso', isExpand ? 'zoom_in_map' : 'zoom_out_map')"
-				@click="onExpand"
-			>
-				{{ isExpand ? "축소" : "확대" }}
-			</a-button>
+			<a-space :size="5">
+				<a-button
+					:icon="materialIcons('mso', isExpand ? 'zoom_in_map' : 'zoom_out_map')"
+					@click="onExpand"
+				>
+					{{ isExpand ? "축소" : "확대" }}
+				</a-button>
+				<a-checkbox v-model:checked="isTotalChecked">소계,총계 표시</a-checkbox>
+			</a-space>
 			<a-space :size="5">
 				<a-button :icon="materialIcons('mso', 'receipt_long')">영수증인쇄</a-button>
 				<a-button :icon="materialIcons('mso', 'description')">보고서 인쇄</a-button>
-				<a-button :icon="materialIcons('mso', 'download')">엑셀다운로드</a-button>
+				<eacc-excel-button
+					req-type="download"
+					size="middle"
+					label="엑셀다운로드"
+					file-name="전표내역조회(코스트센터)"
+					:data="lineData.data"
+					:disabled="!lineData.data || lineData.data.length === 0"
+				/>
 			</a-space>
 		</a-flex>
 
 		<iwx-grid
 			ref="columnApi"
+			:key="gridKey"
 			group-display-type="custom"
-			group-total-row="bottom"
-			row-model-type="serverSide"
+			:group-total-row="isTotalChecked ? 'bottom' : null"
+			:grid-options="gridOptions"
+			:row-data="lineData.data"
 			:column-types="columnTypes"
-			:default-col-def="{ flex: 1, minWidth: 150 }"
-			:column-defs="columnDefs"
+			:default-col-def="defaultColDef"
+			:col-defs="columnDefs"
 			:get-row-style="getRowStyle"
 			:group-default-expanded="-1"
 			:class="`ag-theme-quartz custom`"
-			:pinned-bottom-row-data="pinnedBottomRowData"
-			:cell-selection="false"
+			:suppressColumnVirtualisation="true"
+			:pinned-bottom-row-data="
+				isTotalChecked
+					? [
+							{
+								group: '총계',
+								krwTotalAmount: calculateTotalAmount(lineData.data, 'krwTotalAmount'),
+								krwSupplyAmount: calculateTotalAmount(lineData.data, 'krwSupplyAmount'),
+								krwTaxAmount: calculateTotalAmount(lineData.data, 'krwTaxAmount'),
+							},
+						]
+					: []
+			"
+			:cell-selection="true"
 			:suppress-menu-hide="true"
 			:stop-editing-when-cells-lose-focus="false"
 			:pagination="false"
-			:cache-block-size="5"
 			:autoGroupColumnDef="{
 				flex: 1,
 				minWidth: 280,
-				field: 'costCenter',
+				field: 'costCenterName',
 			}"
+			:maintain-column-order="true"
 			@grid-ready="onGridReady"
 			@column-moved="onColumnMoved"
 			@column-resized="onColumnResized"
 			@column-visible="onColumnVisible"
+			:locale-text="AG_GRID_LOCALE_KO"
 		/>
 	</div>
 </template>

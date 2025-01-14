@@ -30,8 +30,6 @@ interface ICommonData {
 	expenseDocList: string[] // 결재 문서 사용 가능 List ["PERSONAL_EXPENSE","CARD","BILL_INVOICE"]
 	expenseFileList: string[] // 사용 가능 첨부파일 List ["PERSONAL_EXPENSE","CARD","BILL_INVOICE"]
 	cardManagerFlag: boolean // 카드 담당자 사용 여부
-	arTaxInvoiceManagerFlag: boolean // 매출 세금계산서 담당자 여부
-	arTaxInvoiceManager: number // 매출 세금계산서 담당자
 	budgetManagerFlag: boolean //예산 담당자 여부
 	nonDeductionBusinessTypeFlag: boolean //불공제업종 여부
 }
@@ -58,8 +56,24 @@ interface IResponseData extends ICommonData {
 	billInvoicePaymentDayName: string // 세금계산서 출금/지급 예정일 타입(ONE, TWO..)
 	billInvoicePaymentDayLabel: string // 세금계산서 출금/지급 예정일 라벨
 	cardManagers: number[] // 카드 담당자 배열 [1, 2, 3]
-	apTaxInvoiceManagers: number[] // 세금계산서 담당자 배열 [1, 2, 3]
 	budgetManagers: number[] // 예산 담당자 배열 [1, 2, 3]
+
+	foreignCurrencyDecimalPlaceLabel: string // 외화금액 소수점 자리수 라벨(1자리, 2자리..)
+	foreignCurrencyDecimalPlaceName: string // 외화금액 소수점 자리수 구분(NONE, ONE, TWO, THREE, FOUR)
+
+	familyEventFlag: boolean //경조금지급관리 여부
+	familyEventPaymentDateFlag: boolean // 경조금 출금/지급 예정일 표시 여부
+	familyEventPaymentDayLabel: string // 경조금 지급일 라벨(1일, 2일..)
+	familyEventPaymentDayName: string // 경조금 지급일 타입(ONE, TWO..)
+	familyEventPaymentTypeLabel: string // 경조금 지급월 라벨(익월, 당월)
+	familyEventPaymentTypeName: string // 경조금 지급월 타입구분(THAT_MONTH, NEXT_MONTH)
+
+	arTaxInvoiceManagerFlag: boolean // 매출 세금계산서 담당자 여부
+	arTaxInvoiceManager: number // 매출 세금계산서 담당자
+
+	apTaxInvoiceManageFlag: boolean // 매입 세금계산서 발행 담당자 사용여부
+	apTaxInvoiceManageDepartments: number[] // 매입 세금계산서 발행 담당자 부서 배열 [1, 2, 3]
+	apTaxInvoiceManagers: number[] // 매입 세금계산서 발행 담당 사원식별자 배열 [1, 2, 3]
 }
 
 interface IData extends ICommonData {
@@ -72,6 +86,8 @@ interface IData extends ICommonData {
 	corporateCreditCardPaymentDay: string
 	billInvoicePaymentType: string
 	billInvoicePaymentDay: string
+	familyEventPaymentType: string
+	familyEventPaymentDay: string // 경조금 지급일 타입(ONE, TWO..)
 	cardManagers: { id: number }[] // 카드 담당자 객체 배열
 	apTaxInvoiceManagers: { id: number }[] // 세금계산서 담당자 객체 배열
 	budgetManagers: { id: number }[] // 예산 담당자 객체 배열

@@ -42,7 +42,7 @@ const patchApprovalRules = (body: any) => {
 			id: x,
 		}))
 	}
-	useCFetch<Response<any>>(`/api/v2/master/approvalRules/${body.id}`, {
+	useCFetch<Response<any>>(`/api/v2/masters/approvalRules/${body.id}`, {
 		method: "PATCH",
 		body,
 	}).then((res: Response<any>) => {

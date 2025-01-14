@@ -3,7 +3,7 @@ import type { Titles } from "@/types/settings/titles"
 import TitleTable from "@/components/settings/titles/TitleTable.vue"
 import TitleDetailTable from "@/components/settings/titles/TitleDetailTable.vue"
 
-import type { RequestParams, Response } from "@/types"
+import { pageSize, type RequestParams, type Response } from "@/types"
 import type { Rule } from "ant-design-vue/es/form"
 import { Form } from "ant-design-vue"
 import type { EmployeeDetail } from "@/types/master/cctr"
@@ -71,7 +71,17 @@ const state = reactive<{
 	updown: undefined,
 })
 
-const empDetail = ref<Response<Array<EmployeeDetail>>>({})
+const empDetail = ref<Response<Array<EmployeeDetail>>>({
+	data: [],
+	status: 0,
+	message: "",
+	totalElements: 0,
+	totalPages: 0,
+	pageNumber: 0,
+	size: pageSize,
+	first: true,
+	last: true,
+})
 const empDetailLoading = ref(false)
 
 const search = async (title: Titles) => {

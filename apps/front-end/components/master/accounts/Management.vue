@@ -10,9 +10,12 @@ const managementOptions: RadioGroupProps["options"] = [
 	{ label: "관리", value: true },
 	{ label: "미관리", value: false },
 ]
+const route = useRoute()
+const routePath = computed(() => route.path)
 
 const searchValue = ref<string>("")
-let oldValue = "" // 초기 oldValue
+const copyTreeData = ref<any[]>([])
+// let oldValue = "" // 초기 oldValue
 
 const isEdit = ref<boolean>(false) // 수정상태
 const isNew = ref<boolean>(false) // 신규저장상태
@@ -20,6 +23,7 @@ const isAdd = ref<boolean>(false) // 추가저장상태
 const selectedKeys = ref<(string | number)[]>([])
 const selectedNode = ref<any>()
 const modelRef = ref<AccountItem>(Object.assign({}, initData))
+const expenseAccountTypeListOptions = ref<any[]>([])
 
 const expandedKeys = ref<(string | number)[]>([])
 const autoExpandParent = ref<boolean>(true)
@@ -54,17 +58,33 @@ const { resetFields, validate, validateInfos } = useForm(modelRef, rulesRef)
  * 트리 필터링 (input 이벤트)
  * @param query
  */
-const onQueryChanged = async (query: string) => {
-	if (query != oldValue) {
-		refresh().finally(() => {
-			treeData.value = filterTreeData(treeData.value, query)
-		})
-	}
+// const onQueryChanged = async (query: string) => {
+// 	if (query != oldValue) {
+// 		refresh().finally(() => {
+// 			treeData.value = filterTreeData(treeData.value, query)
+// 		})
+// 	}
 
-	if (!query) {
-		refresh()
+// 	if (!query) {
+// 		refresh()
+// 	}
+// 	oldValue = query
+// }
+
+/**
+ * 트리 필터링 New (keyup 이벤트)
+ * @param e Keyboard Event
+ */
+const onQueryChanged = (e: any) => {
+	e.preventDefault()
+
+	searchValue.value = e.target.value
+	if ((isHangulComplete(e.target.value) && e.isComposing) || isNumeric(e.target.value)) {
+		copyTreeData.value = filterTreeData(treeData.value, e.target.value)
 	}
-	oldValue = query
+	if (e.target.value === "") {
+		copyTreeData.value = treeData.value
+	}
 }
 
 const onExpand: TreeProps["onExpand"] = async (key, info: any) => {
@@ -98,9 +118,12 @@ const {
 	error,
 	refresh,
 } = await useAsyncData(`accounts-list`, () =>
-	useCFetch<Response<any>>("/api/v2/master/accounts", {
+	useCFetch<Response<any>>("/api/v2/masters/accounts", {
 		method: "GET",
-	}).then((res: Response<any>) => res.data)
+	}).then((res: Response<any>) => {
+		copyTreeData.value = res.data
+		return res.data
+	})
 )
 
 function parentName(id?: number): string {
@@ -129,10 +152,11 @@ const accountData = async (
 	id?: number,
 	data?: AccountItem
 ) => {
-	await useCFetch<Response<any>>(`/api/v2/master/accounts/${id}`, {
+	console.log("account check", id, data)
+	await useCFetch<Response<any>>(`/api/v2/masters/accounts/${id}`, {
 		method: method,
 		body: data ? data : null,
-	}).then((res: Response<any>) => {
+	}).then(async (res: Response<any>) => {
 		if (res.status === 0) {
 			if (method === "GET") Object.assign(modelRef.value, res.data)
 			if (method === "PATCH") {
@@ -166,6 +190,8 @@ const onAddManagement = () => {
 }
 
 const onDelete = (data: AccountItem) => {
+	//TODO: 삭제 시 selectedNode 객체의 parent 객체로 셋업이 될 때 node, child 객체가 Proxy(Object) 또는 Array 객체 혼합으로 직렬화가 되어지 있지 않는데, 이를 직렬화할 건지 아니면 순환 참조 제거를 할 것인지 객체를 제거할 것인지 판단해야함. 현재는 객체를 제거했음.
+	delete data.parent
 	accountData("DELETE", data.id, data)
 }
 
@@ -208,12 +234,13 @@ const onSubmit = () => {
 			})
 
 			if (isAdd.value || isNew.value) {
-				await useCFetch<Response<any>>("/api/v2/master/accounts", {
+				await useCFetch<Response<any>>("/api/v2/masters/accounts", {
 					method: "POST",
 					body: Object.assign({}, modelRef.value, {
 						// managementItemFlag: true,
 						accountLevel: modelRef.value.accountLevelLabel,
 						managementItemList: managementItemList,
+						accountGroupType: modelRef.value.accountGroupTypeName,
 					}),
 				}).then((res: any) => {
 					if (res.status === 0) {
@@ -232,6 +259,7 @@ const onSubmit = () => {
 						managementItemFlag: true,
 						accountLevel: modelRef.value.accountLevelName,
 						managementItemList: managementItemList,
+						accountGroupType: modelRef.value.accountGroupTypeName,
 					})
 				)
 			}
@@ -241,7 +269,7 @@ const onSubmit = () => {
 		})
 }
 
-onMounted(() => {
+onMounted(async () => {
 	isEdit.value = false
 	isNew.value = false
 	isAdd.value = false
@@ -251,27 +279,49 @@ onMounted(() => {
 		)
 		onSelect([treeData.value[0].id], treeData.value[0])
 	}
+
+	await useCFetch<Response<any>>("/api/v2/slips/expenses/types/slipTypes", {
+		method: "GET",
+	}).then((res: Response<any>) => {
+		expenseAccountTypeListOptions.value = res.data.map((e: any) => ({
+			label: e.label,
+			value: e.code,
+			...e,
+		}))
+	})
 })
 </script>
 <template>
 	<a-row :gutter="[15, 15]">
 		<a-col flex="32rem">
+			<a-flex justify="flex-end" class="mb-sm">
+				<eacc-excel-button
+					ghost
+					type="primary"
+					url="/api/v2/masters/accounts/validate"
+					req-type="upload"
+					label="엑셀일괄등록"
+					:disabled="false"
+					:sample-file-key="routePath"
+					@submit="refresh"
+				/>
+			</a-flex>
 			<a-spin :spinning="treeStatus === 'pending'">
 				<a-input-search
 					class="mb-sm"
 					v-model:value="searchValue"
 					placeholder="검색"
-					@input="onQueryChanged(searchValue)"
+					@keyup="onQueryChanged"
 				/>
 				<a-tree
-					class="tree-limit"
+					class="scroll-area is-search"
 					block-node
 					:show-icon="true"
 					:selectedKeys="selectedKeys"
 					v-model:expanded-keys="expandedKeys"
 					:auto-expand-parent="autoExpandParent"
 					:default-expand-all="true"
-					:tree-data="treeData"
+					:tree-data="copyTreeData"
 					:field-names="{
 						children: 'children',
 						title: 'name',
@@ -289,13 +339,35 @@ onMounted(() => {
 						</template>
 					</template>
 
-					<template #title="{ name }">
-						<span v-if="name.indexOf(searchValue) > -1">
-							{{ name.substring(0, name.indexOf(searchValue)) }}
+					<template #title="{ dataRef }">
+						<span
+							v-if="
+								dataRef.name.indexOf(searchValue) > -1 ||
+								dataRef.code.toString().indexOf(searchValue) > -1
+							"
+						>
+							<span
+								v-if="
+									dataRef.name.includes(searchValue) ||
+									dataRef.code.toString().includes(searchValue)
+								"
+							>
+								{{
+									`${dataRef.name}(${dataRef.code})`.substring(
+										0,
+										`${dataRef.name}(${dataRef.code})`.indexOf(searchValue)
+									)
+								}}
+							</span>
 							<span class="text-error">{{ searchValue }}</span>
-							{{ name.substring(name.indexOf(searchValue) + searchValue.length) }}
+							{{
+								`${dataRef.name}(${dataRef.code})`.substring(
+									`${dataRef.name}(${dataRef.code})`.indexOf(searchValue) +
+										searchValue.length
+								)
+							}}
 						</span>
-						<span v-else>{{ name }}</span>
+						<span v-else>{{ dataRef.name }} ({{ dataRef.code }})</span>
 					</template>
 				</a-tree>
 			</a-spin>
@@ -406,11 +478,51 @@ onMounted(() => {
 						<template v-if="!isEdit">{{ modelRef.accountLevelLabel }}</template>
 						<a-form-item v-else>
 							<eacc-select
-								url="/api/v2/master/accounts/types/accountLevels"
-								v-model:value="modelRef.accountLevelLabel"
+								url="/api/v2/masters/accounts/types/accountLevels"
+								v-model:value="modelRef.accountLevelName"
 								:field-names="{ label: 'label', value: 'code' }"
 								:on-all-field="false"
-								@update:value="(value) => (modelRef.accountLevelLabel = value)"
+								@update:value="(value) => (modelRef.accountLevelName = value)"
+								:filter-values="modelRef.accountLevelName !== 'GROUP' ? ['GROUP'] : []"
+							/>
+						</a-form-item>
+					</a-descriptions-item>
+					<a-descriptions-item>
+						<template #label>
+							<span class="text-error" v-if="isEdit">*</span>
+							계정그룹코드
+						</template>
+						<template v-if="!isEdit">{{ modelRef.accountGroupTypeLabel }}</template>
+						<a-form-item v-else>
+							<a-select
+								v-model:value="modelRef.accountGroupTypeName"
+								:options="[
+									{ label: '공통', value: 'COMMON' },
+									{ label: '제조', value: 'MANUFACTURING' },
+									{ label: '판관', value: 'SGA' },
+								]"
+							/>
+						</a-form-item>
+					</a-descriptions-item>
+					<a-descriptions-item label="사용여부">
+						<template v-if="!isEdit">
+							<a-tag :color="modelRef.used ? 'blue' : ''">
+								{{ modelRef.used ? "사용중" : "미사용" }}
+							</a-tag>
+						</template>
+						<a-form-item v-else>
+							<a-switch v-model:checked="modelRef.used" size="small" />
+						</a-form-item>
+					</a-descriptions-item>
+					<a-descriptions-item :span="2">
+						<template #label>
+							<span class="text-error" v-if="isEdit">*</span>
+							전표유형
+						</template>
+						<a-form-item v-bind="validateInfos.expenseAccountTypeList">
+							<a-checkbox-group
+								v-model:value="modelRef.expenseAccountTypeList"
+								:options="expenseAccountTypeListOptions"
 							/>
 						</a-form-item>
 					</a-descriptions-item>
@@ -420,161 +532,209 @@ onMounted(() => {
 							<a-input v-model:value="modelRef.description" />
 						</a-form-item>
 					</a-descriptions-item>
-					<a-descriptions-item label="사용여부">
-						<template v-if="!isEdit">{{ modelRef.used ? "사용중" : "미사용" }}</template>
-						<a-form-item v-else>
-							<a-switch v-model:checked="modelRef.used" size="small" />
-						</a-form-item>
-					</a-descriptions-item>
-					<a-descriptions-item>
-						<template #label>
-							<span class="text-error" v-if="isEdit">*</span>
-							지출유형
-						</template>
-						<a-form-item v-bind="validateInfos.expenseAccountTypeList">
-							<a-checkbox-group
-								v-model:value="modelRef.expenseAccountTypeList"
-								:options="[
-									{ label: '개인경비', value: 'PERSONAL_EXPENSE' },
-									{ label: '법인카드', value: 'CARD' },
-									{ label: '세금계산서', value: 'BILL_INVOICE' },
-								]"
-							/>
-						</a-form-item>
-					</a-descriptions-item>
-					<a-descriptions-item label="경비지출계정">
-						<template v-if="!isEdit">{{
-							modelRef.expenseAccountFlag ? "대상" : "비대상"
-						}}</template>
-						<a-form-item v-else>
-							<a-radio-group
-								v-model:value="modelRef.expenseAccountFlag"
-								:options="[
-									{ label: '대상', value: true },
-									{ label: '비대상', value: false },
-								]"
-							/>
-						</a-form-item>
-					</a-descriptions-item>
-					<a-descriptions-item label="전표입력계정">
-						<template v-if="!isEdit">
-							{{ modelRef.slipInputFlag ? "가능" : "불가능" }}
-						</template>
-						<a-form-item v-else>
-							<a-radio-group
-								v-model:value="modelRef.slipInputFlag"
-								:options="[
-									{ label: '가능', value: true },
-									{ label: '불가능', value: false },
-								]"
-							/>
-						</a-form-item>
-					</a-descriptions-item>
-					<a-descriptions-item label="예산관리">
-						<template v-if="!isEdit">
-							{{ modelRef.budgetFlag ? "관리" : "미관리" }}
-						</template>
-						<a-form-item v-else>
-							<a-radio-group
-								v-model:value="modelRef.budgetFlag"
-								:options="managementOptions"
-							/>
-						</a-form-item>
-					</a-descriptions-item>
-					<a-descriptions-item label="미결관리">
-						<template v-if="!isEdit">
-							{{ modelRef.undecidedFlag ? "관리" : "미관리" }}
-						</template>
-						<a-form-item v-else>
-							<a-radio-group
-								v-model:value="modelRef.undecidedFlag"
-								:options="managementOptions"
-							/>
-						</a-form-item>
-					</a-descriptions-item>
-					<a-descriptions-item label="차대변관리">
-						<template v-if="!isEdit">
-							{{ modelRef.debitAndCreditFlag ? "차변" : "대변" }}
-						</template>
-						<a-form-item v-else>
-							<a-radio-group
-								v-model:value="modelRef.debitAndCreditFlag"
-								:options="[
-									{ label: '차변', value: true },
-									{ label: '대변', value: false },
-								]"
-							/>
-						</a-form-item>
-					</a-descriptions-item>
-					<a-descriptions-item label="거래처관리">
-						<template v-if="!isEdit">
-							{{ modelRef.customerFlag ? "관리" : "미관리" }}
-						</template>
-						<a-form-item v-else>
-							<a-radio-group
-								v-model:value="modelRef.customerFlag"
-								:options="managementOptions"
-							/>
-						</a-form-item>
-					</a-descriptions-item>
-					<a-descriptions-item label="외화관리">
-						<template v-if="!isEdit">
-							{{ modelRef.foreignCurrencyFlag ? "관리" : "미관리" }}
-						</template>
-						<a-form-item v-else>
-							<a-radio-group
-								v-model:value="modelRef.foreignCurrencyFlag"
-								:options="managementOptions"
-							/>
-						</a-form-item>
-					</a-descriptions-item>
-					<a-descriptions-item label="부가세관리">
-						<template v-if="!isEdit">
-							{{ modelRef.taxFlag ? "관리" : "미관리" }}
-						</template>
-						<a-form-item v-else>
-							<a-radio-group
-								v-model:value="modelRef.taxFlag"
-								:options="managementOptions"
-							/>
-						</a-form-item>
-					</a-descriptions-item>
-					<a-descriptions-item label="선급금">
-						<template v-if="!isEdit">
-							{{ modelRef.advancePaymentsFlag ? "관리" : "미관리" }}
-						</template>
-						<a-form-item v-else>
-							<a-radio-group
-								v-model:value="modelRef.advancePaymentsFlag"
-								:options="managementOptions"
-							/>
-						</a-form-item>
-					</a-descriptions-item>
-					<a-descriptions-item label="선수금">
-						<template v-if="!isEdit">
-							{{ modelRef.advanceReceivedFlag ? "관리" : "미관리" }}
-						</template>
-						<a-form-item v-else>
-							<a-radio-group
-								v-model:value="modelRef.advanceReceivedFlag"
-								:options="managementOptions"
-							/>
-						</a-form-item>
-					</a-descriptions-item>
-					<a-descriptions-item label="ERP계정여부" :span="2">
-						<template v-if="!isEdit">
-							{{ modelRef.erpAccountFlag ? "관리" : "미관리" }}
-						</template>
-						<a-form-item v-else>
-							<a-radio-group
-								v-model:value="modelRef.erpAccountFlag"
-								:options="managementOptions"
-							/>
-						</a-form-item>
-					</a-descriptions-item>
+
+					<template v-if="modelRef.accountLevelName !== 'GROUP'">
+						<a-descriptions-item label="경비지출계정">
+							<template v-if="!isEdit">{{
+								modelRef.expenseAccountFlag ? "대상" : "비대상"
+							}}</template>
+							<a-form-item v-else>
+								<a-radio-group
+									v-model:value="modelRef.expenseAccountFlag"
+									:options="[
+										{ label: '대상', value: true },
+										{ label: '비대상', value: false },
+									]"
+								/>
+							</a-form-item>
+						</a-descriptions-item>
+						<a-descriptions-item label="전표입력계정">
+							<template v-if="!isEdit">
+								{{ modelRef.slipInputFlag ? "가능" : "불가능" }}
+							</template>
+							<a-form-item v-else>
+								<a-radio-group
+									v-model:value="modelRef.slipInputFlag"
+									:options="[
+										{ label: '가능', value: true },
+										{ label: '불가능', value: false },
+									]"
+								/>
+							</a-form-item>
+						</a-descriptions-item>
+						<a-descriptions-item label="예산관리">
+							<template v-if="!isEdit">
+								{{ modelRef.budgetFlag ? "관리" : "미관리" }}
+							</template>
+							<a-form-item v-else>
+								<a-radio-group
+									v-model:value="modelRef.budgetFlag"
+									:options="managementOptions"
+								/>
+							</a-form-item>
+						</a-descriptions-item>
+						<a-descriptions-item label="미결관리">
+							<template v-if="!isEdit">
+								{{ modelRef.undecidedFlag ? "관리" : "미관리" }}
+							</template>
+							<a-form-item v-else>
+								<a-radio-group
+									v-model:value="modelRef.undecidedFlag"
+									:options="managementOptions"
+								/>
+							</a-form-item>
+						</a-descriptions-item>
+						<a-descriptions-item label="차대변관리">
+							<template v-if="!isEdit">
+								{{ modelRef.debitAndCreditFlag ? "차변" : "대변" }}
+							</template>
+							<a-form-item v-else>
+								<a-radio-group
+									v-model:value="modelRef.debitAndCreditFlag"
+									:options="[
+										{ label: '차변', value: true },
+										{ label: '대변', value: false },
+									]"
+								/>
+							</a-form-item>
+						</a-descriptions-item>
+						<a-descriptions-item label="거래처관리">
+							<template v-if="!isEdit">
+								{{ modelRef.customerFlag ? "관리" : "미관리" }}
+							</template>
+							<a-form-item v-else>
+								<a-radio-group
+									v-model:value="modelRef.customerFlag"
+									:options="managementOptions"
+								/>
+							</a-form-item>
+						</a-descriptions-item>
+						<a-descriptions-item label="외화관리">
+							<template v-if="!isEdit">
+								{{ modelRef.foreignCurrencyFlag ? "관리" : "미관리" }}
+							</template>
+							<a-form-item v-else>
+								<a-radio-group
+									v-model:value="modelRef.foreignCurrencyFlag"
+									:options="managementOptions"
+								/>
+							</a-form-item>
+						</a-descriptions-item>
+						<a-descriptions-item label="부가세관리">
+							<template v-if="!isEdit">
+								{{ modelRef.taxFlag ? "관리" : "미관리" }}
+							</template>
+							<a-form-item v-else>
+								<a-radio-group
+									v-model:value="modelRef.taxFlag"
+									:options="managementOptions"
+								/>
+							</a-form-item>
+						</a-descriptions-item>
+						<a-descriptions-item label="선급금관리">
+							<template v-if="!isEdit">
+								{{ modelRef.advancePaymentsFlag ? "관리" : "미관리" }}
+							</template>
+							<a-form-item v-else>
+								<a-radio-group
+									v-model:value="modelRef.advancePaymentsFlag"
+									:options="managementOptions"
+								/>
+							</a-form-item>
+						</a-descriptions-item>
+						<a-descriptions-item label="선수금관리">
+							<template v-if="!isEdit">
+								{{ modelRef.advanceReceivedFlag ? "관리" : "미관리" }}
+							</template>
+							<a-form-item v-else>
+								<a-radio-group
+									v-model:value="modelRef.advanceReceivedFlag"
+									:options="managementOptions"
+								/>
+							</a-form-item>
+						</a-descriptions-item>
+
+						<a-descriptions-item label="불공제여부">
+							<template v-if="!isEdit">
+								{{ modelRef.nonDeduction ? "관리" : "미관리" }}
+							</template>
+							<a-form-item v-else>
+								<a-radio-group
+									v-model:value="modelRef.nonDeduction"
+									:options="managementOptions"
+								/>
+							</a-form-item>
+						</a-descriptions-item>
+						<!-- <a-descriptions-item label="경조금관리">
+							<template v-if="!isEdit">
+								{{ modelRef.familyEventFlag ? "관리" : "미관리" }}
+							</template>
+							<a-form-item v-else>
+								<a-radio-group
+									v-model:value="modelRef.familyEventFlag"
+									:options="managementOptions"
+								/>
+							</a-form-item>
+						</a-descriptions-item>
+						<a-descriptions-item label="출장비-교통비">
+							<template v-if="!isEdit">
+								{{ modelRef.transportationFlag ? "관리" : "미관리" }}
+							</template>
+							<a-form-item v-else>
+								<a-radio-group
+									v-model:value="modelRef.transportationFlag"
+									:options="managementOptions"
+								/>
+							</a-form-item>
+						</a-descriptions-item>
+						<a-descriptions-item label="출장비-식비">
+							<template v-if="!isEdit">
+								{{ modelRef.mealFlag ? "관리" : "미관리" }}
+							</template>
+							<a-form-item v-else>
+								<a-radio-group
+									v-model:value="modelRef.mealFlag"
+									:options="managementOptions"
+								/>
+							</a-form-item>
+						</a-descriptions-item>
+						<a-descriptions-item label="출장비-일비">
+							<template v-if="!isEdit">
+								{{ modelRef.dailyAllowanceFlag ? "관리" : "미관리" }}
+							</template>
+							<a-form-item v-else>
+								<a-radio-group
+									v-model:value="modelRef.dailyAllowanceFlag"
+									:options="managementOptions"
+								/>
+							</a-form-item>
+						</a-descriptions-item>
+						<a-descriptions-item label="출장비-숙박비">
+							<template v-if="!isEdit">
+								{{ modelRef.accommodationFlag ? "관리" : "미관리" }}
+							</template>
+							<a-form-item v-else>
+								<a-radio-group
+									v-model:value="modelRef.accommodationFlag"
+									:options="managementOptions"
+								/>
+							</a-form-item>
+						</a-descriptions-item> -->
+						<a-descriptions-item label="ERP계정여부" :span="2">
+							<template v-if="!isEdit">
+								{{ modelRef.erpAccountFlag ? "관리" : "미관리" }}
+							</template>
+							<a-form-item v-else>
+								<a-radio-group
+									v-model:value="modelRef.erpAccountFlag"
+									:options="managementOptions"
+								/>
+							</a-form-item>
+						</a-descriptions-item>
+					</template>
 				</a-descriptions>
 
-				<section class="mt-xl">
+				<section class="mt-xl" v-if="modelRef.accountLevelName !== 'GROUP'">
 					<a-flex :gap="10" class="mb-md">
 						<a-space :size="3">
 							<a-typography-text>관리항목</a-typography-text>
@@ -592,6 +752,7 @@ onMounted(() => {
 							ghost
 							:icon="materialIcons('mso', 'add_circle')"
 							@click="onAddManagement"
+							:disabled="!isEdit || modelRef.managementItems.length >= 10"
 						>
 							관리항목추가
 						</a-button>
@@ -607,7 +768,7 @@ onMounted(() => {
 								<a-space>
 									<a-input-number v-model:value="item.orderSequence" :min="1" />
 									<eacc-select
-										url="/api/v2/master/managementItems/types/managementItemFields"
+										url="/api/v2/masters/managementItems/types/managementItemFields"
 										v-model:value="item.managementItemFieldName"
 										:field-names="{ label: 'label', value: 'code' }"
 										:on-all-field="false"
@@ -621,7 +782,7 @@ onMounted(() => {
 									/>
 									<a-space>
 										<eacc-select
-											url="/api/v2/master/managementItems/types/managementItemTypes"
+											url="/api/v2/masters/managementItems/types/managementItemTypes"
 											v-model:value="item.managementItemTypeName"
 											:field-names="{ label: 'label', value: 'code' }"
 											:on-all-field="false"
@@ -638,7 +799,7 @@ onMounted(() => {
 									</a-space>
 									<eacc-select
 										v-if="item.managementItemTypeName === 'TEXT'"
-										url="/api/v2/master/managementItems/types/alignmentDirectionTypes"
+										url="/api/v2/masters/managementItems/types/alignmentDirectionTypes"
 										v-model:value="item.alignmentDirectionTypeName"
 										:field-names="{ label: 'label', value: 'code' }"
 										:on-all-field="false"

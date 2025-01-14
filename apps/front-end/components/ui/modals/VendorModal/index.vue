@@ -164,7 +164,7 @@ const postVendor = (item: VendorType) => {
 		body.apTermsOfPayment = item.paymentTerms
 		body.arTermsOfPayment = item.paymentTerms
 	}
-	useCFetch<Response<any>>(`/api/v2/master/vendors`, {
+	useCFetch<Response<any>>(`/api/v2/masters/vendors`, {
 		method: "POST",
 		body,
 	})
@@ -197,7 +197,7 @@ const patchVendor = (item: VendorType) => {
 		body.apTermsOfPayment = item.paymentTerms
 		body.arTermsOfPayment = item.paymentTerms
 	}
-	useCFetch<Response<any>>(`/api/v2/master/vendors/${item.id}`, {
+	useCFetch<Response<any>>(`/api/v2/masters/vendors/${item.id}`, {
 		method: "PATCH",
 		body,
 	})
@@ -219,7 +219,7 @@ const patchVendor = (item: VendorType) => {
  */
 const deleteVendor = (id: number | string) => {
 	// console.log(' delete vendor data ', id);
-	useCFetch<Response<any>>(`/api/v2/master/vendors/${id}`, {
+	useCFetch<Response<any>>(`/api/v2/masters/vendors/${id}`, {
 		method: "DELETE",
 		body: { id },
 	})
@@ -266,7 +266,7 @@ const cancel = async () => {
 				<a-col span="12">
 					<a-form-item label="거래처 구분" v-bind="validateInfos.vendorType" has-feedback>
 						<eacc-select
-							url="/api/v2/master/vendors/types/vendorTypes"
+							url="/api/v2/masters/vendors/types/vendorTypes"
 							v-model:value="vendorInfo.vendorType"
 							:field-names="{ label: 'label', value: 'code' }"
 							:on-all-field="false"

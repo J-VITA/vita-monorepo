@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { materialIcons } from "@/composables/icons"
-import type { Response, RequestParams } from "@/types"
+import { type Response, type RequestParams, dateTimeFormat } from "@/types"
 import type { Dayjs } from "dayjs"
 
 const { $dayjs } = useNuxtApp()
@@ -114,6 +114,7 @@ onActivated(() => {
 				<label>기준 조회기간</label>
 				<a-range-picker
 					v-model:value="filterDate"
+					:value-format="dateTimeFormat"
 					@change="
 						(_, dateString) => {
 							searchParams.searchDateFrom = dateString[0]

@@ -3,7 +3,14 @@ import type { ColumnType, ColumnsType } from "ant-design-vue/lib/table/interface
 import type { Dayjs } from "dayjs"
 import dayjs from "dayjs"
 import { classifications, states } from "@/types/expenses"
-import { Response, RequestParams, SlipFormType, pagination, pageSize } from "@/types"
+import {
+	type Response,
+	type RequestParams,
+	SlipFormType,
+	pagination,
+	pageSize,
+	dateTimeFormat,
+} from "@/types"
 import { type ExpenseList } from "@/types/expenses"
 
 const props = withDefaults(defineProps<{ show: boolean; userId?: number | string }>(), {
@@ -145,7 +152,7 @@ const {
 } = await useAsyncData(
 	`modal-slip-tax-invoice-list`,
 	async () =>
-		useCFetch<Response<Array<ExpenseList>>>("/api/v2/slip/expenses", {
+		useCFetch<Response<Array<ExpenseList>>>("/api/v2/slips/expenses", {
 			method: "GET",
 			params: {
 				page: searchParams.value.pageNumber > 1 ? searchParams.value.pageNumber - 1 : 0,
@@ -232,6 +239,7 @@ onMounted(() => {
 					<label>기간설정</label>
 					<a-range-picker
 						v-model:value="filterDate"
+						:value-format="dateTimeFormat"
 						@change="
 							(_, dateString) => {
 								searchParams.month = undefined
@@ -255,7 +263,7 @@ onMounted(() => {
 			<a-col>
 				<eacc-select
 					style="width: 12rem"
-					url="/api/v2/slip/expenses/types/slipTypes"
+					url="/api/v2/slips/expenses/types/slipTypes"
 					v-model:value="searchParams.slipType"
 					:field-names="{ label: 'label', value: 'code' }"
 					:on-all-field="true"
@@ -267,7 +275,7 @@ onMounted(() => {
 			<a-col>
 				<eacc-select
 					style="width: 12rem"
-					url="/api/v2/slip/expenses/types/slipStatuses"
+					url="/api/v2/slips/expenses/types/slipStatuses"
 					v-model:value="searchParams.slipStatus"
 					:disabled="true"
 					:field-names="{ label: 'label', value: 'code' }"

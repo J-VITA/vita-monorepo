@@ -15,5 +15,5 @@ const props = defineProps<createAgParams<ColorTagType, ColorTagBrand>>()
 const { color, text, value } = props.params
 </script>
 <template>
-	<a-tag v-if="value" :color="color">{{ text }}</a-tag>
+	<a-tag v-if="value && text" :color="color">{{ text }}</a-tag>
 </template>

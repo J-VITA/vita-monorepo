@@ -4,13 +4,10 @@ import type { ThemeConfig } from "ant-design-vue/es/config-provider/context"
 
 const { locale } = useLocale()
 const antLocale = useAntLocale(locale.value)
-const { setRedirect } = useRedirectFrom()
 
 useHead({
-	// or as a function
-	titleTemplate: (productCategory) => {
-		// console.log("> ", productCategory)
-		return productCategory ? `${productCategory} - Site Title` : "Site Title"
+	titleTemplate: (title) => {
+		return title ? `${title} - E-Accounting` : "E-Accounting"
 	},
 })
 
@@ -113,9 +110,11 @@ onBeforeUnmount(() => {
 		autoClear
 	>
 		<a-config-provider :theme="themeConfig" prefixCls="eacc" :locale="antLocale">
-			<NuxtLayout>
-				<NuxtPage />
-			</NuxtLayout>
+			<keep-alive>
+				<NuxtLayout>
+					<NuxtPage />
+				</NuxtLayout>
+			</keep-alive>
 		</a-config-provider>
 	</a-style-provider>
 </template>

@@ -126,9 +126,22 @@
 	.page-content {
 		padding: 1.5rem;
 		flex: auto;
-		> [class*="-row-no-wrap"] {
+		display: flex;
+		flex-flow: column;
+
+		> .#{variables.$prefix}-tabs {
 			min-height: 100%;
+			.#{variables.$prefix}-tabs-content {
+				min-height: 100%;
+				.#{variables.$prefix}-tabs-tabpane {
+					display: flex;
+					flex-flow: column;
+				}
+			}
 		}
+		// > .#{variables.$prefix}-row {
+		// 	flex: auto;
+		// }
 	}
 	.page-title {
 		font-size: 1.6rem;
@@ -146,13 +159,17 @@
 
 	.tree-wrap {
 		border: 1px solid variables.$border-color;
-		height: calc(100% - 4.6rem);
+		// height: calc(100% - 4.6rem);
 		border-radius: variables.$radius;
 		padding: 1rem;
 	}
-	.tree-limit {
-		max-height: 60rem;
+
+	.scroll-area {
+		max-height: calc(100vh - 31rem);
 		overflow-y: auto;
+		&.is-search {
+			max-height: calc(100vh - 31rem - 3.2rem);
+		}
 	}
 }
 

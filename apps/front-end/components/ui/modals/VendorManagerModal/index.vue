@@ -84,7 +84,7 @@ const deleteVendorManager = (item: any) => {
 			const body = Object.assign({}, item, {
 				vendorId: props.vendor.id,
 			})
-			useCFetch<Response<any>>(`/api/v2/master/vendorManagers/${item.id}`, {
+			useCFetch<Response<any>>(`/api/v2/masters/vendorManagers/${item.id}`, {
 				method: "delete",
 				body,
 			})
@@ -118,7 +118,7 @@ const onFinish = (values: any) => {
 				//   vendorId: props.vendor.id
 				// });
 				useCFetch<Response<any>>(
-					`${props.manager ? "/api/v2/master/vendorManagers/" + body[0].id : "/api/v2/master/vendorManagers"}`,
+					`${props.manager ? "/api/v2/masters/vendorManagers/" + body[0].id : "/api/v2/masters/vendorManagers"}`,
 					{
 						method: props.manager ? "PATCH" : "POST",
 						body: props.manager ? body[0] : body,

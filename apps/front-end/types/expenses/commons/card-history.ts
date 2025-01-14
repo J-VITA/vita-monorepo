@@ -261,15 +261,15 @@ export const cardHistoryColumns = createTableColumns<"CardHistory">([
 	},
 	{
 		title: "통화",
-		dataIndex: "currencyTypeLabel",
+		dataIndex: "currencyTypeName",
 		resizable: true,
 		sorter: false,
 		width: 100,
 		align: "center",
 	},
 	{
-		title: "사용금액",
-		dataIndex: "principalAmount",
+		title: "매입금액",
+		dataIndex: "totalPrincipalInKrwAmount",
 		resizable: true,
 		sorter: {
 			multiple: 8,
@@ -281,8 +281,34 @@ export const cardHistoryColumns = createTableColumns<"CardHistory">([
 		},
 	},
 	{
+		title: "공급가액",
+		dataIndex: "supplyAmount",
+		resizable: true,
+		sorter: {
+			multiple: 9,
+		},
+		width: 160,
+		align: "right",
+		customRender(opt) {
+			return formatCurrency(opt.value, opt.record.currencyTypeName)
+		},
+	},
+	{
 		title: "부가세",
 		dataIndex: "vatAmount",
+		resizable: true,
+		sorter: {
+			multiple: 9,
+		},
+		width: 160,
+		align: "right",
+		customRender(opt) {
+			return formatCurrency(opt.value, opt.record.currencyTypeName)
+		},
+	},
+	{
+		title: "봉사료",
+		dataIndex: "tipAmount",
 		resizable: true,
 		sorter: {
 			multiple: 9,

@@ -105,14 +105,20 @@
 		min-width: 20rem;
 	}
 }
+
 .grid-area {
+	display: flex;
+	flex-flow: column;
+	flex: auto;
 	.custom {
-		height: 42rem;
+		flex: auto;
+		min-height: 42rem;
 	}
 	.full {
 		height: calc(100vh - 40.5rem);
 	}
 	&.expand {
+		z-index: 1;
 		background-color: #fff;
 		width: 100%;
 		height: calc(100vh - 6rem);
@@ -125,6 +131,22 @@
 		.full {
 			height: calc(100% - 4rem);
 		}
+	}
+	.cell-span {
+		background-color: #ffffff;
+		overflow: visible;
+		border-right: 1px solid #e8e8e8;
+		border-bottom: 1px solid #e8e8e8;
+	}
+
+	/* 병합된 셀의 내부 테두리 제거 */
+	.cell-span[rowspan] {
+		border-bottom: none;
+	}
+
+	/* 마지막 행의 병합된 셀에는 하단 테두리 추가 */
+	.ag-row:last-child .cell-span {
+		border-bottom: 1px solid #e8e8e8;
 	}
 }
 
@@ -321,6 +343,180 @@
 		&-extra {
 			display: flex;
 			align-items: center;
+		}
+	}
+}
+
+// 세금계산서 Form
+.tax-invoice-form {
+	.table {
+		width: 100%;
+		border-collapse: collapse;
+		background-color: #fff;
+		.table-header {
+			background-color: #fafafa;
+			th,
+			td {
+				border: 1px solid variables.$border-color;
+				padding: 0.3rem 0.5rem;
+			}
+			.title {
+				border-bottom: 0;
+				font-weight: 700;
+				font-size: 2rem;
+			}
+			tr {
+				&:last-child {
+					th,
+					td {
+						border-bottom: 0;
+					}
+				}
+			}
+		}
+
+		.supplier,
+		.recipient {
+			border: 1px solid variables.$border-color;
+			&.title {
+				width: 3rem;
+				line-height: 1.2;
+				padding: 0.5rem;
+			}
+			&.label {
+				width: 10rem;
+			}
+			&.value {
+				min-width: 10rem;
+				padding: 0.5rem;
+				color: #333;
+			}
+		}
+
+		.supplier {
+			border-color: #ff9e9e;
+			&.title {
+				background-color: #ffecec;
+				color: #cd6b6b;
+			}
+			&.label {
+				background-color: #ffecec;
+				color: #cd6b6b;
+			}
+			&.value {
+				&:nth-of-type(2n) {
+					border-right: 0;
+				}
+			}
+		}
+
+		.recipient {
+			border-color: #8ccfef;
+			&.title {
+				background-color: #eaf5fb;
+				color: #428aac;
+			}
+			&.label {
+				background-color: #eaf5fb;
+				color: #428aac;
+			}
+		}
+	}
+
+	.table-total {
+		width: 100%;
+		background-color: #fff;
+		.tr {
+			display: flex;
+			flex-direction: row;
+		}
+		.th {
+			width: 13.1rem;
+			padding: 0.3rem 0.5rem;
+			text-align: center;
+			background-color: #fafafa;
+			border: 1px solid variables.$border-color;
+			border-top: 0;
+		}
+
+		.td {
+			flex: 1;
+			border-bottom: 1px solid variables.$border-color;
+			&:last-child {
+				border-right: 1px solid variables.$border-color;
+			}
+		}
+	}
+	.list-table {
+		width: 100%;
+		border-collapse: collapse;
+		background-color: #fff;
+		th,
+		td {
+			padding: 0.2rem 0.5rem;
+			border: 1px solid variables.$border-color;
+		}
+		th {
+			background-color: #fafafa;
+		}
+		&.total {
+			table-layout: fixed;
+			.signature {
+				text-align: center;
+			}
+		}
+	}
+}
+
+.grid-container {
+	display: grid;
+	place-content: center; /* 중앙 정렬 */
+	width: 100%;
+	height: 40rem;
+	border: 1px solid black;
+	overflow: hidden;
+	cursor: pointer;
+	.tax-invoice-form {
+		min-width: 70rem;
+		transform: scale(0.7);
+	}
+}
+
+.board-content-box {
+	min-height: 20rem;
+	white-space: pre-wrap;
+}
+.board-title {
+	font-size: 1.6rem;
+	font-weight: 700;
+}
+.board-list-title {
+	color: variables.$text-color;
+	&:hover {
+		color: variables.$text-color;
+		text-decoration: underline;
+	}
+
+	&.notice {
+		font-weight: 700;
+	}
+	.comment {
+		color: variables.$color-primary;
+	}
+}
+
+.board-file-list {
+	margin-top: 1rem;
+	.board-file-item {
+		margin-bottom: 0.5rem;
+		cursor: pointer;
+		color: variables.$color-secondary;
+		&:hover {
+			color: variables.$color-primary;
+			text-decoration: underline;
+		}
+		&:last-of-type {
+			margin-bottom: 0;
 		}
 	}
 }

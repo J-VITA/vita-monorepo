@@ -50,7 +50,7 @@ watch(props.data, (args) => {
 						<a-flex class="box" :gap="10">
 							<eacc-select
 								class="response-select full-width"
-								url="/api/v2/master/expenseRules/types/dayTypes"
+								url="/api/v2/masters/expenseRules/types/dayTypes"
 								v-model:value="data.approvalLimitStartDay"
 								:field-names="{ label: 'label', value: 'code' }"
 								:on-all-field="false"
@@ -59,7 +59,7 @@ watch(props.data, (args) => {
 							/>
 							<eacc-select
 								class="response-select full-width"
-								url="/api/v2/master/expenseRules/types/dayTypes"
+								url="/api/v2/masters/expenseRules/types/dayTypes"
 								v-model:value="data.approvalLimitEndDay"
 								:field-names="{ label: 'label', value: 'code' }"
 								:on-all-field="false"
@@ -101,7 +101,7 @@ watch(props.data, (args) => {
 						<div class="box">
 							<eacc-select
 								class="response-select full-width"
-								url="/api/v2/master/expenseRules/types/accountInputMethodTypes"
+								url="/api/v2/masters/expenseRules/types/accountInputMethodTypes"
 								v-model:value="data.accountInputMethodType"
 								:field-names="{ label: 'label', value: 'code' }"
 								:on-all-field="false"

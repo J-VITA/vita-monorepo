@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { materialIcons } from "@/composables/icons"
-import { useWebSocket } from "@vueuse/core"
+// import { useWebSocket } from "@vueuse/core"
 
 const authStore = useAuthStore()
 const { getUserId } = storeToRefs(authStore)
@@ -53,47 +53,47 @@ const wsUrl = computed(() => {
 	return `${protocol}//${config.public.websocketHost || window.location.host}/_ws?userId=${getUserId.value}`
 })
 
-const {
-	status,
-	data: webSocketData,
-	send,
-	open,
-	close,
-} = useWebSocket(() => wsUrl.value, {
-	autoReconnect: {
-		retries: 3,
-		delay: 1000,
-	},
-	onConnected: (ws: any) => {
-		// console.log('WebSocket connected in Notification component', ws);
-	},
-	onMessage: (ws: any, event: any) => {
-		try {
-			const data = JSON.parse(event.data)
-			if (data.type === "notification") {
-				message.info(data.content)
-			} else if (data.type === "broadcast") {
-				message.info(data.content)
-			} else if (data.type === "private_message") {
-				message.success(data.content)
-			}
-		} catch (error) {
-			console.error("Error parsing WebSocket message:", error)
-		}
-	},
-})
+// const {
+// 	status,
+// 	data: webSocketData,
+// 	send,
+// 	open,
+// 	close,
+// } = useWebSocket(() => wsUrl.value, {
+// 	autoReconnect: {
+// 		retries: 3,
+// 		delay: 1000,
+// 	},
+// 	onConnected: (ws: any) => {
+// 		// console.log('WebSocket connected in Notification component', ws);
+// 	},
+// 	onMessage: (ws: any, event: any) => {
+// 		try {
+// 			const data = JSON.parse(event.data)
+// 			if (data.type === "notification") {
+// 				message.info(data.content)
+// 			} else if (data.type === "broadcast") {
+// 				message.info(data.content)
+// 			} else if (data.type === "private_message") {
+// 				message.success(data.content)
+// 			}
+// 		} catch (error) {
+// 			console.error("Error parsing WebSocket message:", error)
+// 		}
+// 	},
+// })
 
-// 컴포넌트가 마운트될 때 연결
-onMounted(() => {
-	setTimeout(() => {
-		open()
-	}, 1000) // 1초 지연 후 연결 시도open();
-})
+// // 컴포넌트가 마운트될 때 연결
+// onMounted(() => {
+// 	setTimeout(() => {
+// 		open()
+// 	}, 1000) // 1초 지연 후 연결 시도open();
+// })
 
-// 컴포넌트가 언마운트될 때 연결 종료
-onUnmounted(() => {
-	close()
-})
+// // 컴포넌트가 언마운트될 때 연결 종료
+// onUnmounted(() => {
+// 	close()
+// })
 
 // watch(status, (newStatus) => {
 //   if (newStatus === 'CLOSED') {
@@ -103,7 +103,11 @@ onUnmounted(() => {
 // });
 </script>
 <template>
-	<a-dropdown :trigger="['click']" :arrow="{ pointAtCenter: true }">
+	<a-dropdown
+		:trigger="['click']"
+		placement="bottomRight"
+		:arrow="{ pointAtCenter: true }"
+	>
 		<a-badge dot>
 			<a-button
 				type="text"

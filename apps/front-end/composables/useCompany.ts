@@ -104,6 +104,32 @@ export const useCompany = () => {
 		})
 	}
 
+	/**
+	 * 트리 데이터 구조를 유지하면서, 각 레벨에서 children 속성이 없는 항목들을 상단에 배치 후 새로운 배열을 반환
+	 * @param data
+	 * @returns
+	 */
+	const preprocessTreeData = (data: any[]): any[] => {
+		return (
+			data
+				// 1. 정렬: children이 없는 항목을 상단에 배치
+				.sort((a, b) => {
+					if (!a.children && b.children) return -1 // a는 children이 없고 b는 children이 있을 때 a를 상단으로 이동
+					if (a.children && !b.children) return 1 // a는 children이 있고 b는 children이 없을 때 b를 상단으로 이동
+					return 0 // 둘 다 children이 있거나 없으면 순서를 유지
+				})
+				// 2. 재귀적으로 children을 처리
+				.map((item) => {
+					if (item.children && item.children.length > 0) {
+						// children이 있는 경우, 현재 항목의 복사본을 생성하고 children 배열에 대해 재귀적으로 동일한 처리를 수행
+						return { ...item, children: preprocessTreeData(item.children) }
+					}
+					// children이 없는 경우, 현재 항목을 그대로 반환
+					return item
+				})
+		)
+	}
+
 	const organizationChart = async (
 		params: any,
 		draftEmployeeNumber?: string | undefined
@@ -113,7 +139,7 @@ export const useCompany = () => {
 				method: "GET",
 				params: params,
 			}).then((res: Response<any>) => {
-				return mergeEmployeesToChildren(res.data)
+				return preprocessTreeData(mergeEmployeesToChildren(res.data))
 			})
 		)
 	}

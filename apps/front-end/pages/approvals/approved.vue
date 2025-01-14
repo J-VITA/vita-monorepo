@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import type { Dayjs } from "dayjs"
-import { type Response, pageSizeOptions, pagination, generateSortParams } from "@/types"
+import {
+	type Response,
+	pageSizeOptions,
+	pagination,
+	generateSortParams,
+	dateTimeFormat,
+} from "@/types"
 import type { ColumnType } from "ant-design-vue/lib/table/interface"
 import {
 	useAapprovedListColumns,
@@ -17,7 +23,7 @@ definePageMeta({
 const authStore = useAuthStore()
 const { getCompanyCode, getEmployeeId } = storeToRefs(authStore)
 
-const { searchParams, updateSearchParams } = await useAapprovedListSearch(
+const { searchParams, updateSearchParams } = useAapprovedListSearch(
 	getCompanyCode.value,
 	getEmployeeId.value
 )
@@ -113,6 +119,7 @@ onActivated(async () => {
 						<label>기안일</label>
 						<a-range-picker
 							v-model:value="searchParams.filterDate"
+							:value-format="dateTimeFormat"
 							@change="onChangeRangePicker"
 						/>
 					</a-space>
@@ -206,6 +213,8 @@ onActivated(async () => {
 						<approval-lines
 							:data="text.sort((a: any, b: any) => a.stage - b.stage)"
 							:type="record.agreementOptionTypeName"
+							:status="true"
+							:next-stage="record.nextApprovalStage"
 						/>
 					</template>
 				</template>

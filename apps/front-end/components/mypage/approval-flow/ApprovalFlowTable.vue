@@ -67,7 +67,7 @@ const {
  * @param id
  */
 const getApprovalLinesDetail = async (id: number) => {
-	return await useCFetch<Response<ApprovalRules>>(`/api/v2/master/approvalLines/${id}`, {
+	return await useCFetch<Response<ApprovalRules>>(`/api/v2/masters/approvalLines/${id}`, {
 		method: "GET",
 		params: {
 			id,

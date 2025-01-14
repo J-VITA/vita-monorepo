@@ -46,7 +46,7 @@ const saveTaxes = (form: Partial<Tax>) => {
 		slipEvidenceType: form.slipEvidenceTypeCode,
 	})
 
-	useCFetch<Response<any>>(`/api/v2/master/taxes${form.id ? "/" + form.id : ""}`, {
+	useCFetch<Response<any>>(`/api/v2/masters/taxes${form.id ? "/" + form.id : ""}`, {
 		method: form.id ? "PATCH" : "POST",
 		body,
 	}).then((res: Response<any>) => {
@@ -80,8 +80,8 @@ onBeforeUpdate(() => {
 	<a-modal
 		centered
 		v-model:open="open"
-		:title="`세금코드 ${props.data.id ? '수정' : '추가'}`"
-		:ok-text="`${props.data.id ? '수정' : '추가'}`"
+		:title="`세금코드 ${props?.data?.id ? '수정' : '추가'}`"
+		:ok-text="`${props?.data?.id ? '수정' : '추가'}`"
 		:force-render="true"
 		:destroy-on-close="true"
 		:mask-closable="false"
@@ -122,7 +122,7 @@ onBeforeUpdate(() => {
 				:rules="[{ required: true, message: '필수값 입니다.' }]"
 			>
 				<eacc-select
-					url="/api/v2/slip/expenses/types/slipEvidenceTypes"
+					url="/api/v2/masters/taxes/types/slipEvidenceTypes"
 					v-model:value="formState.slipEvidenceTypeCode"
 					:field-names="{ label: 'label', value: 'code' }"
 					:on-all-field="false"

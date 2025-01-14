@@ -6,7 +6,7 @@ import {
 	type DelegatorDetail,
 	type FormData,
 } from "@/components/ccards/CardDelegatorTable/type"
-import { type Response, pagination } from "@/types"
+import { type Response, pagination, dateTimeFormat } from "@/types"
 import type { FormInstance } from "ant-design-vue"
 
 const { id: cardId } = defineProps<{
@@ -28,6 +28,7 @@ const params = ref<{ pageNumber: number; size: number }>({
 })
 
 const delegatorFormState = ref<FormData>({
+	dates: ["", ""],
 	companyCode: getCompanyCode.value,
 	cardId: cardId,
 	delegateStartDate: "",
@@ -45,7 +46,7 @@ const {
 } = await useAsyncData<Response<Array<CardDelegatorItem>>>(
 	"card-delegators-list",
 	() =>
-		useCFetch<Response<Array<CardDelegatorItem>>>("/api/v2/card/delegators", {
+		useCFetch<Response<Array<CardDelegatorItem>>>("/api/v2/cards/delegators", {
 			method: "GET",
 			params: {
 				page: params.value.pageNumber,
@@ -69,7 +70,7 @@ const cellChange = (pagination: any) => {
  * @param id
  */
 const getDetail = async (id: number) => {
-	return await useCFetch<Response<DelegatorDetail>>(`/api/v2/card/delegators/${id}`, {
+	return await useCFetch<Response<DelegatorDetail>>(`/api/v2/cards/delegators/${id}`, {
 		method: "GET",
 		params: { id: id },
 	}).then((res: Response<DelegatorDetail>) => res.data)
@@ -86,7 +87,7 @@ const onDelete = async (record: any) => {
 			cardId: res?.cardManagementId,
 		} as FormData
 
-		await useCFetch<Response<any>>(`/api/v2/card/delegators/${record.id}`, {
+		await useCFetch<Response<any>>(`/api/v2/cards/delegators/${record.id}`, {
 			method: "DELETE",
 			params: { id: record.id },
 			body: body,
@@ -103,18 +104,22 @@ const onDelete = async (record: any) => {
 const onShow = async (record?: any) => {
 	if (record) {
 		await getDetail(record.id).then(async (res) => {
-			delegatorFormState.value.id = res?.id
-			delegatorFormState.value.used = res?.used
-			delegatorFormState.value.employeeId = res?.employeeId
-			delegatorFormState.value.description = record.description
-			delegatorFormState.value.employeeIds = [res?.employeeId as number]
-			delegatorFormState.value.dates = [
-				$dayjs(res?.delegateStartDate),
-				$dayjs(res?.delegateEndDate),
-			]
-			delegatorFormState.value.delegateStartDate = res?.delegateStartDate
-			delegatorFormState.value.delegateEndDate = res?.delegateEndDate
-			open.value = true
+			if (res) {
+				console.log([res.delegateStartDate, res.delegateEndDate])
+
+				delegatorFormState.value.id = res?.id
+				delegatorFormState.value.used = res?.used
+				delegatorFormState.value.employeeId = res?.employeeId
+				delegatorFormState.value.description = record.description
+				delegatorFormState.value.employeeIds = [res?.employeeId as number]
+				delegatorFormState.value.dates = [
+					$dayjs(res.delegateStartDate).format(dateTimeFormat),
+					$dayjs(res.delegateEndDate).format(dateTimeFormat),
+				]
+				delegatorFormState.value.delegateStartDate = res.delegateStartDate
+				delegatorFormState.value.delegateEndDate = res.delegateEndDate
+				open.value = true
+			}
 		})
 	} else {
 		delegatorFormState.value.id = undefined
@@ -122,7 +127,7 @@ const onShow = async (record?: any) => {
 		delegatorFormState.value.employeeId = undefined
 		delegatorFormState.value.employeeIds = []
 		delegatorFormState.value.description = ""
-		delegatorFormState.value.dates = undefined
+		delegatorFormState.value.dates = ["", ""]
 		delegatorFormState.value.delegateStartDate = ""
 		delegatorFormState.value.delegateEndDate = ""
 		open.value = true
@@ -138,14 +143,14 @@ const onSubmit = (data: any) => {
 		?.validate()
 		.then(async () => {
 			const url = data.id
-				? `/api/v2/card/delegators/${data.id}`
-				: "/api/v2/card/delegators"
+				? `/api/v2/cards/delegators/${data.id}`
+				: "/api/v2/cards/delegators"
 			await useCFetch<Response<any>>(url, {
 				method: data.id ? "PATCH" : "POST",
 				body: {
 					...data,
-					delegateStartDate: $dayjs(data.dates[0]),
-					delegateEndDate: $dayjs(data.dates[1]),
+					delegateStartDate: data.dates[0],
+					delegateEndDate: data.dates[1],
 				},
 			}).then((res: Response<any>) => {
 				if (res.status === 0) refresh()
@@ -254,11 +259,13 @@ const onSubmit = (data: any) => {
 					/>
 				</a-form-item>
 				<a-form-item name="dates" label="대리작성기간" :rules="[{ required: true }]">
+					{{ field.dates }}
 					<a-range-picker
 						class="full-width"
 						v-model:value="field.dates"
 						show-time
-						format="YYYY-MM-DD HH:mm:ss"
+						format="YYYY-MM-DD HH:mm"
+						:value-format="dateTimeFormat"
 						:presets="RangePickerPresets"
 					/>
 				</a-form-item>

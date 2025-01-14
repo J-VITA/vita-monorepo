@@ -52,6 +52,7 @@ interface IMenu {
 	orderSeq: number
 	depth: number
 	used: boolean
+	selectLevelUsed: boolean
 }
 // children: IMenu[];
 
@@ -75,4 +76,5 @@ export const initMenuItem: MenuForm = {
 	orderSeq: 0,
 	depth: 0,
 	used: false,
+	selectLevelUsed: false,
 }

@@ -2,7 +2,13 @@
 import type { Dayjs } from "dayjs"
 import type { SelectProps } from "ant-design-vue"
 import type { ColumnType } from "ant-design-vue/lib/table/interface"
-import { pagination, generateSortParams, pageSizeOptions, type Response } from "@/types"
+import {
+	pagination,
+	generateSortParams,
+	pageSizeOptions,
+	type Response,
+	dateTimeFormat,
+} from "@/types"
 import { CardTypeColor, CardUseStateColor, myCardOptions } from "@/types/ccards"
 import {
 	useCardUsageListSearch,
@@ -19,7 +25,7 @@ const authStore = useAuthStore()
 const { getCompanyCode, getEmployeeId } = storeToRefs(authStore)
 
 const columns = useCardUsageListColumns()
-const { searchParams, updateSearchParams } = await useCardUsageListSearch(
+const { searchParams, updateSearchParams } = useCardUsageListSearch(
 	getCompanyCode.value,
 	getEmployeeId.value
 )
@@ -76,7 +82,7 @@ const {
 } = await useAsyncData(
 	"card-usages-list",
 	() =>
-		useCFetch<Response<Array<CardUsageItem>>>("/api/v2/card/usages", {
+		useCFetch<Response<Array<CardUsageItem>>>("/api/v2/cards/usages", {
 			method: "GET",
 			params: {
 				...searchParams.value,
@@ -89,7 +95,7 @@ const {
 		transform: (res: Response<Array<CardUsageItem>>) => {
 			const totalAmounts = res.data?.reduce(
 				(acc, curr) => {
-					acc.amount += curr.principalAmount
+					acc.amount += curr.totalPrincipalInKrwAmount
 					acc.supply += curr.supplyAmount || 0
 					acc.vat += curr.vatAmount || 0
 					acc.tip += curr.tipAmount || 0
@@ -117,7 +123,7 @@ const showConfirmModal = (type: "release" | "process") => {
 }
 
 const onPrivate = async (data: UsePrivate) => {
-	await useCFetch<Response<any>>(`/api/v2/card/usages/private/${data.type}`, {
+	await useCFetch<Response<any>>(`/api/v2/cards/usages/private/${data.type}`, {
 		method: "PATCH",
 		body: data,
 	}).then((res: Response<any>) => {
@@ -159,6 +165,7 @@ onActivated(async () => {
 						<label>사용일자</label>
 						<a-range-picker
 							v-model:value="searchParams.filterDate"
+							:value-format="dateTimeFormat"
 							@change="onChangeRangePicker"
 						/>
 					</a-space>
@@ -197,7 +204,7 @@ onActivated(async () => {
 					<eacc-select
 						style="min-width: 10rem"
 						label="처리상태"
-						url="/api/v2/card/usages/types/CardUseStateType"
+						url="/api/v2/cards/usages/types/CardUseStateType"
 						v-model:value="searchParams.cardUseStateType"
 						first
 						:field-names="{ label: 'label', value: 'code' }"
@@ -237,7 +244,13 @@ onActivated(async () => {
 				</a-space>
 
 				<a-space :size="5">
-					<a-button :icon="materialIcons('mso', 'download')"> 엑셀다운로드 </a-button>
+					<eacc-excel-button
+						req-type="download"
+						label="엑셀다운로드"
+						file-name="법인카드사용현황"
+						:data="dataSource?.data"
+						:disabled="!dataSource?.data || dataSource?.data.length === 0"
+					/>
 
 					<a-select
 						v-model:value="searchParams.size"
@@ -298,16 +311,16 @@ onActivated(async () => {
 						<a-table-summary-cell></a-table-summary-cell>
 						<a-table-summary-cell></a-table-summary-cell>
 						<a-table-summary-cell class="text-right bold text-primary">
-							{{ dataSource?.totalAmounts?.amount.toLocaleString() }}
+							{{ formatCurrency(dataSource?.totalAmounts?.amount || 0, "KRW") }}
 						</a-table-summary-cell>
 						<a-table-summary-cell class="text-right bold text-primary">
-							{{ dataSource?.totalAmounts?.supply.toLocaleString() }}
+							{{ formatCurrency(dataSource?.totalAmounts?.supply || 0, "KRW") }}
 						</a-table-summary-cell>
 						<a-table-summary-cell class="text-right bold text-primary">
-							{{ dataSource?.totalAmounts?.vat.toLocaleString() }}
+							{{ formatCurrency(dataSource?.totalAmounts?.vat || 0, "KRW") }}
 						</a-table-summary-cell>
 						<a-table-summary-cell class="text-right bold text-primary">
-							{{ dataSource?.totalAmounts?.tip.toLocaleString() }}
+							{{ formatCurrency(dataSource?.totalAmounts?.tip || 0, "KRW") }}
 						</a-table-summary-cell>
 						<a-table-summary-cell col-span="8"></a-table-summary-cell>
 					</a-table-summary-row>

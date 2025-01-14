@@ -79,6 +79,16 @@ watch(
 		}
 	}
 )
+// watch(
+// 	[() => props.refresh, () => props.params],
+// 	([newRefresh, newParams], [oldRefresh, oldParams]) => {
+// 		if (newRefresh || newParams !== oldParams) {
+// 			refreshData()
+// 		}
+// 	}, {
+//     deep: true,
+//   }
+// )
 
 const refreshData = () => {
 	selectPage.value?.removeAll()
@@ -104,7 +114,7 @@ const fetchSelectedData = (
 ) => {
 	search().then((data) => {
 		if (data && data.data) {
-			const filteredData = data.data.filter((val: any) =>
+			const filteredData = data.data?.filter((val: any) =>
 				keys.includes(val[props.keyProps])
 			)
 			if (!filteredData || filteredData.length === 0) {

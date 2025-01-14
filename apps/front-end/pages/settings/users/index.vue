@@ -5,7 +5,7 @@ import type { UsersManagement } from "@/types/settings/user"
 import UsersTable from "@/components/settings/user/UsersTable.vue"
 import UserAddtionModal from "@/components/settings/user/UserAddtionModal.vue"
 import type { Dayjs } from "dayjs"
-import { type Response, pageSizeOptions } from "@/types"
+import { type Response, pageSizeOptions, dateTimeFormat } from "@/types"
 
 definePageMeta({
 	name: "사용자관리",
@@ -15,6 +15,9 @@ const usersTable = useTemplateRef<{ onGridDestroyed: () => void }>("usersTable")
 const authStore = useAuthStore()
 const { getCompanyId, getCompanyCode, getWorkplaceId, getWorkplaceCode, getRole } =
 	storeToRefs(authStore)
+
+const route = useRoute()
+const routePath = computed(() => route.path)
 
 interface ISearchFrom {
 	filterLabel:
@@ -85,6 +88,7 @@ const filterDate = ref<[Dayjs, Dayjs]>()
 const searchParams = ref(initSearchParams)
 const isExpand = ref<boolean>(false)
 const showed = ref(false)
+const userData = ref<Array<UsersManagement>>([])
 
 /**
  * 사용자 직접등록 모달 오픈
@@ -138,16 +142,6 @@ const onSearch = async (form: ISearchFrom) => {
 			}
 		}
 	})
-}
-
-const handleMenuClick: MenuProps["onClick"] = (e) => {
-	if (e.key === "edit") {
-		userPopOpen()
-	} else if (e.key === "upload") {
-		console.log("upload", e)
-	} else {
-		console.log(e)
-	}
 }
 
 const companyCodeUpdate = (value: any) => {
@@ -313,6 +307,7 @@ onMounted(() => {
 						<a-form-item label="가입일">
 							<a-range-picker
 								v-model:value="filterDate"
+								:value-format="dateTimeFormat"
 								@change="
 									(_, dateString) => {
 										searchParams.searchDateFrom = dateString[0]
@@ -405,31 +400,30 @@ onMounted(() => {
 					</a-col>
 					<a-col>
 						<a-space :size="5">
-							<a-button :icon="materialIcons('mso', 'download')"> 엑셀다운로드 </a-button>
-							<a-dropdown :trigger="['click']">
-								<a-button
-									type="primary"
-									@click.prevent
-									:icon="materialIcons('mso', 'person_add')"
-									class="dropdown-link"
-									>사용자 등록</a-button
-								>
-								<template #overlay>
-									<div class="dropdown-contents">
-										<a-menu @click="handleMenuClick">
-											<a-menu-item key="edit" :icon="materialIcons('mso', 'edit')">
-												직접등록
-											</a-menu-item>
-											<a-menu-item
-												key="upload"
-												:icon="materialIcons('mso', 'upload_file')"
-											>
-												엑셀일괄 등록
-											</a-menu-item>
-										</a-menu>
-									</div>
-								</template>
-							</a-dropdown>
+							<eacc-excel-button
+								req-type="download"
+								label="엑셀다운로드"
+								file-name="사용자관리"
+								:data="userData"
+								:disabled="!userData || userData.length === 0"
+							/>
+							<eacc-excel-button
+								ghost
+								type="primary"
+								url="/api/v2/settings/employees/validate"
+								req-type="upload"
+								label="일괄등록"
+								:sample-file-key="routePath"
+								@submit="() => usersTable?.onGridDestroyed()"
+							/>
+							<a-button
+								type="primary"
+								:icon="materialIcons('mso', 'person_add')"
+								@click="userPopOpen"
+							>
+								사용자 등록
+							</a-button>
+
 							<a-select
 								v-model:value="searchParams.size"
 								:options="pageSizeOptions"
@@ -453,6 +447,7 @@ onMounted(() => {
 					@open-modal="(params: any) => showUserModal(params)"
 					@row-selected="setUsers"
 					@on-grid-destroyed=""
+					@user-data="(value: any) => (userData = value)"
 				>
 				</users-table>
 			</div>

@@ -1,6 +1,12 @@
 <script lang="ts" setup>
 import { materialIcons } from "@/composables/icons"
-import { type Response, pageSizeOptions, pagination, pageSize } from "@/types"
+import {
+	type Response,
+	pageSizeOptions,
+	pagination,
+	pageSize,
+	dateTimeFormat,
+} from "@/types"
 import { Form } from "ant-design-vue"
 import dayjs from "dayjs"
 import type { Dayjs } from "dayjs"
@@ -16,6 +22,9 @@ const useForm = Form.useForm
 
 const authStore = useAuthStore()
 const { getCompanyCode } = storeToRefs(authStore)
+
+const route = useRoute()
+const routePath = computed(() => route.path)
 
 const columns = ref<ColumnsType<any>>([
 	{
@@ -82,7 +91,7 @@ const {
 } = await useAsyncData(
 	"projects-list",
 	() =>
-		useCFetch<Response<any>>("/api/v2/master/projects", {
+		useCFetch<Response<any>>("/api/v2/masters/projects", {
 			method: "GET",
 			params: {
 				page: searchParams.value.pageNumber,
@@ -108,10 +117,13 @@ const cellChange = (pagination: any) => {
 
 const showModal = async (id?: number) => {
 	if (id) {
-		selectedNode.value = await useCFetch<Response<any>>(`/api/v2/master/projects/${id}`, {
-			method: "GET",
-			params: { companyCode: getCompanyCode.value },
-		}).then((res: Response<any>) => res.data)
+		selectedNode.value = await useCFetch<Response<any>>(
+			`/api/v2/masters/projects/${id}`,
+			{
+				method: "GET",
+				params: { companyCode: getCompanyCode.value },
+			}
+		).then((res: Response<any>) => res.data)
 	}
 	showProjectModal.value = true
 }
@@ -144,7 +156,7 @@ const onSearch = async () => {
 const onDelete = (users: number[]) => {
 	let num = 0
 	users.forEach(async (id) => {
-		await useCFetch<Response<any>>(`/api/v2/master/projects/${id}`, {
+		await useCFetch<Response<any>>(`/api/v2/masters/projects/${id}`, {
 			method: "DELETE",
 			body: {
 				id: id,
@@ -198,6 +210,7 @@ onMounted(() => {
 						<a-form-item label="기간설정">
 							<a-range-picker
 								v-model:value="filterDate"
+								:value-format="dateTimeFormat"
 								picker="month"
 								@change="onChangeRangePicker"
 							/>
@@ -248,6 +261,15 @@ onMounted(() => {
 				<a-col></a-col>
 				<a-col>
 					<a-space :size="5">
+						<eacc-excel-button
+							ghost
+							type="primary"
+							url="/api/v2/masters/projects/validate"
+							req-type="upload"
+							label="엑셀일괄등록"
+							:sample-file-key="routePath"
+							@submit="() => refresh()"
+						/>
 						<eacc-button
 							component-is="delete"
 							:data="selectedRowKeys"

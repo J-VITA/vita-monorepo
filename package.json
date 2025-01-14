@@ -1,13 +1,15 @@
 {
-	"name": "ILJIN CNS Solution Project",
+	"name": "Monorepo Project",
 	"private": true,
 	"scripts": {
 		"make-graph": "pnpm turbo run build lint --graph=graph.dot && dot -Tsvg graph.dot -Grankdir=TB -o eccounting-web-turbo-graph.svg",
 		"test": "pnpm turbo run test --filter=!./apps/front-design",
+		"build:self-hosted": "pnpm turbo run build:self-hosted --cache-dir=.turbo --filter=!./apps/front-design",
 		"build:development": "pnpm turbo run build:development --cache-dir=.turbo --filter=!./apps/front-design",
 		"build:production": "pnpm turbo run build:production --cache-dir=.turbo --filter=!./apps/front-design",
 		"build:all": "pnpm turbo run build --cache-dir=.turbo",
 		"dev:local": "pnpm turbo run dev:local --filter=!./apps/front-design --parallel",
+		"dev:self-hosted": "pnpm turbo run dev:local --filter=!./apps/front-design --parallel",
 		"dev:development": "pnpm turbo run dev:development --filter=!./apps/front-design --parallel",
 		"dev:all": "pnpm turbo run dev --parallel",
 		"lint": "pnpm turbo run lint",
@@ -28,5 +30,8 @@
 		"last 1 version",
 		"> 1%",
 		"not dead"
-	]
+	],
+	"overrides": {
+		"supports-color": "^8.1.1"
+	}
 }

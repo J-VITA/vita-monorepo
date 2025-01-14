@@ -9,6 +9,7 @@ import {
 	RequestParams,
 	CommonCode,
 	SortType,
+	dateTimeFormat,
 } from "@/types"
 import type { ColumnType, ColumnsType } from "ant-design-vue/lib/table/interface"
 import type {
@@ -545,7 +546,11 @@ const showBudgetModal = (data: any) => {
 				<a-row :gutter="[10, 5]" wrap>
 					<a-col>
 						<a-form-item label="조회년도">
-							<a-range-picker v-model:value="filterDate" @change="onChangeRangePicker" />
+							<a-range-picker
+								v-model:value="filterDate"
+								:value-format="dateTimeFormat"
+								@change="onChangeRangePicker"
+							/>
 						</a-form-item>
 					</a-col>
 					<a-col>
@@ -647,12 +652,13 @@ const showBudgetModal = (data: any) => {
 					</a-col>
 					<a-col>
 						<a-space :size="5">
-							<a-button
-								:icon="materialIcons('mso', 'file_download')"
-								@click="() => console.log('엑셀다운로드')"
-							>
-								엑셀다운로드
-							</a-button>
+							<eacc-excel-button
+								req-type="download"
+								label="엑셀다운로드"
+								file-name="예산신청내역"
+								:data="dataSource?.data"
+								:disabled="!dataSource?.data || dataSource?.data.length === 0"
+							/>
 							<a-button
 								:disabled="selectedRowKeys.length == 0"
 								:icon="materialIcons('mso', 'block')"

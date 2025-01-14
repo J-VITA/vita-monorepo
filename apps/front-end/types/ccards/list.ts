@@ -27,7 +27,7 @@ export type CardManagementListSearch = ExSearchParams<
 	"CardManagementList"
 >
 
-export const useCardManagementListSearch = async (
+export const useCardManagementListSearch = (
 	companyCode: string,
 	ownerId: string | number
 ) => {
@@ -154,7 +154,7 @@ export const columns = createTableColumns<"CardManagementList">([
 		resizable: true,
 	},
 	{
-		title: "한도금액",
+		title: "한도금액(KRW)",
 		dataIndex: "limitAmount",
 		sorter: {
 			multiple: 10,
@@ -162,7 +162,7 @@ export const columns = createTableColumns<"CardManagementList">([
 		width: -1,
 		align: "right",
 		resizable: true,
-		customRender: ({ text, record }) => formatCurrency(text, record.currencyTypeName),
+		customRender: ({ text }) => formatCurrency(text, "KRW"),
 	},
 ])
 

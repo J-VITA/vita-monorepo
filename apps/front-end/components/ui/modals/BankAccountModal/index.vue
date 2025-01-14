@@ -78,7 +78,7 @@ const deleteVendorBankAccounts = (item: any) => {
 				vendorId: props.vendor.id,
 				bankType: item.bankTypeName,
 			})
-			useCFetch<Response<any>>(`/api/v2/master/vendorBankAccounts/${item.id}`, {
+			useCFetch<Response<any>>(`/api/v2/masters/vendorBankAccounts/${item.id}`, {
 				method: "delete",
 				body,
 			})
@@ -113,7 +113,7 @@ const onFinish = (values: any) => {
 				//   vendorId: props.vendor.id
 				// });
 				useCFetch<Response<any>>(
-					`${props.account ? "/api/v2/master/vendorBankAccounts/" + body[0].id : "/api/v2/master/vendorBankAccounts"}`,
+					`${props.account ? "/api/v2/masters/vendorBankAccounts/" + body[0].id : "/api/v2/masters/vendorBankAccounts"}`,
 					{
 						method: props.account ? "PATCH" : "POST",
 						body: props.account ? body[0] : body,
@@ -224,7 +224,7 @@ onUpdated(() => {
 					>
 						<!-- <a-input v-model:value="item.bankTypeName" /> -->
 						<eacc-select
-							url="/api/v2/master/vendorBankAccounts/types/bankTypes"
+							url="/api/v2/masters/vendorBankAccounts/types/bankTypes"
 							v-model:value="item.bankTypeLabel"
 							placeholder="은행을 선택해주세요."
 							:field-names="{ label: 'label', value: 'code' }"

@@ -9,6 +9,23 @@ definePageMeta({
 	name: "메뉴관리",
 })
 
+interface DataNode {
+	id: number
+	companyCode: string
+	workplaceCode: string
+	code: string
+	name: string
+	description: string
+	orderSeq: number
+	depth: number
+	used: boolean
+	updatedBy: string
+	updatedAt: string
+	parentId?: number
+	workplaceId?: number
+	children?: DataNode[]
+}
+
 const authStore = useAuthStore()
 const { getCompanyCode, getRole } = storeToRefs(authStore)
 
@@ -19,14 +36,109 @@ const isAdd = ref<boolean>(false)
 const selectedKeys = ref<(string | number)[]>([])
 const detailData = ref<MenuItem | undefined>(undefined)
 const previewIcon = ref<string>("")
-
+const menuChangeCnt = ref<number>(0)
 const menuFormRef = ref<FormInstance>()
 const menuForm = ref<MenuForm>({} as MenuForm)
 
 const nuxtApp = useNuxtApp()
 
+const loop = (
+	data: DataNode[],
+	id: string | number,
+	callback: (item: DataNode, index: number, arr: DataNode[]) => void
+) => {
+	data!.forEach((item, index) => {
+		if (item.id === id) {
+			return callback(item, index, data)
+		}
+		if (item.children) {
+			return loop(item.children, id, callback)
+		}
+	})
+}
+
 const onDrop = (info: AntTreeNodeDropEvent) => {
-	console.log(info)
+	const dropKey = info.node.key
+	const dragKey = info.dragNode.key
+	const dropPosition = info.dropPosition
+
+	const data = JSON.parse(JSON.stringify(treeData.value!)) as DataNode[]
+
+	// 드래그된 객체와 드롭된 객체 찾기
+	let dragObj: DataNode | undefined
+	let dropObj: DataNode | undefined
+	let dragParent: DataNode[] | undefined
+
+	loop(data, dragKey, (item: DataNode, index: number, arr: DataNode[]) => {
+		arr.splice(index, 1)
+		dragObj = item
+		dragParent = arr
+	})
+	loop(data, dropKey, (item: DataNode, index: number, arr: DataNode[]) => {
+		dropObj = item
+	})
+
+	// 드래그된 항목이 부모 노드 안에서만 움직이도록 제한
+	if (dragObj?.parentId !== dropObj?.parentId && dragObj?.parentId !== dropObj?.id) {
+		message.error("같은 메뉴 안에서만 이동 가능합니다.")
+		return
+	}
+
+	// 드롭된 위치에 따라 항목의 순서를 재조정
+	if (!dragObj || !dropObj) return
+	let targetIndex = -1
+	if (dragObj?.orderSeq > dropPosition) targetIndex = dropObj!.orderSeq
+	if (dragObj?.orderSeq <= dropPosition) targetIndex = dropObj!.orderSeq - 1
+	if (dragObj?.parentId === dropObj?.id) targetIndex = 0
+
+	// 트리 데이터에서 드래그된 항목의 순서를 업데이트
+	if (dragObj && dropObj && dragParent) {
+		dragParent = dragParent || []
+
+		dragParent.splice(targetIndex, 0, dragObj)
+		updateOrderSeq(data) // orderSeq 업데이트
+	}
+	treeData.value = [...data] // 복사본으로 최종 데이터 UI 업데이트
+	// 최종적으로 드래그 앤 드롭이 완료된 데이터를 저장하기 위해 onSave 호출
+	isEdit.value = true
+
+	if (dragObj && dragObj.parentId) {
+		loop(data, dragObj.id, (item: DataNode, index: number, arr: DataNode[]) => {
+			if (Array.isArray(arr)) {
+				arr.forEach((element: DataNode) => {
+					patchMenus(element, arr.length)
+				})
+				menuChangeCnt.value = 0
+			}
+		})
+	}
+}
+const patchMenus = async (data: DataNode, arrLength: number) => {
+	await useCFetch<Response<any>>(`/api/v2/settings/menu/${data.id}`, {
+		method: "PATCH",
+		body: data,
+	}).then((res: Response<any>) => {
+		if (res.status === 0) {
+			menuChangeCnt.value++
+			refresh()
+			if (arrLength === menuChangeCnt.value) {
+				message.success("메뉴가 수정되었습니다.")
+				onSelect([res.data.id])
+			}
+		}
+	})
+}
+/**
+ * orderSeq 재정렬 재귀함수
+ * @param data
+ */
+const updateOrderSeq = (data: DataNode[]) => {
+	data.forEach((item, index) => {
+		item.orderSeq = index + 1
+		if (item.children) {
+			updateOrderSeq(item.children)
+		}
+	})
 }
 
 const {
@@ -215,8 +327,8 @@ nuxtApp.hook("page:finish", () => {
 			<a-row :gutter="[30, 0]">
 				<a-col flex="40rem" style="max-height: 80rem; overflow-y: auto">
 					<a-spin :spinning="status === 'pending'">
-						<!-- 추후 작업예정: draggable @drop="onDrop" -->
 						<a-tree
+							draggable
 							block-node
 							:selectedKeys="selectedKeys"
 							:show-icon="true"
@@ -228,6 +340,7 @@ nuxtApp.hook("page:finish", () => {
 								key: 'id',
 							}"
 							@select="(keys) => onSelect(keys)"
+							@drop="onDrop"
 						>
 							<template #icon="{ dataRef }">
 								<component :is="materialIcons('mso', dataRef.relateImageName)" />

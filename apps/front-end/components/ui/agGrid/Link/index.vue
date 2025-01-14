@@ -5,6 +5,7 @@ import { createAgParams } from ".."
 type LinkType = {
 	data: any
 	onClick: Function
+	text: string
 	value: string | number
 	style?: any
 }
@@ -13,10 +14,10 @@ type LinkTypeBrand = "Link"
 
 const props = defineProps<createAgParams<LinkType, LinkTypeBrand>>()
 
-const { data, onClick, value, style } = props.params
+const { data, onClick, value, text, style } = props.params
 </script>
 <template>
-	<a-typography-link v-if="value" @click="onClick(data)" :style="style">
-		{{ value }}
+	<a-typography-link v-if="value && text" @click="onClick(data)" :style="style">
+		{{ text }}
 	</a-typography-link>
 </template>

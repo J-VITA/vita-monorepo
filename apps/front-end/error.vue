@@ -1,7 +1,8 @@
 <template>
-	<NuxtLayout :name="errorCode">
+	<NuxtLayout :name="errorCode" fallback="500">
 		<a-button type="primary" size="large">
-			<NuxtLink to="/">홈으로</NuxtLink>
+			<!-- <NuxtLink to="/">홈으로</NuxtLink> -->
+			<button @click="handleError">홈으로</button>
 		</a-button>
 	</NuxtLayout>
 </template>
@@ -14,7 +15,12 @@ const props = defineProps({
 	error: Object as () => NuxtError,
 })
 
-const errorCode = computed(() => `${props.error?.statusCode || "404"}` as LayoutKey)
+const errorCode = computed(() => {
+	const statusCode = props.error?.statusCode || 404
+	return statusCode >= 500 ? "500" : (`${statusCode}` as LayoutKey)
+})
+
+const handleError = () => clearError({ redirect: "/" })
 </script>
 
 <style scoped></style>

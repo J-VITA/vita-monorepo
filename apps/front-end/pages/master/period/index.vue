@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { materialIcons } from "@/composables/icons"
 import PeriodTable from "@/components/master/period/PeriodTable.vue"
-import { type Response, pageSize } from "@/types"
+import { type Response, pageSize, dateTimeFormat } from "@/types"
 import {
 	AccountPeriodStatus,
 	type AccountPeriod,
@@ -44,7 +44,7 @@ const searchParams = ref<SearchParams>({
 const { data, status, refresh } = await useAsyncData(
 	"period-list",
 	() =>
-		useCFetch<Response<AccountPeriod>>("/api/v2/master/accountPeriods", {
+		useCFetch<Response<AccountPeriod>>("/api/v2/masters/accountPeriods", {
 			method: "GET",
 			// lazy: true,
 			params: Object.assign(
@@ -119,7 +119,7 @@ const confirmModalSubmit = async (
 ) => {
 	await Promise.all(
 		list.map((item) =>
-			useCFetch<Response<any>>(`/api/v2/master/accountPeriods/${state}/${item.id}`, {
+			useCFetch<Response<any>>(`/api/v2/masters/accountPeriods/${state}/${item.id}`, {
 				method: "PATCH",
 				params: { action: state, id: item.id },
 			})
@@ -141,7 +141,7 @@ const onDelete = async (items: Array<AccountPeriod>) => {
 	try {
 		await Promise.all(
 			items.map((item) =>
-				useCFetch<Response<any>>(`/api/v2/master/accountPeriods/${item.id}`, {
+				useCFetch<Response<any>>(`/api/v2/masters/accountPeriods/${item.id}`, {
 					method: "DELETE",
 					body: { id: item.id },
 				})
@@ -186,6 +186,7 @@ const onSearch = (params: any) => {
 						<a-form-item label="기간설정">
 							<a-range-picker
 								v-model:value="yearMonth"
+								:value-format="dateTimeFormat"
 								picker="month"
 								@change="
 									(_, dateStrings) => {
@@ -247,7 +248,7 @@ const onSearch = (params: any) => {
 					<a-col span="4">
 						<a-form-item label="상태">
 							<eacc-select
-								:url="`/api/v2/master/accountPeriods/types/status`"
+								:url="`/api/v2/masters/accountPeriods/types/status`"
 								:on-all-field="true"
 								v-model:value="searchParams.accountPeriodStatus"
 								:field-names="{ label: 'label', value: 'code' }"

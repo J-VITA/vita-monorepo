@@ -8,13 +8,11 @@ import {
 	CardIssueViewForm,
 	CardIssueData,
 	DocumentStatus,
-	CardIssueViewFormBrand,
-	CardIssueRequestStatus,
 	FamilyEventViewForm,
-	FamilyEventFormBrand,
+	FamilyEventData,
+	DocumentStatusType,
 } from "@/types/approvals/document"
-import { createViewParams, SlipFormType, SlipType, type Response } from "@/types"
-import dayjs from "dayjs"
+import { SlipFormType, type Response } from "@/types"
 
 definePageMeta({
 	name: "결재문서 작성",
@@ -36,6 +34,7 @@ const componentMap: Record<string, () => Promise<Component>> = {
 	CardForm: () => import("@/components/approvals/write/CardForm/index.vue"),
 	CardIssue: () => import("@/components/approvals/write/CardIssue/index.vue"),
 	TaxInvoice: () => import("@/components/approvals/write/TaxInvoice/index.vue"),
+	BusinessTrip: () => import("@/components/approvals/write/BusinessTrip/index.vue"),
 	FamilyEvent: () => import("@/components/approvals/write/FamilyEvent/index.vue"),
 	ErpSlip: () => import("@/components/approvals/write/ErpSlip/index.vue"),
 	// 다른 컴포넌트들도 여기에 추가하세요
@@ -69,6 +68,8 @@ const componentName = computed<Component>(() => {
 
 const writeComponentRef = useTemplateRef<{
 	postCardIssues: (params: CardIssueViewForm) => Promise<Response<CardIssueData>>
+	postFamilyEvent: (params: FamilyEventViewForm) => Promise<Response<FamilyEventData>>
+	formValidator: () => Promise<void>
 }>("writeComponentRef")
 
 const isLoading = ref<boolean>(false)
@@ -92,7 +93,7 @@ const approveData = ref<{ content: string }>({ content: "" })
  * 결재양식 조회
  */
 const { data: approvalFormType, refresh: approvalFormTypeRefresh } = await useAsyncData(
-	`approva-form-types-title`,
+	`approval-write-form-types-title`,
 	async () =>
 		await useCFetch<Response<Array<ApprovalFromType>>>(
 			"/api/v2/approvals/types/approvalFormTypes",
@@ -205,8 +206,16 @@ const onCancel = () => {
  * Form 체크 및 결재 상신 모달 오픈 기능 수행
  */
 const onSubmit = async () => {
-	await onDraft()
-	isShowApprove.value = true
+	try {
+		console.log("onSubmit start ")
+		const result = await Promise.resolve(onDraft())
+		console.log("onSubmit: ", result)
+		if (result === 0) {
+			isShowApprove.value = true
+		}
+	} catch (error: any) {
+		console.error("결재 상신 : ", error)
+	}
 }
 
 /**
@@ -281,24 +290,51 @@ const onDraft = async () => {
 					},
 				})
 			}
+			return status || 0
+		} else {
+			return status || 999
 		}
-		return status || 999
 	}
 
 	if (formState.value.approvalFormType === SlipFormType.CARD_ISSUE) {
 		if (formState.value.cardIssueForm) {
 			try {
+				await writeComponentRef.value?.formValidator()
+
 				const cardIssues = await writeComponentRef.value?.postCardIssues(
 					formState.value.cardIssueForm
 				)
+				console.log("cardIssues status", cardIssues?.status)
 				// cardIssues 처리 로직
-				if (cardIssues) {
+				if (cardIssues?.status === 0) {
 					formState.value.formIds = [{ id: cardIssues.data?.id }]
 
 					return await approvalsSave(cardIssues.data?.approvalHeaderId)
 				}
-			} catch (error) {
-				console.error("카드 이슈 생성 중 오류 발생:", error)
+			} catch (error: any) {
+				//카드 이슈 생성 중 오류 발생
+				message.error(error.message)
+				throw new Error(error)
+			}
+		}
+	} else if (formState.value.approvalFormType === SlipFormType.FAMILY_EVENT) {
+		if (formState.value.familyEventForm) {
+			try {
+				await writeComponentRef.value?.formValidator()
+
+				const familyEvent = await writeComponentRef.value?.postFamilyEvent(
+					formState.value.familyEventForm
+				)
+
+				// cardIssues 처리 로직
+				if (familyEvent?.status === 0) {
+					formState.value.formIds = [{ id: familyEvent.data?.slipHeaderId }]
+					return await approvalsSave(familyEvent.data?.approvalHeaderId)
+				}
+			} catch (error: any) {
+				//경조금 생성 중 오류 발생
+				message.error(error.message)
+				throw new Error(error)
 			}
 		}
 	} else {
@@ -325,31 +361,6 @@ const clearInitData = () => {
 		approvalLineRefer: "",
 		expenseList: [],
 		formIds: [],
-		cardIssueForm: createViewParams<CardIssueViewForm, CardIssueViewFormBrand>({
-			id: undefined,
-			approvalHeaderId: undefined,
-			requestedBy: getEmployeeId.value,
-			requestedByEmployeeIds: [getEmployeeId.value],
-			companyCode: getCompanyCode.value,
-			startDate: useMonth.toDay(),
-			endDate: useMonth.todayEnd(),
-			usedDate: [useMonth.toDay(), useMonth.todayEnd()],
-			cardType: "",
-			cardOwnerEmployeeIds: [],
-			cardOwnerEmployeeId: "",
-			description: "",
-			cardIssueRequestStatus: CardIssueRequestStatus.PENDING,
-		}),
-		familyEventForm: createViewParams<FamilyEventViewForm, FamilyEventFormBrand>({
-			actualDate: dayjs(),
-			employeeId: "",
-			employeeIds: [],
-			familEventType: "",
-			expendAmount: 0,
-			mutualYn: "",
-			wreathYn: "",
-			expendDate: "",
-		}),
 	}
 	nextTick()
 
@@ -363,6 +374,31 @@ const clearInitData = () => {
 		console.log("Store key Error: ", e)
 	}
 }
+
+const documentPageAccess = async () => {
+	const documentStatus = formState.value.documentStatusName as DocumentStatusType
+
+	if (!documentStatus) return
+
+	//결재 처리 상태, 완료, 반려 등
+	const isCurrentApproveProcess = [
+		DocumentStatus.progress,
+		DocumentStatus.completed,
+		DocumentStatus.rejected,
+	].includes(documentStatus)
+	if (!isCurrentApproveProcess) {
+		message.error("현재 결재 진행 문서가 아닙니다.")
+		navigateTo("/approvals/home")
+	}
+}
+
+const initializeComponent = async () => {
+	await approvalFormTypeRefresh()
+	await documentPageAccess()
+}
+
+onMounted(initializeComponent)
+onActivated(initializeComponent)
 
 onBeforeRouteLeave((to, from, next) => {
 	if (formState.value.id) {
@@ -391,37 +427,6 @@ onBeforeRouteLeave((to, from, next) => {
 		clearInitData()
 		next()
 	}
-})
-
-const documentPageAccess = async () => {
-	const documentStatus = formState.value.documentStatusName
-
-	if (!documentStatus) return
-
-	//결재 처리 상태, 완료, 반려 등
-	const isCurrentApproveProcess = [
-		DocumentStatus.progress,
-		DocumentStatus.completed,
-		DocumentStatus.rejected,
-	].includes(documentStatus)
-	if (!isCurrentApproveProcess) {
-		message.error("현재 결재 진행 문서가 아닙니다.")
-		navigateTo("/approvals/home")
-	}
-}
-
-onActivated(async () => {
-	await approvalFormTypeRefresh()
-	await documentPageAccess()
-})
-
-onMounted(async () => {
-	// referenceEmployeeIds 참조자
-	// approvalDetails 결재라인 관련자
-	// nextApprovalStage 진행 스테이지
-	await approvalFormTypeRefresh()
-	await documentPageAccess()
-	console.log(" 전자결재 홈 ", formState.value)
 })
 </script>
 

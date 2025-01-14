@@ -11,8 +11,12 @@ export function useCFetch<T>(url: string, options: NitroFetchOptions<"json"> = {
 
 	const defaults: NitroFetchOptions<"json"> = {
 		baseURL: process.env.NUXT_PUBLIC_API_BASE,
-		headers: accessToken.value ? { Authorization: `Bearer ${accessToken.value}` } : {},
-		cache: "no-cache",
+		// headers: accessToken.value ? { Authorization: `Bearer ${accessToken.value}` } : {},
+		headers: {
+			...(accessToken.value ? { Authorization: `Bearer ${accessToken.value}` } : {}),
+			"Accept-Encoding": "gzip, deflate, br, zstd",
+		},
+		cache: "force-cache",
 	}
 
 	const params = _merge({}, defaults, options)
@@ -70,6 +74,12 @@ export function useCFetch<T>(url: string, options: NitroFetchOptions<"json"> = {
 			} else if (error.response?.status === 403) {
 				await logout()
 				throw error
+			} else if ([502, 503].includes(error.response?.status)) {
+				throw createError({
+					statusCode: error.response.status,
+					statusMessage: "Bad Gateway",
+					message: "서버가 일시적으로 응답할 수 없습니다. 잠시 후 다시 시도해주세요.",
+				})
 			} else {
 				throw error
 			}

@@ -26,7 +26,7 @@ export type CardHistorySearch = ExSearchParams<
 	"CardHistory"
 >
 
-export const useCardHistorySearch = async (companyCode: string) => {
+export const useCardHistorySearch = (companyCode: string) => {
 	const searchParams = ref(
 		createSearchParams<RequestParams<ICardHistorySearchParams>, "CardHistory">({
 			pageNumber: 0,
@@ -69,7 +69,7 @@ export const columns = createTableColumns<"CardHistory">([
 		},
 		width: -1,
 		resizable: true,
-		customRender: ({ text }) => dayjs(text).format("YYYY-MM-DD HH:mm:ss"),
+		customRender: ({ text }) => dayjs(text).format("YYYY-MM-DD HH:mm"),
 	},
 	{
 		title: "상태",
@@ -116,9 +116,9 @@ export const columns = createTableColumns<"CardHistory">([
 		width: -1,
 		resizable: true,
 		customRender: ({ record }) => {
-			return `${dayjs(record.startDate).format("YYYY-MM-DD HH:mm:ss")} ~ ${dayjs(
+			return `${dayjs(record.startDate).format("YYYY-MM-DD HH:mm")} ~ ${dayjs(
 				record.endDate
-			).format("YYYY-MM-DD HH:mm:ss")}`
+			).format("YYYY-MM-DD HH:mm")}`
 		},
 	},
 	{
@@ -131,7 +131,7 @@ export const columns = createTableColumns<"CardHistory">([
 	},
 	{
 		title: "결재처리자",
-		dataIndex: "approvedBy",
+		dataIndex: "approvedByName",
 		sorter: {
 			multiple: 9,
 		},
@@ -180,7 +180,7 @@ export type CardIssueApproveOrRejectRequest = {
 	cardIssueRequestStatus: string
 	cardId?: string
 	comment: string
-
+	companyCode: string
 	cardOptions?: SelectProps["options"]
 	requestedBy?: string
 	date?: [Dayjs, Dayjs]

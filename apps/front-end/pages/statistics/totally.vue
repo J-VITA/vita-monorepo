@@ -1,6 +1,6 @@
 <script setup lang="ts">
 definePageMeta({
-	name: "누적사용현황",
+	name: "누적 사용통계",
 })
 </script>
 

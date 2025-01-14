@@ -6,6 +6,7 @@ import frFR from "ant-design-vue/es/locale/fr_FR"
 import jaJP from "ant-design-vue/es/locale/ja_JP"
 import esES from "ant-design-vue/es/locale/es_ES"
 import zhCN from "ant-design-vue/es/locale/zh_CN"
+import { _formatNumberCommas } from "@iwx/ui"
 
 /**
  * useI18n is used to provide translations for the language
@@ -110,6 +111,10 @@ export const formatCurrency = (
 			style: "currency",
 			currency: currency || defaultLocale.currency,
 		}).format(amount)
+	}
+
+	if (currency === "KRW") {
+		return _formatNumberCommas(amount, ",", "")
 	}
 
 	return new Intl.NumberFormat(selectedLocale.key, {

@@ -7,9 +7,11 @@ import {
 	SlipFormType,
 	pageSizeOptions,
 	pagination,
-	pageSize,
+	generateSortParams,
+	dateTimeFormat,
 } from "@/types"
-import type { ColumnType, ColumnsType } from "ant-design-vue/lib/table/interface"
+import { useDraftListColumns, useDraftListSearch } from "@/types/approvals/draft"
+import type { ColumnType } from "ant-design-vue/lib/table/interface"
 
 definePageMeta({
 	name: "임시저장",
@@ -21,69 +23,13 @@ const searchDateFrom = computed(() => route.query.searchDateFrom as string)
 const searchDateTo = computed(() => route.query.searchDateTo as string)
 
 const authStore = useAuthStore()
-const { getRole, getCompanyCode, getEmployeeId } = storeToRefs(authStore)
+const { getCompanyCode, getEmployeeId } = storeToRefs(authStore)
 
-interface ISearchParams {
-	companyCode: string
-	searchDateFrom: string //시작일
-	searchDateTo: string //종료일
-	employeeId: number | string // 로그인 사용자 식별자
-	title: string
-}
-type Search = Partial<ISearchParams>
-
-const filterDate = ref<[Dayjs, Dayjs]>([
-	searchDateFrom.value ? dayjs(String(searchDateFrom.value)) : useMonth.from(),
-	searchDateTo.value ? dayjs(String(searchDateTo.value)) : useMonth.to(),
-])
-
-const searchParams = ref<RequestParams<Search>>({
-	pageNumber: 0,
-	size: pageSize,
-	first: true,
-	last: true,
-	sort: [],
-	companyCode: getCompanyCode.value,
-	employeeId: getEmployeeId.value,
-	searchDateFrom: dayjs(filterDate.value[0]).format("YYYY-MM-DD"), //시작일
-	searchDateTo: dayjs(filterDate.value[1]).format("YYYY-MM-DD"), //종료일
-})
-
-const columns = ref<ColumnsType<any>>([
-	{
-		title: "제목",
-		dataIndex: "title",
-		resizable: true,
-		width: -1,
-	},
-	{
-		title: "문서양식",
-		dataIndex: "approvalFormTypeLabel",
-		resizable: true,
-		width: -1,
-	},
-	{
-		title: "작성자",
-		dataIndex: "draftEmployeeName",
-		resizable: true,
-		sorter: true,
-		align: "center",
-		width: 100,
-	},
-	{
-		title: "작성일",
-		dataIndex: "createdAt",
-		resizable: true,
-		align: "center",
-		width: -1,
-	},
-	{
-		title: "결재선",
-		dataIndex: "approvalDetails",
-		resizable: true,
-		width: -1,
-	},
-])
+const { searchParams, updateSearchParams } = useDraftListSearch(
+	getCompanyCode.value,
+	getEmployeeId.value
+)
+const columns = useDraftListColumns()
 
 const {
 	data: approvals,
@@ -96,9 +42,7 @@ const {
 		method: "GET",
 		params: {
 			page: searchParams.value.pageNumber > 1 ? searchParams.value.pageNumber - 1 : 0,
-			size: searchParams.value.size,
-			title: searchParams.value.title,
-			employeeId: searchParams.value.employeeId,
+			...searchParams.value,
 		},
 	})
 		.then((res: any) => res.data.value)
@@ -123,17 +67,31 @@ const onChangeRangePicker = (
 	value: [string, string] | [Dayjs, Dayjs],
 	dateString: [string, string]
 ) => {
-	searchParams.value.searchDateFrom = dateString[0]
-	searchParams.value.searchDateTo = dateString[1]
+	updateSearchParams({
+		pageNumber: 0,
+		searchDateFrom: dateString[0],
+		searchDateTo: dateString[1],
+	})
 }
 
 const handleResizeColumn = (w: number, col: ColumnType<any>) => {
 	col.width = w
 }
 
-const cellChange = (pagination: any) => {
-	searchParams.value.pageNumber = pagination.current
-	searchParams.value.size = pagination.pageSize
+const cellChange = (pagination: any, filters: any, sorter: any, rows: any) => {
+	const sortParams = generateSortParams(sorter)
+	updateSearchParams({
+		pageNumber: pagination.current - 1,
+		size: pagination.pageSize,
+		sort: sortParams,
+	})
+}
+
+const onSelectionChange = (size: number) => {
+	updateSearchParams({
+		pageNumber: 0,
+		size,
+	})
 }
 
 const onSearch = (params: any) => {
@@ -146,15 +104,29 @@ const onPage = async (record: any) => {
 		`/approvals/write-${compCase(record.approvalFormTypeName)}/${record.id}`
 	)
 }
-
 onActivated(() => {
-	approvalsRefresh()
+	console.log("onActivated route.params ", route)
+	if (searchDateFrom.value) {
+		updateSearchParams({
+			pageNumber: 0,
+			searchDateFrom: searchDateFrom.value,
+			searchDateTo: searchDateTo.value,
+			filterDate: [dayjs(searchDateFrom.value), dayjs(searchDateTo.value)],
+		})
+	}
 })
 
-// onDeactivated(() => {
-//   console.log('deactivated');
-//   approvalsClear();
-// })
+onMounted(() => {
+	console.log("onMounted route.params ", route)
+	if (searchDateFrom.value) {
+		updateSearchParams({
+			pageNumber: 0,
+			searchDateFrom: searchDateFrom.value,
+			searchDateTo: searchDateTo.value,
+			filterDate: [dayjs(searchDateFrom.value), dayjs(searchDateTo.value)],
+		})
+	}
+})
 </script>
 
 <template>
@@ -164,7 +136,11 @@ onActivated(() => {
 				<a-col>
 					<a-space>
 						<label>기간설정</label>
-						<a-range-picker v-model:value="filterDate" @change="onChangeRangePicker" />
+						<a-range-picker
+							v-model:value="searchParams.filterDate"
+							:value-format="dateTimeFormat"
+							@change="onChangeRangePicker"
+						/>
 					</a-space>
 				</a-col>
 				<a-col>
@@ -192,6 +168,7 @@ onActivated(() => {
 						:options="pageSizeOptions"
 						value-field="key"
 						text-field="label"
+						@change="(page: any) => onSelectionChange(page)"
 					/>
 				</a-space>
 			</a-flex>

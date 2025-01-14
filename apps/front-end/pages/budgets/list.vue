@@ -310,7 +310,7 @@ const {
 } = await useAsyncData(
 	`budget-cost-center-search-list`,
 	() =>
-		useCFetch<Response<any>>("/api/v2/master/costCenters", {
+		useCFetch<Response<any>>("/api/v2/settings/costCenters", {
 			method: "GET",
 			params: workplaceSearchParams,
 		}),
@@ -330,7 +330,7 @@ const {
 } = await useAsyncData(
 	`budget-account-search-list`,
 	() =>
-		useCFetch<Response<any>>("/api/v2/master/accounts", {
+		useCFetch<Response<any>>("/api/v2/masters/accounts", {
 			method: "GET",
 			params: accountSearchParams,
 		}),
@@ -711,12 +711,13 @@ const onSubmit = (data: BudgetEventParams, type: string) => {
 								:modalHeaderText="'예산삭제'"
 								@click="onDeleteBudgetRow"
 							/>
-							<a-button
-								:icon="materialIcons('mso', 'file_download')"
-								@click="() => console.log('엑셀다운로드')"
-							>
-								엑셀다운로드
-							</a-button>
+							<eacc-excel-button
+								req-type="download"
+								label="엑셀다운로드"
+								file-name="기초예산현황"
+								:data="dataSource?.data"
+								:disabled="!dataSource?.data || dataSource?.data.length === 0"
+							/>
 							<a-dropdown :trigger="['click']">
 								<a-button
 									:disabled="isClosed"

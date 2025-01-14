@@ -1,6 +1,7 @@
 export default defineNuxtRouteMiddleware((to, from) => {
 	const menusStore = useMenusStore()
 	const { getMenus } = storeToRefs(menusStore)
+	const isRoot = useRoot()
 
 	const menus = transformTreeToFlatArray(getMenus.value.menus as any, "id").map(
 		(x: any) => ({
@@ -24,7 +25,17 @@ export default defineNuxtRouteMiddleware((to, from) => {
 		} else {
 			// 현재 경로가 메뉴에 없으면 /expenses로 리다이렉트
 			// 결재 메뉴와 대시보드(홈)은 예외로 둔다.
-			if (to.path.indexOf("/approvals") > -1 || to.path.indexOf("/dashboard") > -1) {
+			if (
+				to.path.indexOf("/board") > -1 ||
+				to.path.indexOf("/approvals") > -1 ||
+				to.path.indexOf("/dashboard") > -1
+			) {
+				return
+			} else if (
+				isRoot.value &&
+				(to.path.indexOf("/menu") > -1 || to.path.indexOf("/excel-form") > -1)
+			) {
+				// ROOT 권한이 있으면 접근 허용
 				return
 			} else {
 				if (to.name) {

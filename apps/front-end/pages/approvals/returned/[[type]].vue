@@ -3,12 +3,13 @@ import dayjs from "dayjs"
 import type { Dayjs } from "dayjs"
 import {
 	type Response,
-	type RequestParams,
 	pageSizeOptions,
 	pagination,
-	pageSize,
+	generateSortParams,
+	dateTimeFormat,
 } from "@/types"
-import type { ColumnType, ColumnsType } from "ant-design-vue/lib/table/interface"
+import { useReturnedListColumns, useReturnedListSearch } from "@/types/approvals/returned"
+import type { ColumnType } from "ant-design-vue/lib/table/interface"
 
 definePageMeta({
 	name: "반려/회수",
@@ -24,92 +25,11 @@ const authStore = useAuthStore()
 const { getCompanyCode, getWorkplaceId, getRole, getEmployeeId, getJobTitleId } =
 	storeToRefs(authStore)
 
-const filterDate = ref<[Dayjs, Dayjs]>([
-	searchDateFrom.value ? dayjs(String(searchDateFrom.value)) : useMonth.from(),
-	searchDateTo.value ? dayjs(String(searchDateTo.value)) : useMonth.to(),
-])
-
-interface ISearchParams {
-	companyCode: string
-	searchDateFrom: string //시작일
-	searchDateTo: string //종료일
-	employeeId: number | string //사용자 식별자
-	documentStatus: string
-	title: string
-	category: string
-}
-type Search = Partial<ISearchParams>
-const searchParams = ref<RequestParams<Search>>({
-	pageNumber: 0,
-	size: pageSize,
-	first: true,
-	last: true,
-	sort: [],
-	companyCode: getCompanyCode.value,
-	searchDateFrom: dayjs(filterDate.value[0]).format("YYYY-MM-DD"), //시작일
-	searchDateTo: dayjs(filterDate.value[1]).format("YYYY-MM-DD"), //종료일
-	documentStatus: documentStatus.value,
-	employeeId: getEmployeeId.value, //사용자 식별자
-	title: "",
-})
-
-const columns = ref<ColumnsType<any>>([
-	{
-		title: "분류",
-		dataIndex: "documentStatusName",
-		align: "center",
-		width: 80,
-	},
-	{
-		title: "제목",
-		dataIndex: "title",
-		resizable: true,
-		width: -1,
-	},
-	{
-		title: "문서양식",
-		dataIndex: "approvalFormTypeLabel",
-		resizable: true,
-		width: -1,
-	},
-	{
-		title: "문서번호",
-		dataIndex: "approvalNumber",
-		resizable: true,
-		align: "center",
-		width: -1,
-	},
-	{
-		title: "기안자",
-		dataIndex: "draftEmployeeName",
-		resizable: true,
-		sorter: true,
-		align: "center",
-		width: 100,
-	},
-	{
-		title: "기안일",
-		dataIndex: "draftDateTime",
-		resizable: true,
-		sorter: true,
-		align: "center",
-		width: -1,
-	},
-	{
-		title: "반려/회수일",
-		dataIndex: "rejectedDateTime",
-		resizable: true,
-		sorter: true,
-		align: "center",
-		width: -1,
-	},
-	{
-		title: "결재선",
-		dataIndex: "approvalDetails",
-		resizable: true,
-		width: -1,
-	},
-])
+const { searchParams, updateSearchParams } = useReturnedListSearch(
+	getCompanyCode.value,
+	getEmployeeId.value
+)
+const columns = useReturnedListColumns()
 
 const {
 	data: approval,
@@ -145,13 +65,31 @@ const onChangeRangePicker = (
 	value: [string, string] | [Dayjs, Dayjs],
 	dateString: [string, string]
 ) => {
-	console.log("onChangeRangePicker", value, dateString)
-	searchParams.value.searchDateFrom = dateString[0]
-	searchParams.value.searchDateTo = dateString[1]
+	updateSearchParams({
+		pageNumber: 0,
+		searchDateFrom: dateString[0],
+		searchDateTo: dateString[1],
+	})
 }
 
 const handleResizeColumn = (w: number, col: ColumnType<any>) => {
 	col.width = w
+}
+
+const cellChange = (pagination: any, filters: any, sorter: any, rows: any) => {
+	const sortParams = generateSortParams(sorter)
+	updateSearchParams({
+		pageNumber: pagination.current - 1,
+		size: pagination.pageSize,
+		sort: sortParams,
+	})
+}
+
+const onSelectionChange = (size: number) => {
+	updateSearchParams({
+		pageNumber: 0,
+		size,
+	})
 }
 
 const onSearch = (params: any) => {
@@ -169,7 +107,40 @@ const onPage = async (record: any) => {
 }
 
 onActivated(() => {
-	approvalRefresh()
+	console.log("onActivated route.params ", route)
+	if (searchDateFrom.value) {
+		updateSearchParams({
+			pageNumber: 0,
+			searchDateFrom: searchDateFrom.value,
+			searchDateTo: searchDateTo.value,
+			filterDate: [dayjs(searchDateFrom.value), dayjs(searchDateTo.value)],
+		})
+	}
+
+	if (documentStatus.value) {
+		updateSearchParams({
+			pageNumber: 0,
+			documentStatus: documentStatus.value,
+		})
+	}
+})
+onMounted(() => {
+	console.log("onMounted route.params ", route)
+	if (searchDateFrom.value) {
+		updateSearchParams({
+			pageNumber: 0,
+			searchDateFrom: searchDateFrom.value,
+			searchDateTo: searchDateTo.value,
+			filterDate: [dayjs(searchDateFrom.value), dayjs(searchDateTo.value)],
+		})
+	}
+
+	if (documentStatus.value) {
+		updateSearchParams({
+			pageNumber: 0,
+			documentStatus: documentStatus.value,
+		})
+	}
 })
 </script>
 
@@ -180,7 +151,11 @@ onActivated(() => {
 				<a-col>
 					<a-space>
 						<label>기안일</label>
-						<a-range-picker v-model:value="filterDate" @change="onChangeRangePicker" />
+						<a-range-picker
+							v-model:value="searchParams.filterDate"
+							:value-format="dateTimeFormat"
+							@change="onChangeRangePicker"
+						/>
 					</a-space>
 				</a-col>
 				<a-col>
@@ -223,6 +198,7 @@ onActivated(() => {
 						:options="pageSizeOptions"
 						value-field="key"
 						text-field="label"
+						@change="(page: any) => onSelectionChange(page)"
 					/>
 				</a-space>
 			</a-flex>
@@ -242,6 +218,7 @@ onActivated(() => {
 				"
 				:show-sorter-tooltip="false"
 				@resize-column="handleResizeColumn"
+				@change="cellChange"
 			>
 				<template #headerCell="{ title }">
 					<div class="text-center">{{ title }}</div>
@@ -252,19 +229,16 @@ onActivated(() => {
 							{{ record.documentStatusLabel }}
 						</a-tag>
 					</template>
-					<template v-else-if="column.dataIndex === 'title'">
+					<template v-if="column.dataIndex === 'title'">
 						<a-typography-link @click="onPage(record)">
 							{{ text }}
 						</a-typography-link>
 					</template>
-					<template v-else-if="column.dataIndex === 'approvalDetails'">
+					<template v-if="column.dataIndex === 'approvalDetails'">
 						<approval-lines
 							:data="text.sort((a: any, b: any) => a.stage - b.stage)"
 							:type="record.agreementOptionTypeName"
 						/>
-					</template>
-					<template v-else>
-						{{ text }}
 					</template>
 				</template>
 			</a-table>

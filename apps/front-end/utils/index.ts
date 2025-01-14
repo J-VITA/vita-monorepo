@@ -130,6 +130,24 @@ const locateTreeNodeByKey = (data: any, key: string | number): any => {
 }
 
 /**
+ * 완성된 한글인지 체크하는 함수
+ * @param char : string
+ */
+function isHangulComplete(char: string) {
+	const code = char.charCodeAt(0)
+	// 한글 완성형 유니코드 범위 (가 ~ 힣)
+	return code >= 0xac00 && code <= 0xd7a3
+}
+
+/**
+ * 숫자인지 확인하는 함수
+ * @param char : string
+ */
+function isNumeric(value: any) {
+	return /^-?\d*\.?\d+$/.test(value) // 정수와 실수 모두 체크
+}
+
+/**
  * 검색 트리 필터링
  * @param data
  * @param search
@@ -138,7 +156,7 @@ const filterTreeData = (data: any, search: string) => {
 	if (!search) return data
 	return data
 		.map((item: any) => {
-			if (item.name.includes(search)) {
+			if (item.name.includes(search) || item.code.includes(search)) {
 				return { ...item }
 			}
 			if (item.children) {
@@ -281,4 +299,6 @@ export {
 	removeDuplicatesByKey,
 	calculateSumForSelectedItems,
 	formatCardNumber,
+	isHangulComplete,
+	isNumeric,
 }

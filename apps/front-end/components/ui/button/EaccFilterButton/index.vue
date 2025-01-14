@@ -6,7 +6,7 @@ const formData = defineModel("formData", {
 	type: Array<IFormData>,
 	default: undefined,
 })
-
+console.log("formData", formData)
 interface FilterDataProps {
 	/** 버튼 타입 (디폴트값 : primary) */
 	type?: "primary" | "dashed" | "text" | "link"
@@ -79,7 +79,7 @@ const submit = (item: any) => {
 
 		<eacc-filter-form-drawer
 			v-model:form-data="formData"
-			title="상세 필터 조회"
+			title="상세 검색"
 			:loadings="props.loading"
 			v-model:open="showDetailFilter"
 			@submit="submit"

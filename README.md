@@ -1,6 +1,6 @@
-# ILJIN CNS R&D Team Project
+# Monorepo Project
 
-일진씨앤에스 R&D Team 프로젝트
+모노레포를 이용한 프로젝트
 
 ## What's inside?
 

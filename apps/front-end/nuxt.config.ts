@@ -35,47 +35,81 @@ export default defineNuxtConfig({
 		// 클라이언트 사이드 라우터와 View Transition API 통합을 활성화합니다.
 		viewTransition: true,
 	},
-
+	routeRules: {
+		"/settings": { redirect: "/settings/workplaces" },
+	},
 	vite: {
+		// Vue 커스텀 엘리먼트 활성화
 		vue: { customElement: true },
+		// JSX 속성 병합 활성화
 		vueJsx: { mergeProps: true },
+		// Vite 플러그인 설정
 		plugins: [
 			Components({
+				// Ant Design Vue 컴포넌트 자동 import 설정
 				resolvers: [
 					AntDesignVueResolver({
-						importStyle: false,
-						resolveIcons: true,
+						importStyle: false, // 스타일 자동 import 비활성화
+						resolveIcons: true, // 아이콘 자동 import 활성화
 					}),
 				],
 			}),
 		],
+		// SSR 관련 설정
 		ssr: {
+			// SSR 빌드 시 외부화하지 않을 패키지 지정
 			noExternal: ["ant-design-vue", "@ant-design/icons-vue"],
+		},
+		// Vite 빌드 최적화 설정
+		build: {
+			cssMinify: true, // CSS 최소화 활성화
+			cssCodeSplit: true, // CSS 코드 분할 활성화
+			minify: "terser", // JavaScript 코드 최소화에 terser 사용
+			terserOptions: {
+				//프로덕션 환경에서만 console과 debugger 구문 제거
+				compress: {
+					drop_console: process.env.NODE_ENV === "production",
+					drop_debugger: process.env.NODE_ENV === "production",
+				},
+			},
+		},
+		server: {
+			hmr: true,
+			watch: {
+				usePolling: true, //폴링 방식으로 파일 변경 감지
+				interval: 100, //폴링 간격 (밀리초)
+				followSymlinks: true, //심볼릭 링크 추적 여부
+			},
+		},
+		optimizeDeps: {
+			force: true,
+		},
+		// CSS 전처리기 설정
+		css: {
+			preprocessorOptions: {
+				scss: {
+					sourceMap: false, // SCSS 소스맵 생성 비활성화로 빌드 성능 향상
+				},
+			},
 		},
 	},
 
 	nitro: {
+		compressPublicAssets: true, //정적 에셋에 대한 압축을 활성화
 		prerender: {
 			crawlLinks: true,
-			ignore: ["/api"],
-			routes: ["/dashboard", "/login", "/"],
+			// ignore: ["/api", "settings/**", "/dashboard", "/login"],
+      ignore: ["/api", "**/**"],
+			routes: ["/expenses/list", "/settings/workplaces"],
 		},
 		routeRules: {
-			"/login": {
-				ssr: false, // 메인 페이지는 SSR
-				prerender: true,
-			},
-			"/": {
-				ssr: false, // 메인 페이지는 SSR
-				prerender: true,
-			},
-			"/dashboard": {
-				ssr: false, // 대시보드는 SSR
-				prerender: true, // 동적 콘텐츠를 위해 프리렌더링 비활성화
-			},
-			// "/**": {
-			//   ssr: process.env.NODE_ENV === "production" ? true : false,
-			//   prerender: process.env.NODE_ENV === "production" ? false : true,
+			// "/login": {
+			// 	ssr: false, // 로그인은 SSR false
+			// 	prerender: true,
+			// },
+			// "/dashboard": {
+			// 	ssr: false, // 대시보드는 SSR false
+			// 	prerender: false, // 동적 콘텐츠를 위해 프리렌더링 비활성화
 			// },
 			"/api/**": {
 				proxy: `${process.env.NUXT_PUBLIC_API_BASE}/api/**`,
@@ -84,21 +118,42 @@ export default defineNuxtConfig({
 			"/_ws": {
 				cors: true,
 			},
+			// "/settings/**": {
+			// 	// 마지막에 위치하여 다른 모든 경로에 적용
+			// 	ssr: true,
+			// 	prerender: true,
+			// 	isr: 60, // 60초마다 재생성
+			// },
 			"/**": {
 				// 마지막에 위치하여 다른 모든 경로에 적용
 				ssr: true,
 				prerender: false,
 			},
 		},
-		experimental: {
-			websocket: true,
-		},
+		// experimental: {
+		// 	websocket: true,
+		// },
 	},
 
 	webpack: {
 		loaders: {
 			vue: {
 				hotReload: true,
+			},
+		},
+		//청크 크기를 300KB로 제한하여 성능 최적화
+		optimization: {
+			minimize: true,
+			splitChunks: {
+				maxSize: 500000, // 청크 사이즈 상향 조정
+				cacheGroups: {
+					vendor: {
+						test: /[\\/]node_modules[\\/]/,
+						name(module: any) {
+							return `vendor.${module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)[1].replace("@", "")}`
+						},
+					},
+				},
 			},
 		},
 	},
@@ -151,10 +206,10 @@ export default defineNuxtConfig({
 		// 	name: "slide-left",
 		// 	mode: "out-in",
 		// },
-		// layoutTransition: {
-		// 	name: "fade",
-		// 	mode: "out-in",
-		// },
+		layoutTransition: {
+			name: "layout",
+			mode: "out-in",
+		},
 	},
 
 	modules: [
@@ -165,10 +220,6 @@ export default defineNuxtConfig({
 		"nuxt-lodash",
 		"dayjs-nuxt",
 		"@ant-design-vue/nuxt",
-		// '@vuestic/nuxt',
-		// '@bootstrap-vue-next/nuxt',
-		// 'nuxt-bootstrap-icons',
-		// '@element-plus/nuxt',
 	],
 
 	antd: {
@@ -247,7 +298,7 @@ export default defineNuxtConfig({
 
 	sourcemap: {
 		server: false,
-		client: true,
+		client: false,
 	},
 
 	css: ["scss/styles.scss"],
@@ -255,7 +306,20 @@ export default defineNuxtConfig({
 	postcss: {
 		plugins: {
 			tailwindcss: {},
-			autoprefixer: {},
+			...(process.env.NODE_ENV === "production"
+				? {
+						cssnano: {
+							preset: [
+								"advanced",
+								{
+									discardComments: { removeAll: true },
+									// autoprefixer 중복 제거
+									autoprefixer: false,
+								},
+							],
+						},
+					}
+				: {}),
 		},
 	},
 
@@ -272,17 +336,16 @@ export default defineNuxtConfig({
 	build: {
 		transpile: [
 			"@iwx/ui",
+			"pinia-plugin-persistedstate",
 			"ag-grid-community",
 			"ag-grid-vue3",
-			"pinia-plugin-persistedstate",
+			"ag-grid-enterprise",
+			"@ant-design-vue",
+			"@ant-design-vue/es",
 			"@ant-design/icons-vue",
 			"lodash",
 			"dayjs",
 		],
-		// postcss options
-		// postcss: {},
-		// extend webpack config here
-		// extend(config, ctx) {}
 	},
 
 	// Environment variables
@@ -294,17 +357,18 @@ export default defineNuxtConfig({
 		cookieRememberMeExpires: ONE_WEEK.toString(),
 		public: {
 			apiBase: `${process.env.NUXT_PUBLIC_API_BASE}/api`,
-			wsEndpoint: `${process.env.NUXT_PUBLIC_WEBSOCKET_HOST}`,
+			// wsEndpoint: `${process.env.NUXT_PUBLIC_WEBSOCKET_HOST}`,
 			environment: "",
-			openRouteServiceApiKey: "5b3ce3597851110001cf624896e5b9e113124d02a6985f8e089127f4",
-			kakaoAppKey: "88b2f6895cae47800a41290b9f089f5d",
+			mapboxKey: `${process.env.VITE_MAPBOX_KEY}`,
+			kakaoAppKey: `${process.env.VITE_KAKAO_KEY}`,
 		},
 	},
 
 	// TypeScript configuration
 	typescript: {
 		strict: true,
-		// typeCheck: true,
+		typeCheck: false,
+		shim: false,
 	},
 
 	hooks: {

@@ -86,7 +86,7 @@ const rules = ref<any>({
 const drag = ref<boolean>(false)
 
 const { data: agreeOptions } = await useAsyncData(`agreement-option-types`, () =>
-	useCFetch<Response<any>>("/api/v2/master/approvalRules/types/agreementOptionTypes", {
+	useCFetch<Response<any>>("/api/v2/masters/approvalRules/types/agreementOptionTypes", {
 		method: "GET",
 	}).then((res: Response<any>) =>
 		res.data.map((e: any) => {

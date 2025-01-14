@@ -41,6 +41,7 @@ const emit = defineEmits<{
 	(e: "update:value", value: number): number
 	(e: "update:currency", value: string): string
 	(e: "change", value: string | number): string | number
+	(e: "focus-out"): any
 }>()
 
 const currencyFormatter = (value: string | number) => {
@@ -121,6 +122,7 @@ const currencyParser = (amt: string | number) => {
 			:addon-after="suffix"
 			:placeholder="placeholder"
 			@change="$emit('change', $event)"
+			@blur="$emit('focus-out')"
 		>
 			<!--    <template #prefix>-->
 			<!--      <span>-->

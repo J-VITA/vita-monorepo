@@ -33,4 +33,14 @@ export const useMonth = {
 			.subtract(month ? month : 1, "M")
 			.startOf("M")
 	},
+
+	// 현재 월 반환 (1-12)
+	currentMonth() {
+		return dayjs().startOf("month")
+	},
+
+	// 2개월 전 월 반환 (1-12)
+	twoMonthsAgo() {
+		return dayjs().subtract(2, "month").startOf("month")
+	},
 }

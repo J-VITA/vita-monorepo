@@ -26,7 +26,7 @@ export const cardDelegatorsColumns = createTableColumns<"CardDelegators">([
 		title: "대리작성기간",
 		dataIndex: "period",
 		customRender: ({ record }) => {
-			return `${dayjs(record.delegateStartDate).format("YYYY-MM-DD HH:mm:ss")} ~ ${dayjs(record.delegateEndDate).format("YYYY-MM-DD HH:mm:ss")}`
+			return `${dayjs(record.delegateStartDate).format("YYYY-MM-DD HH:mm")} ~ ${dayjs(record.delegateEndDate).format("YYYY-MM-DD HH:mm")}`
 		},
 	},
 	{
@@ -58,7 +58,7 @@ export type DelegatorDetail = Required<IDelegatorDetail>
 export type FormData = Partial<IDelegatorDetail> & {
 	cardId: number // 필수
 	employeeIds?: (string | number)[]
-	dates?: [Dayjs, Dayjs]
+	dates?: [Dayjs, Dayjs] | [string, string]
 	description?: string
 }
 
