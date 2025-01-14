@@ -1,5 +1,5 @@
 {
-	"name": "ILJIN CNS Solution Project",
+	"name": "Monorepo Project",
 	"private": true,
 	"scripts": {
 		"make-graph": "pnpm turbo run build lint --graph=graph.dot && dot -Tsvg graph.dot -Grankdir=TB -o eccounting-web-turbo-graph.svg",
