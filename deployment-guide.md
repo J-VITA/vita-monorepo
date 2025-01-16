@@ -2,9 +2,8 @@
 
 ## 프로젝트 구조
 ```text
-├── apps/
-│   ├── front-end/         # 웹 프로젝트
-│   └── front-design/      # 디자인 시스템
+├── apps/  
+│   └── front-end/        # 웹 프로젝트
 ├── packages/
 │   └── ui/               # 공통 UI 컴포넌트
 │   ├── 기타 등등...
@@ -33,7 +32,7 @@ EXPOSE <your-port>
 ### GitHub Actions 설정
   - deploy.yml 파일의 Docker 실행 부분 수정:
 ```text
-docker run -d --name wisexpense-apps \
+docker run -d --name vita-monorepo-apps \
   -p 80:12000 \                    # 기존 프론트엔드
   -p 81:<your-port> \              # 새 프로젝트
   -e PORT=12000 \

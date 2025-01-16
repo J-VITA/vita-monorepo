@@ -1,5 +1,5 @@
 {
-	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "Nuxt",
-	"extends": ["./base.json"]
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Nuxt",
+  "extends": ["./base.json"]
 }

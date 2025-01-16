@@ -1,5 +1,5 @@
 export default defineAppConfig({
-	title: "WiseXpense",
+	title: "vita-nuxt",
 	theme: {
 		dark: true,
 		colors: {

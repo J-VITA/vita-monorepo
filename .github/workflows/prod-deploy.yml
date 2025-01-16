@@ -101,8 +101,8 @@ jobs:
 
       - name: Create ECR repository if not exists
         run: |
-          aws ecr describe-repositories --repository-names wisexpense-apps 2>/dev/null || \
-          aws ecr create-repository --repository-name wisexpense-apps
+          aws ecr describe-repositories --repository-names vita-monorepo-apps 2>/dev/null || \
+          aws ecr create-repository --repository-name vita-monorepo-apps
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -111,7 +111,7 @@ jobs:
       - name: Build, tag, and push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: wisexpense-apps
+          ECR_REPOSITORY: vita-monorepo-apps
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build --build-arg BUILD_ENV=production -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -142,17 +142,17 @@ jobs:
 
             # ECR 로그인 및 도커 실행
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
-            docker pull ${{ steps.login-ecr.outputs.registry }}/wisexpense-apps:${{ github.sha }}
-            docker stop wisexpense-apps || true
-            docker rm wisexpense-apps || true
-            docker run -d --name wisexpense-apps \
+            docker pull ${{ steps.login-ecr.outputs.registry }}/vita-monorepo-apps:${{ github.sha }}
+            docker stop vita-monorepo-apps || true
+            docker rm vita-monorepo-apps || true
+            docker run -d --name vita-monorepo-apps \
               -p 80:12000 \
               -e NUXT_HOST=0.0.0.0 \
               -e PORT=12000 \
               -e NITRO_PORT=12000 \
               -e NUXT_PORT=12000 \
               -e NODE_ENV=production \
-              --restart always ${{ steps.login-ecr.outputs.registry }}/wisexpense-apps:${{ github.sha }}
+              --restart always ${{ steps.login-ecr.outputs.registry }}/vita-monorepo-apps:${{ github.sha }}
 
       - name: Remove Github Actions IP from security group
         if: always()

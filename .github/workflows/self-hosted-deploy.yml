@@ -10,7 +10,7 @@
 # uses: appleboy/ssh-action@master
 # with:
 #  .... 내용 생략
-#    docker run -d --name wisexpense-apps -p 80:12000 -p 81:12001 -e PORT=12000 -e ADDTION_PORT=12001 <----이 부분 해당 포트 추가
+#    docker run -d --name vita-monorepo-apps -p 80:12000 -p 81:12001 -e PORT=12000 -e ADDTION_PORT=12001 <----이 부분 해당 포트 추가
 #     ... 내용 생략
 # **************************************************
 ########################################################################################
@@ -86,20 +86,20 @@ jobs:
           docker build \
             --progress=plain \
             --build-arg BUILD_ENV=self-hosted \
-            -t wisexpense-apps:latest . 2>&1 | tee build.log
+            -t vita-monorepo-apps:latest . 2>&1 | tee build.log
           cat build.log
 
       # Docker 빌드 및 실행
       - name: Build and run Docker container
         run: |
-          # docker build --build-arg BUILD_ENV=self-hosted -t wisexpense-apps:latest .
-          docker stop wisexpense-apps || true
-          docker rm wisexpense-apps || true
-          docker run -d --name wisexpense-apps \
+          # docker build --build-arg BUILD_ENV=self-hosted -t vita-monorepo-apps:latest .
+          docker stop vita-monorepo-apps || true
+          docker rm vita-monorepo-apps || true
+          docker run -d --name vita-monorepo-apps \
             -p 80:12000 \
             -e NUXT_HOST=0.0.0.0 \
             -e PORT=12000 \
             -e NITRO_PORT=12000 \
             -e NUXT_PORT=12000 \
             -e NODE_ENV=self-hosted \
-            --restart always wisexpense-apps:latest
+            --restart always vita-monorepo-apps:latest

@@ -54,7 +54,7 @@ const getBreadcrumbs = () => {
 								getMenus.menus && getMenus.menus.length > 0 ? getMenus.menus[0].path : '/'
 							"
 							class="logo"
-							>wiseXpense</a
+							>vita-nuxt</a
 						>
 						<a-button
 							type="text"

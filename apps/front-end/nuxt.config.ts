@@ -99,7 +99,7 @@ export default defineNuxtConfig({
 		prerender: {
 			crawlLinks: true,
 			// ignore: ["/api", "settings/**", "/dashboard", "/login"],
-      ignore: ["/api", "**/**"],
+			ignore: ["/api", "**/**"],
 			routes: ["/expenses/list", "/settings/workplaces"],
 		},
 		routeRules: {
@@ -167,7 +167,7 @@ export default defineNuxtConfig({
 			charset: "utf-8",
 			viewport: "width=device-width, initial-scale=1, shrink-to-fit=no",
 			meta: [
-				{ name: "description", content: `WiseXpense 솔루션` },
+				{ name: "description", content: `vita-nuxt` },
 				{
 					name: "viewport",
 					content: "width=device-width, initial-scale=1, shrink-to-fit=no",

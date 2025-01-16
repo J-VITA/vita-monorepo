@@ -108,7 +108,7 @@ const onFinishFailed = (errorInfo: any) => {
 	<a-card class="login-box">
 		<div class="mb-lg">
 			<a-flex justify="center">
-				<div class="logo">wiseXpense</div>
+				<div class="logo">vita-nuxt</div>
 			</a-flex>
 
 			<!-- <a-typography-title :level="3">로그인</a-typography-title> -->
