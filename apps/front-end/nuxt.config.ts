@@ -33,10 +33,12 @@ export default defineNuxtConfig({
 		// Speculation Rules API를 사용한 교차 출처 프리페치를 활성화합니다.
 		crossOriginPrefetch: true,
 		// 클라이언트 사이드 라우터와 View Transition API 통합을 활성화합니다.
-		viewTransition: true,
+		viewTransition: false,
 	},
 	routeRules: {
+		"/": { redirect: "/expenses", prerender: true },
 		"/settings": { redirect: "/settings/workplaces" },
+		"/expenses": { redirect: "/expenses/list" },
 	},
 	vite: {
 		// Vue 커스텀 엘리먼트 활성화
@@ -65,6 +67,25 @@ export default defineNuxtConfig({
 			cssMinify: true, // CSS 최소화 활성화
 			cssCodeSplit: true, // CSS 코드 분할 활성화
 			minify: "terser", // JavaScript 코드 최소화에 terser 사용
+			chunkSizeWarningLimit: 500,
+			rollupOptions: {
+				onwarn(warning, warn) {
+					// ag-grid 관련 annotation 경고 무시
+					if (
+						warning.code === "INVALID_ANNOTATION" &&
+						warning.message.includes("ag-grid-vue3")
+					) {
+						return
+					}
+					warn(warning)
+				},
+				output: {
+					manualChunks: {
+						"ant-design": ["ant-design-vue"],
+						"ant-icons": ["@ant-design/icons-vue"],
+					},
+				},
+			},
 			terserOptions: {
 				//프로덕션 환경에서만 console과 debugger 구문 제거
 				compress: {
@@ -83,6 +104,8 @@ export default defineNuxtConfig({
 		},
 		optimizeDeps: {
 			force: true,
+			include: ["ant-design-vue", "@ant-design/icons-vue", "lodash-es"],
+			exclude: ["@material-design/icons-vue"],
 		},
 		// CSS 전처리기 설정
 		css: {
@@ -95,29 +118,52 @@ export default defineNuxtConfig({
 	},
 
 	nitro: {
-		compressPublicAssets: true, //정적 에셋에 대한 압축을 활성화
+		debug: process.env.NODE_ENV !== "production",
+		logLevel: process.env.NODE_ENV === "production" ? "error" : "debug",
+		devProxy:
+			process.env.NODE_ENV !== "production"
+				? {
+						"/api": {
+							target: process.env.NUXT_PUBLIC_API_BASE + "/api",
+							changeOrigin: true,
+							prependPath: true,
+						},
+					}
+				: undefined,
+		compressPublicAssets: process.env.NODE_ENV === "production", //정적 에셋에 대한 압축을 활성
 		prerender: {
-			crawlLinks: true,
+			crawlLinks: process.env.NODE_ENV === "production",
 			// ignore: ["/api", "settings/**", "/dashboard", "/login"],
 			ignore: ["/api", "**/**"],
 			routes: ["/expenses/list", "/settings/workplaces"],
 		},
 		routeRules: {
-			// "/login": {
-			// 	ssr: false, // 로그인은 SSR false
-			// 	prerender: true,
-			// },
-			// "/dashboard": {
-			// 	ssr: false, // 대시보드는 SSR false
-			// 	prerender: false, // 동적 콘텐츠를 위해 프리렌더링 비활성화
-			// },
+			"/_nuxt/**": {
+				headers: {
+					"Cache-Control": "public, max-age=31536000, immutable",
+				},
+			},
+			"/login": {
+				ssr: false, // 로그인은 SSR false
+				prerender: false,
+			},
+			"/dashboard": {
+				ssr: false, // 대시보드는 SSR false
+				prerender: false, // 동적 콘텐츠를 위해 프리렌더링 비활성화
+			},
 			"/api/**": {
 				proxy: `${process.env.NUXT_PUBLIC_API_BASE}/api/**`,
 				cors: true,
+				cache:
+					process.env.NODE_ENV === "production"
+						? { maxAge: 300 }
+						: process.env.NODE_ENV === "self-hosted"
+							? { maxAge: 60 }
+							: { maxAge: 0 },
 			},
-			"/_ws": {
-				cors: true,
-			},
+			// "/_ws": {
+			// 	cors: true,
+			// },
 			// "/settings/**": {
 			// 	// 마지막에 위치하여 다른 모든 경로에 적용
 			// 	ssr: true,
@@ -128,6 +174,12 @@ export default defineNuxtConfig({
 				// 마지막에 위치하여 다른 모든 경로에 적용
 				ssr: true,
 				prerender: false,
+				cache:
+					process.env.NODE_ENV === "production"
+						? { maxAge: 7200 }
+						: process.env.NODE_ENV === "self-hosted"
+							? { maxAge: 3600 }
+							: { maxAge: 0 },
 			},
 		},
 		// experimental: {
@@ -163,11 +215,13 @@ export default defineNuxtConfig({
 	},
 
 	app: {
+		baseURL: "/", // 기본 URL 설정
+		buildAssetsDir: "/_nuxt/", // 빌드 에셋 디렉토리 설정
 		head: {
 			charset: "utf-8",
 			viewport: "width=device-width, initial-scale=1, shrink-to-fit=no",
 			meta: [
-				{ name: "description", content: `vita-nuxt` },
+				{ name: "description", content: `WiseXpense 솔루션` },
 				{
 					name: "viewport",
 					content: "width=device-width, initial-scale=1, shrink-to-fit=no",
@@ -176,18 +230,43 @@ export default defineNuxtConfig({
 			],
 			link: [
 				{
+					rel: "preconnect",
+					href: "https://fonts.googleapis.com",
+				},
+				{
+					rel: "preconnect",
+					href: "https://fonts.gstatic.com",
+					crossorigin: "anonymous",
+				},
+				// {
+				// 	rel: "preload",
+				// 	as: "style",
+				// 	href: "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap",
+				// },
+				{
+					rel: "stylesheet",
+					href: "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap",
+					media: "print",
+					onload: "this.media='all'",
+				},
+				{
 					rel: "stylesheet",
 					href: "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200",
+					media: "print",
+					onload: "this.media='all'",
 				},
 				{
 					rel: "stylesheet",
 					href: "https://fonts.googleapis.com/css?family=Material+Icons%7CMaterial+Icons+Outlined%7CMaterial+Icons+Two+Tone%7CMaterial+Icons+Round%7CMaterial+Icons+Sharp",
+					media: "print",
+					onload: "this.media='all'",
 				},
 			],
 			script: [
 				// Daum 주소 API
 				{
 					src: "//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js",
+					defer: true, // 스크립트 로딩 최적화
 				},
 			],
 			style: [
@@ -202,10 +281,10 @@ export default defineNuxtConfig({
 		rootId: "app",
 		// page transitions
 		// https://nuxt.com/docs/getting-started/transitions
-		// pageTransition: {
-		// 	name: "slide-left",
-		// 	mode: "out-in",
-		// },
+		pageTransition: {
+			name: "page",
+			mode: "out-in",
+		},
 		layoutTransition: {
 			name: "layout",
 			mode: "out-in",
@@ -323,29 +402,39 @@ export default defineNuxtConfig({
 		},
 	},
 
-	mapbox: {
-		accessToken:
-			"pk.eyJ1IjoianZpdGEyMyIsImEiOiJjbHVycnc5bG0wNG01Mmptb3J3Z2FqaDNzIn0.L4Z6fQgpnB_xTyxzljiFOA",
-	},
-
 	plugins: [
 		// '@/plugins/i18n.ts'
 	],
 
 	// Build configuration
 	build: {
-		transpile: [
-			"@iwx/ui",
-			"pinia-plugin-persistedstate",
-			"ag-grid-community",
-			"ag-grid-vue3",
-			"ag-grid-enterprise",
-			"@ant-design-vue",
-			"@ant-design-vue/es",
-			"@ant-design/icons-vue",
-			"lodash",
-			"dayjs",
-		],
+		// transpile: [
+		// 	"@iwx/ui",
+		// 	"pinia-plugin-persistedstate",
+		// 	"ag-grid-community",
+		// 	"ag-grid-vue3",
+		// 	"ag-grid-enterprise",
+		// 	"@ant-design-vue",
+		// 	"@ant-design-vue/es",
+		// 	"@ant-design/icons-vue",
+		// 	"lodash",
+		// 	"dayjs",
+		// ],
+		transpile: process.env.npm_lifecycle_event?.includes("build:")
+			? [
+					"@iwx/ui",
+					"pinia-plugin-persistedstate",
+					"ag-grid-community",
+					"ag-grid-vue3",
+					"ag-grid-enterprise",
+					"@ant-design-vue",
+					"@ant-design-vue/es",
+					"@ant-design/icons-vue",
+					"lodash",
+					"lodash-es",
+					"dayjs",
+				]
+			: [],
 	},
 
 	// Environment variables
@@ -361,6 +450,7 @@ export default defineNuxtConfig({
 			environment: "",
 			mapboxKey: `${process.env.VITE_MAPBOX_KEY}`,
 			kakaoAppKey: `${process.env.VITE_KAKAO_KEY}`,
+			storageType: process.env.STORAGE_TYPE || "LOCAL",
 		},
 	},
 
