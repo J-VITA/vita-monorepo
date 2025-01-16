@@ -45,7 +45,7 @@ const handleNavigation = async (path: string) => {
 						getMenus.menus && getMenus.menus.length > 0 ? getMenus.menus[0].path : '/'
 					"
 					class="logo"
-					>wiseXpense</a
+					>vita-nuxt</a
 				>
 			</a-col>
 			<a-col flex="auto">
