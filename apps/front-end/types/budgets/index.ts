@@ -275,7 +275,14 @@ export type departmentParams = Partial<IBudgetDepartmentParams>
 export type ConfirmParams = Partial<IBudgetConfirmParams>
 export type BudgetList = Partial<IBudgetList>
 export interface BudgetLists extends IBudgetList {
-	[key: string]: number | string | undefined
+	budgetRequestStatus: IApplyBudgetRequest
+	budgetRequestType: IApplyBudgetRequest
+	fromCostCenter: IApplyCostCenter
+	fromAccount: IApplyAccount
+	toCostCenter: IApplyCostCenter
+	toAccount: IApplyAccount
+	createdAt: string
+	[key: string]: number | string | undefined | object
 }
 export type CostCenterParams = Partial<ICostCenterParams>
 export type AccountParams = Partial<ICostCenterParams>
@@ -286,14 +293,14 @@ export type BudgetActualDetailData = Partial<IBudgetActualDetailData>
 
 export const options: Options = {
 	budget: [
-		{ label: "예산이월", value: "ROLLOVER", color: "#FFD591" },
-		{ label: "예산전용", value: "ALLOCATION", color: "#91CAFF" },
-		{ label: "예산증액", value: "INCREASE", color: "#87E8DE" },
+		{ label: "예산이월", value: "ROLLOVER", color: "orange" },
+		{ label: "예산전용", value: "ALLOCATION", color: "blue" },
+		{ label: "예산증액", value: "INCREASE", color: "cyan" },
 	],
 	slipType: [
-		{ label: "개인경비", value: "PERSONAL_EXPENSE", color: "#FFD591" },
+		{ label: "개인경비", value: "PERSONAL", color: "#FFD591" },
 		{ label: "법인카드", value: "CARD", color: "#91CAFF" },
-		{ label: "전자세금계산서", value: "E_TAX_INVOICE", color: "#87E8DE" },
+		{ label: "전자세금계산서", value: "E_TAX", color: "#87E8DE" },
 		{ label: "세금계산서", value: "TAX_INVOICE", color: "#87E8DE" },
 	],
 	slipStatus: [

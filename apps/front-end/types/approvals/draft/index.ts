@@ -66,6 +66,7 @@ export const columns = createTableColumns<"DraftList">([
 			multiple: 1,
 		},
 		align: "right",
+		className: "bold",
 		customRender: ({ text }) => formatCurrency(text, "KRW"),
 	},
 	{

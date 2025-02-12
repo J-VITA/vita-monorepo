@@ -32,6 +32,8 @@ export interface IApprovalDetail {
 	actualEmployeePositionName: string
 	approvalDate: string
 	approvalType: string
+	referEmployeeId: number
+	referEmployeeName: string
 }
 
 export const CardIssueRequestStatus = {
@@ -116,14 +118,28 @@ export type FamilyEventViewForm = {
 	eventDate: string | Dayjs //발생일자
 	requestEmployeeId: string | number //신청자 Id
 	requestEmployeeIds: (string | number)[] //신청자 Id (select table 용)
-	familyEventTypeName: string // 경조구분
+	// familyEventTypeName: string // 경조구분
+	familyEventTypeId?: number // 경조구분
 	accountId?: number //계정항목
+	// accruedAccountCode?: string //부채계정
+	accruedAccountId?: number //부채계정 식별자
+  account?: AccountProtoType
+	accruedAccount?: AccountProtoType
 	familyEventAmount: number // 신청금액(회사지급액)
 	mutualAidFlag: boolean // 상조용품
 	wreathFlag: boolean // 경조화환
 	paymentDueDate: string | Dayjs // 지급예정일
 }
 export type FamilyEventFormBrand = "FamilyEventViewFormBrand"
+
+type AccountProtoType = {
+	id: number
+	code: string
+	name: string
+	parentId: number
+	parentCode: string
+	parentName: string
+}
 
 export interface FamilyEventData {
 	id: number
@@ -132,8 +148,11 @@ export interface FamilyEventData {
 	eventDate: string | Dayjs //발생일자
 	requestEmployeeId: string | number //신청자 Id
 	requestEmployeeIs: (string | number)[] //신청자 Id (select table 용)
-	familyEventTypeName: string | number // 경조구분
+	// familyEventTypeName: string | number // 경조구분
+	familyEventTypeId?: number // 경조구분
 	accountId?: number //계정항목
+	account?: AccountProtoType
+	accruedAccount?: AccountProtoType
 	familyEventAmount: number // 신청금액(회사지급액)
 	mutualAidFlag: boolean // 상조용품
 	wreathFlag: boolean // 경조화환
@@ -154,34 +173,56 @@ export type TFamilyEventAction = {
 	description: string
 }
 
+export type SelectSlipData = {
+	accountName: string
+	companyCode: string
+	description: string
+	divisionSlipFlag: boolean
+	employeeId: number
+	evidenceDate: string
+	evidenceVendorCode: string
+	evidenceVendorName: string
+	id: number
+	paymentVendorCode: string
+	paymentVendorName: string
+	slipDetailId: number
+	slipNumber: string
+	slipTypeLabel: string
+	slipTypeName: string
+	totalAmount: number
+}
+
 interface IFormData {
-	id: string | number
+	id?: string | number
 	approvalNumber: string
-	draftEmployeeId: number
+	draftEmployeeId?: number
 	companyCode: string
 	title: string
 	urgent: boolean
 	approvalFormType: string
 	approvalFormTypeName: string
-	approvalLineType: any
+	approvalLineType?: any
 	description: string
 	approveContent: string
-	expenseList: any[]
+	expenseList?: any[]
+	businessTripInfoList?: any[]
+	businessTripList?: any[]
+	businessTripSlip?: any[]
 	budgetList?: any[]
-	documentInfo: Partial<IDocumentInfo>
-	attachedFiles: any[]
+	documentInfo?: Partial<IDocumentInfo>
+	attachedFiles?: any[]
 	// docRelevant: any[];
-	relatedDocumentIds: any[]
-	formIds: any[]
+	relatedDocumentIds?: any[]
+	formIds?: any[]
 	agreementOptionType: string
 	approvalLineRefer: string
-	approvalLineReferrerDtos: any[]
-	referenceEmployeeIds: any[]
-	approvalDetailRequests: IApprovalDetail[]
+	approvalLineReferrerDtos?: any[]
+	referenceEmployeeIds?: any[]
+	approvalDetailRequests?: IApprovalDetail[]
 	documentStatusName?: string
-	actualApprovalEmployeeId: number
-	nextApprovalStage: number
-	approvalDetails: IApprovalDetail[]
+	actualApprovalEmployeeId?: number
+	nextApprovalStage?: number
+	approvalDetails?: IApprovalDetail[]
 	delegated: boolean
 	approvalReferrers: any[]
 	//카드불출신청서 폼 데이터
@@ -199,18 +240,37 @@ interface IFormData {
 export type FormData = Partial<IFormData>
 export type ApprovalDetail = Partial<IApprovalDetail>
 
-export const initFormData = {
-	title: "",
+export const initFormData: FormData = {
+	id: undefined,
+	approvalNumber: '',
+	draftEmployeeId: undefined,
+	companyCode: '',
+	title: '',
 	urgent: false,
+	approvalFormType: '',
+	approvalFormTypeName: '',
 	approvalLineType: undefined,
-	description: "",
+	description: '',
+	approveContent: '',
 	expenseList: [],
-	documentInfo: {},
+	businessTripInfoList: [],
+	businessTripList: [],
+	businessTripSlip: [],
+	budgetList: [],
+	documentInfo: undefined,
 	attachedFiles: [],
-	approvalDetails: [],
-	approvalReferrers: [],
-	agreementOptionType: "",
 	relatedDocumentIds: [],
+	formIds: [],
+	approvalLineRefer: '',
+	approvalLineReferrerDtos: [],
+	referenceEmployeeIds: [],
+	approvalDetailRequests: [],
+	documentStatusName: undefined,
+	actualApprovalEmployeeId: undefined,
+	nextApprovalStage: undefined,
+	approvalDetails: [],
+	delegated: false,
+	approvalReferrers: [],
 	cardIssueForm: createViewParams<CardIssueViewForm, CardIssueViewFormBrand>({
 		id: undefined,
 		requestedBy: "",
@@ -230,7 +290,7 @@ export const initFormData = {
 		requestEmployeeId: "",
 		requestEmployeeIds: [],
 		companyCode: "",
-		familyEventTypeName: "",
+		familyEventTypeId: undefined,
 		accountId: undefined,
 		familyEventAmount: 0,
 		mutualAidFlag: false,
@@ -330,6 +390,7 @@ export function approvalLineOptions(arr: any): {
 }
 
 export const calculateTotalAmount = (data: any, value: string): number => {
+	if (!data || data.length == 0) return 0
 	return data.reduce((total: number, item: any) => total + item[value], 0)
 }
 
@@ -381,7 +442,7 @@ export const gridOptions: GridOptions<any> = {
  * COMPLETED : 결재완료,
  * REJECTED: 반려
  * WITHDRAWN : 회수
- * READ: 잃기전용 (preview, print 에서 사용)
+ * READ: 읽기전용 (preview, print 에서 사용)
  */
 export type DocumentStatusType =
 	| "SAVED"

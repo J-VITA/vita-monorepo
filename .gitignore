@@ -13,6 +13,12 @@ coverage
 .output/
 out/
 build
+dist
+.dist
+dist/**
+libs
+.libs
+libs/**
 
 # misc
 .DS_Store
@@ -35,3 +41,21 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+#packages lock
+.package-lock.json
+package-lock.json
+
+#cookies
+*.cookie
+
+# inteliJ idea
+.idea
+.idea/*
+
+# vscode setting
+settings.json
+launch.json
+
+#ant design components
+apps/**/components.d.ts

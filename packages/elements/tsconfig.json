@@ -1,5 +1,16 @@
 {
-  "extends": "../tsconfig/vue.json",
-  "include": ["."],
-  "exclude": ["dist", "build", "node_modules"]
+	"extends": "../tsconfig/vue.json",
+	"include": ["*.ts", "*.vue", "src/**/*.ts", "src/**/*.vue", "src/shims-vue.d.ts"],
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./*"]
+		},
+		"outDir": "dist",
+		"declaration": true,
+		"types": ["vite/client", "vue"],
+		"skipLibCheck": true,
+		"allowJs": true,
+		"noImplicitAny": false
+	}
 }

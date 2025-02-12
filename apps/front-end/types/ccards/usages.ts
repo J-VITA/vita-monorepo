@@ -18,6 +18,7 @@ interface ICardUsageListSearchParams {
 	cardOwnerId?: string | number
 	cardOwnerIds?: (string | number)[]
 	filterDate?: [Dayjs, Dayjs]
+	employeeId?: string | number
 }
 
 export type CardUsageListSearch = ExSearchParams<
@@ -27,7 +28,7 @@ export type CardUsageListSearch = ExSearchParams<
 
 export const useCardUsageListSearch = (
 	companyCode: string,
-	getEmployeeId: string | number
+	employeeId: string | number
 ) => {
 	const searchParams = ref(
 		createSearchParams<RequestParams<ICardUsageListSearchParams>, "CardUsageList">({
@@ -37,8 +38,7 @@ export const useCardUsageListSearch = (
 			last: false,
 			sort: [],
 			companyCode,
-			cardOwnerId: getEmployeeId,
-			cardOwnerIds: [getEmployeeId],
+			employeeId,
 			approvalDateFrom: dayjs(useMonth.from()).format("YYYY-MM-DD"),
 			approvalDateTo: dayjs(useMonth.to()).format("YYYY-MM-DD"),
 			filterDate: [useMonth.from(), useMonth.to()],
@@ -250,7 +250,7 @@ export type CardUsageItem = {
 	cardTypeLabel: string // 카드구분명(공용, 개인)
 	cardCompanyTypeName: string // 카드회사구분(BC, KB..)
 	cardCompanyTypeLabel: string // 카드회사명(비씨, KB국민..)
-	cardUseStateTypeName: string // 카드사용상태구분 (UNPROCESSED, IN_PROGRESS, COMPLETED, PERSONAL_EXPENSE_PROCESSED)
+	cardUseStateTypeName: string // 카드사용상태구분 (UNPROCESSED, IN_PROGRESS, COMPLETED, PERSONAL_PROCESSED)
 	cardUseStateTypeLabel: string // 카드사용상태명 (미처리, 처리중, 처리완료, 사적비용처리)
 	currencyTypeName: string // 통화유형구분 (KRW, CHF, USD)
 	currencyTypeLabel: string // 통화유형명 (한국, 스위스, 미국)

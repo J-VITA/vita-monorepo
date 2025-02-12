@@ -30,7 +30,7 @@ export interface IExpenseListSearchParams {
 	amountTo?: number | string //종료금액
 	employeeId?: number | string //사용자 식별자
 	employeeIds?: (number | string)[] //사용자 식별자(조회 select table parameters)
-	month: "당월"
+	month: ""
 	filterDate: [Dayjs, Dayjs]
 	vendorName?: string
 }
@@ -57,12 +57,12 @@ export const useExpenseListSearch = (
 			last: true,
 			sort: [],
 			companyCode,
-			searchDateFrom: dayjs(useMonth.from()).format("YYYY-MM-DD"), //시작일
+			searchDateFrom: dayjs(useMonth.lastFrom()).format("YYYY-MM-DD"), //시작일
 			searchDateTo: dayjs(useMonth.to()).format("YYYY-MM-DD"), //종료일
 			slipType: "",
 			slipStatus: "",
-			agentFlag: true,
-			agentIds: [employeeId],
+			agentFlag: false,
+			agentIds: [],
 			departmentId: undefined, //부서 식별자
 			departmentIds: undefined, //부서 식별자
 			departmentName: undefined, //부서명
@@ -77,9 +77,9 @@ export const useExpenseListSearch = (
 			amountTo: 9999999, //종료금액
 			employeeId: undefined, //사용자 식별자
 			employeeIds: undefined, //사용자 식별자
-			month: "당월",
-			filterDate: [useMonth.from(), useMonth.to()],
-			vendorName: "",
+			month: "",
+			filterDate: [useMonth.lastFrom(), useMonth.to()],
+			// vendorName: "",
 		})
 	)
 
@@ -96,9 +96,7 @@ export const expenseListColumns = createTableColumns<"ExpenseList">([
 		title: "지출유형",
 		dataIndex: "slipTypeName",
 		resizable: true,
-		sorter: {
-			multiple: 1,
-		},
+		sorter: false,
 		width: 100,
 		align: "center",
 	},
@@ -107,7 +105,7 @@ export const expenseListColumns = createTableColumns<"ExpenseList">([
 		dataIndex: "slipNumber",
 		resizable: true,
 		sorter: {
-			multiple: 2,
+			multiple: 1,
 		},
 		width: -1,
 		align: "center",
@@ -117,7 +115,7 @@ export const expenseListColumns = createTableColumns<"ExpenseList">([
 		dataIndex: "evidenceDate",
 		resizable: true,
 		sorter: {
-			multiple: 3,
+			multiple: 2,
 		},
 		width: 100,
 		align: "center",
@@ -126,9 +124,7 @@ export const expenseListColumns = createTableColumns<"ExpenseList">([
 		title: "사용자",
 		dataIndex: "employeeName",
 		resizable: true,
-		sorter: {
-			multiple: 4,
-		},
+		sorter: false,
 		width: -1,
 		align: "center",
 	},
@@ -137,7 +133,7 @@ export const expenseListColumns = createTableColumns<"ExpenseList">([
 		dataIndex: "storeName",
 		resizable: true,
 		sorter: {
-			multiple: 5,
+			multiple: 3,
 		},
 		width: -1,
 	},
@@ -146,7 +142,7 @@ export const expenseListColumns = createTableColumns<"ExpenseList">([
 		dataIndex: "krwTotalAmount",
 		resizable: true,
 		sorter: {
-			multiple: 6,
+			multiple: 4,
 		},
 		align: "right",
 		width: -1,
@@ -155,9 +151,7 @@ export const expenseListColumns = createTableColumns<"ExpenseList">([
 		title: "계정과목/비용항목",
 		dataIndex: "accountName",
 		resizable: true,
-		sorter: {
-			multiple: 7,
-		},
+		sorter: false,
 		width: -1,
 	},
 	{
@@ -165,7 +159,7 @@ export const expenseListColumns = createTableColumns<"ExpenseList">([
 		dataIndex: "description",
 		resizable: true,
 		sorter: {
-			multiple: 8,
+			multiple: 5,
 		},
 		width: 200,
 	},
@@ -173,19 +167,15 @@ export const expenseListColumns = createTableColumns<"ExpenseList">([
 		title: "영수증 첨부",
 		dataIndex: "fileId",
 		resizable: true,
-		sorter: {
-			multiple: 9,
-		},
 		align: "center",
+		sorter: false,
 		width: -1,
 	},
 	{
 		title: "상태",
 		dataIndex: "slipStatusName",
 		resizable: true,
-		sorter: {
-			multiple: 10,
-		},
+		sorter: false,
 		align: "left",
 		width: -1,
 	},

@@ -1,0 +1,41 @@
+.sp-pagination
+  display: flex
+  justify-content: space-between
+  align-items: center
+  // border-top: 1px solid #eee
+  // margin-top: 5px
+  // background-color: #f7f7f7
+  padding: 5px 10px
+  .sp-page-info
+    line-height: 1
+    // color: #bbb
+    color: rgba(0, 0, 0, 0.3)
+    font-size: 14px
+    font-weight: 600
+    margin-right: 10px
+  .sp-page-control
+    padding: 0
+    margin: 0
+    .sp-page-button
+      display: inline-flex
+      a
+        display: inline-flex
+        padding: 7px
+        font-size: 14px
+        color: #333
+        text-decoration: none
+        cursor: pointer
+        line-height: 1
+        background: transparent
+        transition: all .3s ease
+        border-radius: .6rem
+        &:hover
+          color: black
+          background-color: #f1f1f1
+          // box-shadow: 0 2px 5px rgba(0, 0, 0, .2)
+      &.sp-page-disabled a
+        color: #ddd
+        font-weight: normal
+        background-color: transparent
+        cursor: default
+        // box-shadow: none

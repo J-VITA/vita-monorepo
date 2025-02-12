@@ -178,7 +178,7 @@
         <template #left>
           <VaButton :icon="isSidebarVisible ? 'menu' : 'menu_open'" @click="setSidebarOpen(isSidebarVisible = !isSidebarVisible)" />
           <VaNavbarItem class="font-bold text-lg">
-            WiseXpense
+            J-VITA
           </VaNavbarItem>
         </template>
         <template #center>

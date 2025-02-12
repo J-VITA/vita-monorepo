@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"private": true,
 	"type": "module",
-	"author": "ILJIN CNS",
+	"author": "J-VITA",
 	"scripts": {
 		"build": "nuxt build",
 		"dev:local": "nuxt dev --dotenv .env.local",

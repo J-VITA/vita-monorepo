@@ -1,23 +1,46 @@
 {
-  "name": "elements",
-  "version": "0.0.1",
-  "private": true,
-  "main": "./index.ts",
-  "types": "./index.ts",
-  "scripts": {
-    "lint": "eslint ."
-  },
-  "devDependencies": {
-    "eslint-config-custom": "*",
-    "eslint-plugin-unicorn": "^55.0.0",
-    "prettier": "^3.2.5",
-    "prettier-config-custom": "*",
-    "tsconfig": "*"
-  },
-  "dependencies": {
-    "@vueuse/components": "^10.9.0",
-    "@vueuse/core": "^10.9.0",
-    "eslint-config-turbo": "^2.1.1",
-    "vuesax": "^4.0.1-alpha.25"
-  }
+	"name": "@iwx/elements",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"main": "./dist/index.js",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.js"
+		}
+	},
+	"files": [
+		"libs"
+	],
+	"scripts": {
+		"lint": "eslint .",
+		"build": "vite build"
+	},
+	"devDependencies": {
+		"@types/vue-select": "^3.16.8",
+		"@vitejs/plugin-vue": "^5.2.1",
+		"@vue/compiler-sfc": "^3.5.13",
+		"eslint-config-custom": "*",
+		"eslint-plugin-unicorn": "^55.0.0",
+		"prettier": "^3.2.5",
+		"prettier-config-custom": "*",
+		"tsconfig": "*",
+		"typescript": "^5.5.2",
+		"unplugin-vue": "^5.2.1",
+		"vite": "5.4.10",
+		"vite-plugin-dts": "^4.5.0",
+		"vite-plugin-static-copy": "^2.2.0",
+		"vue": "^3.5.13"
+	},
+	"dependencies": {
+		"@vueuse/components": "^10.9.0",
+		"@vueuse/core": "^10.9.0",
+		"eslint-config-turbo": "^2.1.1",
+		"vue-select": "4.0.0-beta.6",
+		"vuesax": "^4.0.1-alpha.25"
+	}
 }

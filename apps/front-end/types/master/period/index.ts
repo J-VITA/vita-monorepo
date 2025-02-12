@@ -1,3 +1,6 @@
+import { createTableColumns, ExTableColumns } from "@/types"
+import dayjs from "dayjs"
+
 export enum AccountPeriodStatus {
 	CLOSE = "CLOSE",
 	OPEN = "OPEN",
@@ -24,7 +27,7 @@ interface ICreate {
 	workplaceId?: number
 	workplaceCode: string | number
 	accountPeriodStatus: string
-	description: string
+	// description: string
 }
 
 interface ISearchParams {
@@ -53,3 +56,53 @@ export type ConfirmProps = {
 export type CreateAccountPeriod = Partial<ICreate>
 
 export type SearchParams = Partial<ISearchParams>
+
+export const columns = createTableColumns<"AccountPeriodList">([
+	{
+		title: "기준월",
+		dataIndex: "standardYearMonth",
+		align: "center",
+		width: -1,
+	},
+	{
+		title: "회계구분",
+		dataIndex: "accountPeriodStatusLabel",
+		width: -1,
+		resizable: true,
+		align: "center",
+	},
+	{
+		title: "회사명",
+		dataIndex: "companyName",
+		width: -1,
+		resizable: true,
+		align: "center",
+	},
+	{
+		title: "사업장명",
+		dataIndex: "workplaceName",
+		width: -1,
+		resizable: true,
+		align: "center",
+	},
+	{
+		title: "최종수정일",
+		dataIndex: "updatedAt",
+		width: -1,
+		align: "center",
+		resizable: true,
+		customRender: ({ text }) => text && dayjs(text).format("YYYY-MM-DD HH:mm:ss"),
+	},
+	{
+		title: "최종수정자",
+		dataIndex: "updatedBy",
+		align: "center",
+		width: -1,
+		customRender: ({ text }) => (text ? text.toLocaleString() : ""),
+	},
+])
+
+export type AccountPeriodListColumns = ExTableColumns<"AccountPeriodList">
+export const useAccountPeriodListColumns = () => {
+	return ref<AccountPeriodListColumns>(columns)
+}

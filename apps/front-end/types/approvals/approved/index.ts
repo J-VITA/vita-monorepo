@@ -90,6 +90,7 @@ export const columns = createTableColumns<"AapprovedList">([
 	{
 		title: "문서상태",
 		dataIndex: "documentStatusLabel",
+		align: "center",
 		sorter: {
 			multiple: 2,
 		},
@@ -108,6 +109,7 @@ export const columns = createTableColumns<"AapprovedList">([
 	{
 		title: "문서번호",
 		dataIndex: "approvalNumber",
+		align: "center",
 		sorter: {
 			multiple: 4,
 		},
@@ -117,16 +119,19 @@ export const columns = createTableColumns<"AapprovedList">([
 	{
 		title: "총금액(KRW)",
 		dataIndex: "totalAmount",
+		align: "right",
 		sorter: {
 			multiple: 5,
 		},
 		width: -1,
 		resizable: true,
+		className: "bold",
 		customRender: ({ text }) => formatCurrency(text, "KRW"),
 	},
 	{
 		title: "기안자",
 		dataIndex: "draftEmployeeName",
+		align: "center",
 		sorter: {
 			multiple: 6,
 		},
@@ -136,6 +141,7 @@ export const columns = createTableColumns<"AapprovedList">([
 	{
 		title: "기안일",
 		dataIndex: "draftDateTime",
+		align: "center",
 		sorter: {
 			multiple: 7,
 		},
@@ -146,6 +152,7 @@ export const columns = createTableColumns<"AapprovedList">([
 	{
 		title: "완료일",
 		dataIndex: "completedDateTime",
+		align: "center",
 		sorter: {
 			multiple: 8,
 		},

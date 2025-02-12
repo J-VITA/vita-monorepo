@@ -90,6 +90,7 @@ export const columns = createTableColumns<"ReturnedList">([
 			multiple: 3,
 		},
 		align: "right",
+		className: "bold",
 		customRender: ({ text }) => formatCurrency(text, "KRW"),
 	},
 	{

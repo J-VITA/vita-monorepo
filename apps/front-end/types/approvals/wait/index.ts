@@ -86,6 +86,7 @@ export const columns = createTableColumns<"ApprovalWaitList">([
 			multiple: 2,
 		},
 		align: "right",
+		className: "bold",
 		customRender: ({ text }) => formatCurrency(text, "KRW"),
 	},
 	{

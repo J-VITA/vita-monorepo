@@ -11,11 +11,11 @@ import {
 export const columns = createTableColumns<"ExcelFormList">([
 	{
 		title: "양식명",
-		dataIndex: "title",
+		dataIndex: "name",
 	},
 	{
 		title: "페이지위치",
-		dataIndex: "position",
+		dataIndex: "menuPath",
 	},
 	{
 		title: "설명",

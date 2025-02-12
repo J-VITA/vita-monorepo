@@ -1,4 +1,4 @@
-# Monorepo Project
+# VITA-Monorepo Project
 
 모노레포를 이용한 프로젝트
 

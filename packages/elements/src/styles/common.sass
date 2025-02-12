@@ -1,0 +1,75 @@
+.sp-result-message
+  padding: 20px 0
+  text-align: center
+  font-weight: bold
+  color: #999
+.sp-container
+  min-width: 300px
+  display: inline-flex
+  overflow: hidden
+  flex-direction: column
+  font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif
+  // background-color: #fcfcfc
+
+.sp-message
+  display: flex
+  align-items: center
+  padding: 10px 0
+  background-color: #E4EAEE
+  color: black
+  flex-grow: 1
+  .bi-chat-left-dots
+    font-size: 1.2rem
+    margin: 0 1rem
+  .sp-message-body
+    font-size: 14px
+    line-height: 1
+    flex-wrap: wrap
+    max-width: 15rem
+.sp-message-slide-enter-active,
+.sp-message-slide-leave-active
+  transition: opacity 300ms
+.sp-message-slide-enter,
+.sp-message-slide-leave-to
+  opacity: 0
+.sp-message-slide-enter-to,
+.sp-message-slide-leave
+  opacity: 1
+
+.sp-icon
+  width: 1em
+  height: 1em
+  &.sp-icon-small
+    font-size: 1rem
+  &.sp-icon-medium
+    font-size: 1.3rem
+
+.sp-circle-btn
+  width: 20px
+  height: 20px
+  font-size: 14px
+  line-height: 1
+  display: inline-flex
+  justify-content: center
+  align-items: center
+  cursor: pointer
+  color: #aaa
+  // background-color: transparent
+  transition: all .3s ease
+  border-radius: 50%
+  &:hover
+    color: black
+    // background-color: #f1f1f1
+  // .sp-circle-btn.sp-circle-btn-disabled
+  &#{&}--disabled,
+  &#{&}--disabled:hover
+    cursor: default
+    color: #eee
+  &#{&}--small
+    width: 16px
+    height: 16px
+    font-size: 12px
+  &#{&}--large
+    width: 28px
+    height: 28px
+    font-size: 16px

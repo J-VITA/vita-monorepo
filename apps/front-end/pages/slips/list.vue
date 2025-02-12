@@ -4,14 +4,17 @@ import SlipsProject from "@/components/slips/list/SlipsProject.vue"
 import SlipsCard from "@/components/slips/list/SlipsCard.vue"
 import type { TabPaneProps } from "ant-design-vue"
 import {
+	AccountInputMethodTypes,
 	createSearchParams,
 	pageSize,
 	RequestParams,
+	Response,
 	SlipFormType,
 	SlipType,
 } from "@/types"
 import { SlipActivityType, TSlipSearch } from "@/types/slips/list"
 import { dateFormat } from "@/types/expenses"
+import { IwxSelectTable } from "@iwx/elements"
 
 definePageMeta({
 	name: "전표내역조회",
@@ -118,7 +121,7 @@ const params = ref<Array<TSlipSearch>>([
 		evidenceVendorName: undefined,
 		paymentVendorName: undefined,
 		cardNumber: undefined,
-		slipType: [],
+		// slipType: [],
 		slipStatus: [],
 		departmentId: getDepartmentId.value,
 		departmentIds: [getDepartmentId.value],
@@ -146,8 +149,15 @@ const searchParams = computed({
 	},
 }) as ComputedRef<TSlipSearch>
 
-const { list, slipsManagementTypes, slipsManagementStatus, slipsManagementProjects } =
-	useSlips()
+const {
+	list,
+	slipsManagementTypes,
+	slipsManagementStatus,
+	slipsManagementProjects,
+	slipsManagementAccounts,
+} = useSlips()
+
+const accountInputMethodType = ref<string>(AccountInputMethodTypes.ACCOUNT_SUB_ACCOUNT)
 
 const {
 	data: slipsData,
@@ -157,12 +167,15 @@ const {
 	refresh: slipsRefresh,
 } = await list(activeKey, searchParams)
 
-const { data: slipsTypesData } = await slipsManagementTypes()
-const { data: slipsStatusData } = await slipsManagementStatus()
-const { data: slipsProjectData } = await slipsManagementProjects()
+const { data: slipsTypesData } = await slipsManagementTypes(activeKey)
+const { data: slipsStatusData } = await slipsManagementStatus(activeKey)
+const { data: slipsProjectData, refresh: slipsProjectRefresh } =
+	await slipsManagementProjects(activeKey, searchParams)
+const { data: slipsAccountData } = await slipsManagementAccounts(activeKey, searchParams)
 
 const showDetail = ref<boolean>(false)
 const showDocument = ref<boolean>(false)
+const showEnvidenceFile = ref<boolean>(false)
 
 const expenseFormId = ref<string | number | undefined>(undefined)
 const slipFormId = ref<string | number | undefined>(undefined)
@@ -176,13 +189,17 @@ const onDocument = async (value: any) => {
 
 	slipFormId.value = value.approvalHeaderId as string | number
 
-	if (value.slipTypeName === SlipType.PERSONAL_EXPENSE) {
-		slipFormType.value = SlipFormType.PERSONAL_EXPENSE_FORM
+	if (value.slipTypeName === SlipType.PERSONAL) {
+		slipFormType.value = SlipFormType.PERSONAL_FORM
 	} else if (value.slipTypeName === SlipType.CARD) {
 		slipFormType.value = SlipFormType.CARD_FORM
 	} else {
 		slipFormType.value = value.slipTypeName
 	}
+}
+
+const onEvidenceFile = (open: boolean) => {
+	showEnvidenceFile.value = open
 }
 
 const formId = computed({
@@ -277,7 +294,7 @@ const paramsReset = () => {
 		params.value[2].evidenceVendorName = undefined
 		params.value[2].paymentVendorName = undefined
 		params.value[2].cardNumber = undefined
-		params.value[2].slipType = []
+		// params.value[2].slipType = []
 		params.value[2].slipStatus = []
 		params.value[2].departmentId = getDepartmentId.value
 		params.value[2].departmentIds = [getDepartmentId.value]
@@ -289,13 +306,32 @@ const paramsReset = () => {
 	}
 }
 
+const { getRules } = useExpenseRules()
+
+onMounted(() => {
+	getRules().then((res) => {
+		if (!res.data) return
+		accountInputMethodType.value = res.data.accountInputMethodTypeName
+	})
+})
+
 onBeforeRouteLeave(() => {
 	showDocument.value = false
+	showEnvidenceFile.value = false
 	slipFormId.value = undefined
 	slipFormType.value = undefined
 
 	showDetail.value = false
 })
+
+watch(
+	() => [searchParams.value.employeeId, activeKey.value],
+	(data) => {
+		if (data[1] === SlipActivityType.SLIPS_PROJECT) {
+			slipsProjectRefresh()
+		}
+	}
+)
 </script>
 
 <template>
@@ -318,9 +354,12 @@ onBeforeRouteLeave(() => {
 						:slip-type-options="slipsTypesData?.data"
 						:slip-status-options="slipsStatusData?.data"
 						:slip-project="slipsProjectData?.data"
+						:slip-account="slipsAccountData?.data"
+						:account-input-method="accountInputMethodType"
 						:active-key="activeKey"
 						@on-detail="onDetail"
 						@on-document="onDocument"
+						@on-evidence-file="onEvidenceFile"
 						@refresh="() => slipsRefresh()"
 						@reset="() => paramsReset()"
 					></component>
@@ -364,6 +403,11 @@ onBeforeRouteLeave(() => {
 					}
 				"
 			/>
+
+			<evidence-file-list-modal
+				v-if="showEnvidenceFile"
+				v-model:open="showEnvidenceFile"
+			></evidence-file-list-modal>
 		</template>
 	</page-layout>
 </template>

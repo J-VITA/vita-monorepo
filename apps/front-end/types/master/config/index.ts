@@ -11,6 +11,7 @@ interface ICommonData {
 	businessTripNameInputFlag: boolean
 	expenseFileFlag: boolean // 지출작성 첨부파일 사용 여부
 	expenseDocFlag: boolean // 결재문서 여부
+	groupWareDocFlag: boolean // 그룹웨어 문서 업로드 사용 여부
 	personalExpensePaymentDateFlag: boolean // 개인경비 출금/지급 예정일 표시 여부
 	personalExpenseWriteFlag: boolean // 개인경비 작성 허용 여부
 	corporateCreditCardPaymentDateFlag: boolean // 법인카드 출금/지급 예정일 표시 여부
@@ -27,8 +28,8 @@ interface ICommonData {
 	approvalRequiredFlag: boolean // 결재자필수포함 여부
 	nonDeductionBusinessType: string // 불공제업종
 	description: string
-	expenseDocList: string[] // 결재 문서 사용 가능 List ["PERSONAL_EXPENSE","CARD","BILL_INVOICE"]
-	expenseFileList: string[] // 사용 가능 첨부파일 List ["PERSONAL_EXPENSE","CARD","BILL_INVOICE"]
+	expenseDocList: string[] // 결재 문서 사용 가능 List ["PERSONAL","CARD","BILL_INVOICE"]
+	expenseFileList: string[] // 사용 가능 첨부파일 List ["PERSONAL","CARD","BILL_INVOICE"]
 	cardManagerFlag: boolean // 카드 담당자 사용 여부
 	budgetManagerFlag: boolean //예산 담당자 여부
 	nonDeductionBusinessTypeFlag: boolean //불공제업종 여부
@@ -95,9 +96,3 @@ interface IData extends ICommonData {
 }
 
 export type Data = Required<IResponseData> & Partial<IData>
-
-export const spendTypeOptions = [
-	{ label: "개인경비", value: "PERSONAL_EXPENSE" },
-	{ label: "법인카드", value: "CARD" },
-	{ label: "세금계산서", value: "BILL_INVOICE" },
-]

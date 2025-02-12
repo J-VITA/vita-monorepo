@@ -1,26 +1,55 @@
 {
-  "name": "@iwx/ui",
-  "version": "0.0.1",
-  "private": true,
-  "main": "./index.ts",
-  "types": "./index.ts",
-  "scripts": {
-    "lint": "eslint ."
-  },
-  "dependencies": {
-    "@pinia/nuxt": "^0.5.x",
-    "eslint-config-turbo": "^2.1.1",
-    "pinia": "^2.x.x",
-    "ag-grid-community": "^32.3.3",
-    "ag-grid-enterprise": "^32.3.3",
-    "ag-grid-vue3": "^32.3.3"
-  },
-  "devDependencies": {
-    "eslint-config-custom": "*",
-    "eslint-plugin-unicorn": "^55.0.0",
-    "prettier": "^3.2.5",
-    "prettier-config-custom": "*",
-    "tsconfig": "*",
-    "vue": "^3.5.3"
-  }
+	"name": "@iwx/ui",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"main": "./dist/index.js",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.js"
+		},
+		"./style": "./dist/style.css",
+		"./ag-grid": {
+			"import": "./dist/ag-grid.css",
+			"require": "./dist/ag-grid.css"
+		}
+	},
+	"files": [
+		"libs"
+	],
+	"scripts": {
+		"lint": "eslint .",
+		"build": "vite build"
+	},
+	"dependencies": {
+		"@pinia/nuxt": "^0.5.x",
+		"ag-charts-vue3": "^10.3.1",
+		"ag-grid-community": "^32.3.3",
+		"ag-grid-enterprise": "^32.3.3",
+		"ag-grid-vue3": "^32.3.3",
+		"eslint-config-turbo": "^2.1.1",
+		"pinia": "^2.x.x"
+	},
+	"devDependencies": {
+		"@vitejs/plugin-vue": "^5.2.1",
+		"@vue/compiler-sfc": "^3.5.13",
+		"eslint-config-custom": "*",
+		"eslint-plugin-unicorn": "^55.0.0",
+		"prettier": "^3.2.5",
+		"prettier-config-custom": "*",
+		"tsconfig": "*",
+		"typescript": "^5.5.2",
+		"unplugin-vue": "^5.2.1",
+		"vite": "5.4.10",
+		"vite-plugin-dts": "^4.5.0",
+		"vite-plugin-static-copy": "^2.2.0",
+		"vue": "^3.5.3"
+	},
+	"peerDependencies": {
+		"vue": "^3.0.0"
+	}
 }

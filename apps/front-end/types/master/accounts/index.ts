@@ -16,7 +16,7 @@ interface IManagementItem {
 	managementItemTypeName: string
 }
 
-interface IAccountItem {
+export interface IAccountItem {
 	id?: number
 	companyCode?: string
 	parentId?: number | undefined
@@ -27,7 +27,7 @@ interface IAccountItem {
 	accountLevelName?: string
 	description: string
 	used: boolean
-	expenseAccountTypeList: string[]
+	slipTypeList: string[]
 	taxFlag: boolean
 	advancePaymentsFlag: boolean
 	advanceReceivedFlag: boolean
@@ -35,7 +35,9 @@ interface IAccountItem {
 	slipInputFlag: boolean
 	budgetFlag: boolean
 	undecidedFlag: boolean
-	debitAndCreditFlag: boolean
+	// debitCreditFlag: boolean
+	debitFlag: boolean
+	creditFlag: boolean
 	customerFlag: boolean
 	foreignCurrencyFlag: boolean
 	managementItemFlag?: boolean
@@ -51,6 +53,7 @@ interface IAccountItem {
 	dailyAllowanceFlag: boolean
 	accommodationFlag: boolean
 	parent?: any
+	children?: IAccountItem[]
 }
 
 interface IAccountRolesItem {
@@ -73,7 +76,7 @@ export const initData: AccountItem = {
 	description: "", //설명
 	accountLevelLabel: "", // 계정레벨
 	used: false, // 사용여부
-	expenseAccountTypeList: [], //지출유형
+	slipTypeList: [], //지출유형
 	slipInputFlag: false, // 전표입력계정
 	expenseAccountFlag: false, //경비지출계정
 	taxFlag: false, // 부가세관리
@@ -81,7 +84,9 @@ export const initData: AccountItem = {
 	advanceReceivedFlag: false, //선수금
 	budgetFlag: false, // 예산
 	undecidedFlag: false, // 미결
-	debitAndCreditFlag: false, //차대변관리
+	// debitCreditFlag: false, //차대변관리
+	debitFlag: false,
+	creditFlag: false,
 	customerFlag: false, //거래처관리
 	foreignCurrencyFlag: false, //외화관리
 	erpAccountFlag: false, //ERP계정여부

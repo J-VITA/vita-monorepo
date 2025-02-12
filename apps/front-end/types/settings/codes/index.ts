@@ -41,6 +41,22 @@ export interface SubCode {
 	groupCodeId: string | number
 	orderSeq: number
 }
+
+export interface CommonSearchParams {
+	keyword?: string
+	used?: string
+}
+
+type usedType = {
+	value?: string
+	label: string
+}
+
+export const usedStatus: usedType[] = [
+	{ value: "", label: "전체" },
+	{ value: "Y", label: "사용" },
+	{ value: "N", label: "미사용" },
+]
 export type RequestGroup = Partial<GroupCodeRequest> &
 	Pick<GroupCodeRequest, "page" | "size">
 export type GroupCode = Partial<Code> &
