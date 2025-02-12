@@ -10,4 +10,5 @@ export type Tax = {
 	orderSeq: number
 	attribute1: string | undefined
 	attribute2: string | undefined
+	deductionType: string
 }

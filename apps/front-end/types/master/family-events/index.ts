@@ -4,8 +4,9 @@ interface IFamilyEvents {
 	id: number | undefined
 	companyCode: string
 	description: string
+	familyEventTypeId: number
 	familyEventTypeName: string
-	familyEventTypeLabel: string
+	// familyEventTypeLabel: string
 	familyEventAmount: number
 	vacationDay: number
 	mutualAidFlag: boolean
@@ -28,14 +29,14 @@ interface IFormData {
 	vacationDay: number
 	mutualAidFlag: boolean
 	wreathFlag: boolean
-	startDate: string | Dayjs
-	endDate: string | Dayjs
+	searchYearMonthFrom: string | Dayjs
+	searchYearMonthTo: string | Dayjs
 }
 
 export type FormData = Partial<IFormData>
 export type FamilyEventsItem = Partial<IFamilyEvents>
 export type Search = Partial<IFamilyEvents> & {
-	pageNumber?: number
+	pageNumber: number
 	size?: number
 }
 

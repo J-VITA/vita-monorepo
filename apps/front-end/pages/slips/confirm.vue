@@ -27,6 +27,7 @@ import {
 	getRowStyle,
 	ISlipsDataType,
 	options,
+	SlipActivityType,
 } from "@/types/slips/list"
 import {
 	TSlipConfirmSearch,
@@ -116,6 +117,9 @@ const searchParams = computed({
 		})
 	},
 })
+
+const activeKey = ref<string>(SlipActivityType.CONFIRM_LIST)
+
 const { checks, slipsManagementTypes, slipsManagementStatus } = useSlips()
 const {
 	data: slipsData,
@@ -124,8 +128,8 @@ const {
 	execute: slipsExecute,
 	refresh: slipsRefresh,
 } = await checks(searchParams)
-const { data: slipTypeOptions } = await slipsManagementTypes()
-const { data: slipStatusOptions } = await slipsManagementStatus()
+const { data: slipTypeOptions } = await slipsManagementTypes(activeKey)
+const { data: slipStatusOptions } = await slipsManagementStatus(activeKey)
 
 const gridApi = shallowRef<GridApi<DataType>>()
 
@@ -150,7 +154,8 @@ const columnDefs = ref<GridOptions<ISlipsDataType>["columnDefs"]>([
 		field: "slipNumber",
 		headerName: "전표번호",
 		headerClass: "ag-center-header",
-		minWidth: 200,
+		minWidth: 180,
+		width: 180,
 		headerCheckboxSelection: true,
 		checkboxSelection: (params: any) => {
 			return params?.data?.slipNumber ? true : false
@@ -172,6 +177,8 @@ const columnDefs = ref<GridOptions<ISlipsDataType>["columnDefs"]>([
 		headerName: "전표유형",
 		headerClass: "ag-center-header",
 		cellClass: "text-center",
+		minWidth: 120,
+		width: 120,
 		cellRenderer: ColorTag,
 		cellRendererParams: (params: ICellRendererParams) => {
 			const color = params.value
@@ -204,7 +211,8 @@ const columnDefs = ref<GridOptions<ISlipsDataType>["columnDefs"]>([
 		field: "approvalNumber",
 		headerClass: "ag-center-header",
 		headerName: "결재문서번호",
-		minWidth: 200,
+		minWidth: 180,
+		width: 180,
 		// rowGroup: true,
 		// hide: false,
 	},
@@ -212,6 +220,8 @@ const columnDefs = ref<GridOptions<ISlipsDataType>["columnDefs"]>([
 		field: "approvalHeaderId",
 		headerName: "결재문서",
 		headerClass: "ag-center-header",
+		minWidth: 120,
+		width: 120,
 		cellStyle: { textAlign: "center" },
 		cellRenderer: IconLink,
 		cellRendererParams: (params: ICellRendererParams) => {
@@ -222,8 +232,8 @@ const columnDefs = ref<GridOptions<ISlipsDataType>["columnDefs"]>([
 				onClick: (params: any) => {
 					// data 를 받으면 해당 데이터로 디테일 내역 통신하고 모달 오픈
 					slipFormId.value = params.approvalHeaderId as string | number
-					if (params.slipTypeName === SlipType.PERSONAL_EXPENSE) {
-						slipFormType.value = SlipFormType.PERSONAL_EXPENSE_FORM
+					if (params.slipTypeName === SlipType.PERSONAL) {
+						slipFormType.value = SlipFormType.PERSONAL_FORM
 					} else if (params.slipTypeName === SlipType.CARD) {
 						slipFormType.value = SlipFormType.CARD_FORM
 					} else {
@@ -236,52 +246,75 @@ const columnDefs = ref<GridOptions<ISlipsDataType>["columnDefs"]>([
 	},
 	{
 		field: "accountingDate",
+		type: "date",
 		headerName: "사용일자",
 		headerClass: "ag-center-header",
+		minWidth: 120,
+		width: 120,
 	},
 	{
 		field: "workplaceName",
 		headerName: "사업장",
 		headerClass: "ag-center-header",
+		minWidth: 160,
+		width: 160,
+		cellStyle: { "text-align": "center" },
 	},
 	{
 		field: "costCenterName",
-		rowGroup: false,
 		headerName: "코스트센터명",
 		headerClass: "ag-center-header",
+		minWidth: 160,
+		width: 160,
+		cellStyle: { "text-align": "center" },
 	},
 	{
 		field: "employeeName",
 		headerName: "사용자",
 		headerClass: "ag-center-header",
+		minWidth: 120,
+		width: 120,
+		cellStyle: { "text-align": "center" },
 	},
 	{
 		field: "evidenceVendorName",
 		headerName: "증빙거래처",
 		headerClass: "ag-center-header",
+		minWidth: 140,
+		width: 140,
+		cellStyle: { "text-align": "center" },
 	},
 	{
 		field: "paymentVendorName",
 		headerName: "지급거래처",
 		headerClass: "ag-center-header",
+		minWidth: 140,
+		width: 140,
+		cellStyle: { "text-align": "center" },
 	},
 	{
 		field: "krwTotalAmount",
 		headerName: "총금액",
 		headerClass: "ag-center-header",
 		type: "currency",
+		minWidth: 160,
+		width: 160,
 	},
 	{
 		field: "krwSupplyAmount",
 		headerName: "공급가액",
 		headerClass: "ag-center-header",
 		type: "currency",
+		minWidth: 160,
+		width: 160,
 	},
 	{
 		field: "krwTaxAmount",
 		headerName: "부가세",
 		headerClass: "ag-center-header",
 		type: "currency",
+		minWidth: 140,
+		width: 140,
 		valueParser: (params) => {
 			const parsedValue = params.newValue.replace(/,/g, "")
 			return Number(parsedValue || 0)
@@ -294,6 +327,9 @@ const columnDefs = ref<GridOptions<ISlipsDataType>["columnDefs"]>([
 	{
 		field: "account",
 		headerName: "계정/비용과목",
+		headerClass: "ag-center-header",
+		minWidth: 160,
+		width: 160,
 		valueFormatter: (params: ValueFormatterParams) => {
 			return params.value ? params.value.name : ""
 		},
@@ -302,6 +338,9 @@ const columnDefs = ref<GridOptions<ISlipsDataType>["columnDefs"]>([
 		field: "slipStatusName",
 		headerName: "상태",
 		headerClass: "ag-center-header",
+		minWidth: 120,
+		width: 120,
+		cellStyle: { "text-align": "center" },
 		cellRenderer: Badge,
 		cellRendererParams: (params: ICellRendererParams) => {
 			const color = params.value
@@ -322,26 +361,41 @@ const columnDefs = ref<GridOptions<ISlipsDataType>["columnDefs"]>([
 		field: "cardApprovalDateTime",
 		headerName: "카드승인일시",
 		headerClass: "ag-center-header",
+		minWidth: 140,
+		width: 140,
+		cellStyle: { "text-align": "center" },
 	},
 	{
 		field: "cardApprovalNumber",
 		headerName: "카드승인번호",
 		headerClass: "ag-center-header",
+		minWidth: 140,
+		width: 140,
+		cellStyle: { "text-align": "center" },
 	},
 	{
 		field: "projectName",
 		headerName: "프로젝트명",
 		headerClass: "ag-center-header",
+		minWidth: 140,
+		width: 140,
+		cellStyle: { "text-align": "center" },
 	},
 	{
 		field: "paymentDueDate",
 		headerName: "지급예정일",
 		headerClass: "ag-center-header",
+		minWidth: 140,
+		width: 140,
+		cellStyle: { "text-align": "center" },
 	},
 	{
 		field: "checkEmployeeName",
 		headerName: "현재검인자",
 		headerClass: "ag-center-header",
+		minWidth: 120,
+		width: 120,
+		cellStyle: { "text-align": "center" },
 	},
 	// {
 	// 	field: "nextSealUser",
@@ -368,12 +422,12 @@ const onReset = () => {
 		filterDate: [useMonth.twoMonthsAgo(), useMonth.currentMonth()],
 		searchDateFrom: useMonth.twoMonthsAgo().format(monthFormat),
 		searchDateTo: useMonth.currentMonth().format(monthFormat),
-		employeeId: getEmployeeId.value,
-		employeeIds: [getEmployeeId.value],
+		// employeeId: getEmployeeId.value,
+		employeeIds: [],
 		checkEmployeeId: getEmployeeId.value,
 		checkEmployeeIds: [getEmployeeId.value],
-		departmentId: getDepartmentId.value,
-		departmentIds: [getDepartmentId.value],
+		// departmentId: getDepartmentId.value,
+		departmentIds: [],
 		pageNumber: 0,
 		size: pageSize,
 		first: true,
@@ -667,13 +721,11 @@ onBeforeRouteLeave(() => {
 							key-props="id"
 							label-prop="name"
 							:columns="[
-								{ title: '이름', data: (row: any) => row.name },
+								{ title: '이름', data: (row: any) => row.name, width: '10rem' },
 								{ title: '직위', data: (row: any) => row.gradeName },
-								{
-									title: '코스트센터',
-									data: (row: any) => row.costCenterName,
-								},
-								{ title: '회사', data: (row: any) => row.companyName },
+								{ title: '직책', data: (row: any) => row.jobName },
+								{ title: '부서', data: (row: any) => row.departmentName },
+								{ title: '코스트센터', data: (row: any) => row.costCenterName },
 								{ title: '사업장', data: (row: any) => row.workplaceName },
 							]"
 							@update:value="(value: any) => (searchParams.checkEmployeeId = value[0])"
@@ -720,13 +772,11 @@ onBeforeRouteLeave(() => {
 							key-props="id"
 							label-prop="name"
 							:columns="[
-								{ title: '이름', data: (row: any) => row.name },
+								{ title: '이름', data: (row: any) => row.name, width: '10rem' },
 								{ title: '직위', data: (row: any) => row.gradeName },
-								{
-									title: '코스트센터',
-									data: (row: any) => row.costCenterName,
-								},
-								{ title: '회사', data: (row: any) => row.companyName },
+								{ title: '직책', data: (row: any) => row.jobName },
+								{ title: '부서', data: (row: any) => row.departmentName },
+								{ title: '코스트센터', data: (row: any) => row.costCenterName },
 								{ title: '사업장', data: (row: any) => row.workplaceName },
 							]"
 							@update:value="(value: any) => (searchParams.employeeId = value[0])"
@@ -766,20 +816,22 @@ onBeforeRouteLeave(() => {
 					</a-space>
 				</a-col>
 				<a-col>
-					<a-button
-						:icon="materialIcons('mso', 'rotate_left')"
-						@click="onReset"
-						:loading="slipsStatus === 'pending'"
-					>
-						초기화
-					</a-button>
-					<eacc-button
-						component-is="search"
-						:data="searchParams"
-						:modal-open="false"
-						:loading="slipsStatus === 'pending'"
-						@click="onSearch"
-					/>
+					<a-space :size="5">
+						<a-button
+							:icon="materialIcons('mso', 'rotate_left')"
+							@click="onReset"
+							:loading="slipsStatus === 'pending'"
+						>
+							초기화
+						</a-button>
+						<eacc-button
+							component-is="search"
+							:data="searchParams"
+							:modal-open="false"
+							:loading="slipsStatus === 'pending'"
+							@click="onSearch"
+						/>
+					</a-space>
 				</a-col>
 			</a-row>
 
@@ -796,7 +848,6 @@ onBeforeRouteLeave(() => {
 					<a-space :size="5">
 						<eacc-excel-button
 							req-type="download"
-							size="middle"
 							label="엑셀다운로드"
 							file-name="전표검인/확정"
 							:data="slipsData?.data"
@@ -832,6 +883,7 @@ onBeforeRouteLeave(() => {
 				</a-flex>
 				<iwx-grid
 					:key="gridKey"
+					:style="{ width: '100%', height: '40rem' }"
 					group-display-type="custom"
 					:grid-options="gridOptions"
 					:row-data="slipsData?.data"
@@ -942,13 +994,11 @@ onBeforeRouteLeave(() => {
 									joined: true,
 								}"
 								:columns="[
-									{ title: '이름', data: (row: any) => row.name },
+									{ title: '이름', data: (row: any) => row.name, width: '10rem' },
 									{ title: '직위', data: (row: any) => row.gradeName },
-									{
-										title: '부서',
-										data: (row: any) => row.departmentName,
-									},
-									{ title: '회사', data: (row: any) => row.companyName },
+									{ title: '직책', data: (row: any) => row.jobName },
+									{ title: '부서', data: (row: any) => row.departmentName },
+									{ title: '코스트센터', data: (row: any) => row.costCenterName },
 									{ title: '사업장', data: (row: any) => row.workplaceName },
 								]"
 								@update:value="(value: any) => (field.checker = value)"

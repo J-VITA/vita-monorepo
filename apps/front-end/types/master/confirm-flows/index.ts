@@ -31,6 +31,7 @@ export type FlowsActivityType = (typeof FlowsActivityType)[keyof typeof FlowsAct
 
 export type ConfirmFlowsProps = {
 	itemId?: string | number | undefined
+	possibled?: { code: string }[]
 }
 
 export type ConfirmFlowsIdBrand = "ConfirmFlowsId"
@@ -290,7 +291,6 @@ export const finalApproveManagementColumns = createTableColumns<"FinalApproveMan
 			sorter: {
 				multiple: 4,
 			},
-			align: "center",
 			width: 120,
 			customRender(opt) {
 				return h(Badge, {
@@ -460,7 +460,8 @@ export const recipientLineManagementColumns =
 				const content = names.reduce((acc: any[], name: string, index: number) => {
 					if (index > 0) {
 						acc.push(" ")
-						acc.push(h("i", { class: "ico-approval-arrow" }))
+						// acc.push(h("i", { class: "ico-approval-arrow" }))
+						acc.push(",")
 						acc.push(" ")
 					}
 					acc.push(name)
@@ -483,7 +484,6 @@ export const recipientLineManagementColumns =
 			sorter: {
 				multiple: 5,
 			},
-			align: "center",
 			width: 120,
 		},
 	])

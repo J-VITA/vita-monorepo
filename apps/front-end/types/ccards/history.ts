@@ -70,6 +70,7 @@ export const columns = createTableColumns<"CardHistory">([
 		width: -1,
 		resizable: true,
 		customRender: ({ text }) => dayjs(text).format("YYYY-MM-DD HH:mm"),
+		align: "center",
 	},
 	{
 		title: "상태",
@@ -88,6 +89,7 @@ export const columns = createTableColumns<"CardHistory">([
 		},
 		width: -1,
 		resizable: true,
+		align: "center",
 	},
 	{
 		title: "신청자",
@@ -97,6 +99,7 @@ export const columns = createTableColumns<"CardHistory">([
 		},
 		width: -1,
 		resizable: true,
+		align: "center",
 	},
 	{
 		title: "카드소유자",
@@ -106,6 +109,7 @@ export const columns = createTableColumns<"CardHistory">([
 		},
 		width: -1,
 		resizable: true,
+		align: "center",
 	},
 	{
 		title: "사용기간",
@@ -115,6 +119,7 @@ export const columns = createTableColumns<"CardHistory">([
 		},
 		width: -1,
 		resizable: true,
+		align: "center",
 		customRender: ({ record }) => {
 			return `${dayjs(record.startDate).format("YYYY-MM-DD HH:mm")} ~ ${dayjs(
 				record.endDate
@@ -127,7 +132,8 @@ export const columns = createTableColumns<"CardHistory">([
 		sorter: {
 			multiple: 8,
 		},
-		width: -1,
+		width: 80,
+		align: "center",
 	},
 	{
 		title: "결재처리자",

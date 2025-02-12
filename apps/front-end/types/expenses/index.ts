@@ -103,6 +103,10 @@ export const SlipTaxType = {
 	DEDUCTION: "DEDUCTION",
 	/** 불공제 */
 	NON_DEDUCTION: "NON_DEDUCTION",
+	/** 면세 */
+	TAX_EXEMPTION: "TAX_EXEMPTION",
+	/** 무관 */
+	NONE: "NONE",
 }
 
 export const SlipDivisionType = {
@@ -111,9 +115,9 @@ export const SlipDivisionType = {
 	/** 법인카드(분할) */
 	CARD_DIVISION: "CARD_DIVISION",
 	/** 개인경비 */
-	PERSONAL_EXPENSE: "PERSONAL_EXPENSE",
+	PERSONAL: "PERSONAL",
 	/** 개인경비(분할) */
-	PERSONAL_EXPENSE_DIVISION: "PERSONAL_EXPENSE_DIVISION",
+	PERSONAL_DIVISION: "PERSONAL_DIVISION",
 }
 
 export const SlipOilType = {
@@ -148,11 +152,13 @@ type StateType = {
 }
 
 export const classifications: ClassificationType = {
-	PERSONAL_EXPENSE: { color: "orange", text: "개인경비" },
-	DIVISION_PERSONAL_EXPENSE: { color: "orange", text: "개인경비분할" },
+	PERSONAL: { color: "orange", text: "개인경비" },
+	PERSONAL_DIVISION: { color: "orange", text: "개인경비분할" },
 	CARD: { color: "blue", text: "법인카드" },
-	E_TAX_INVOICE: { color: "blue", text: "전자세금계산서" },
-	TAX_INVOICE: { color: "blue", text: "수기세금계산서" },
+	E_TAX: { color: "cyan", text: "전자세금계산서" },
+	HAND_TAX: { color: "purple", text: "수기세금계산서" },
+	// TAX_INVOICE: { color: "blue", text: "수기세금계산서" },
+	ADVANCE: { color: "purple", text: "선급금" },
 }
 
 export const states: StateType = {
@@ -238,10 +244,11 @@ export type OilExpensesFormData = {
 	paymentDueDate?: Dayjs | string
 	companyCode?: string
 	employeeId?: number
+	employeeIds?: number[]
 	workplaceCode?: string
 	costCenterId?: number
 	writer?: number[]
-	accruedAccountCode?: string
+	accruedAccountId?: string
 	perdiemName?: string
 	perdiemPath?: string
 	departure?: string
@@ -262,7 +269,7 @@ export type OilExpensesFormData = {
 	personalPathName?: string
 }
 
-type OrderedMap = {
+export type OrderedMap = {
 	iSlipNumber: string //I/F 전표번호
 	iSlipTypeCode: string //I/F 전표유형코드
 	iPaymentDate: string //I/F 지급일자
@@ -294,7 +301,7 @@ export type SlipDetails = {
 	debitCreditType?: string //차대변유형구분(DEBIT, CREDIT)
 	debitCreditTypeLabel?: string //코드명(차변, 대변)
 	debitCreditTypeName?: string //코드(DEBIT, CREDIT)
-	taxCode?: string //세금코드
+	taxType?: string //세금코드
 	budgetDepartmentCode?: string //예산부서코드
 	totalAmount?: number //금액
 	supplyAmount?: number //과세표준금액
@@ -317,6 +324,16 @@ export type SlipDetails = {
 	employee: Array<number> //작성자 - 직원 식별자(ui select-table type 객체)
 	accountChangeCnt?: number // 자동 공제를 위한 카운트 변수
 	managementItems: ManagementItemType[] | []
+	employeeName?: string //참석자 상세보기(read only)
+	taxName?: string //과세유형명 상세보기(read only)
+	costCenterName?: string //코스트센터 상세보기(read only)
+	account?: {
+		id?: number
+		name?: string
+		parentId?: number
+		parentName?: string
+	} //계정항목 상세보기(read only)
+	projectName?: string //프로젝트 상세보기(read only)
 }
 
 export interface SlipDetailsWithReferences extends SlipDetails {
@@ -349,6 +366,7 @@ type IExpenses = {
 	foreignCurrencyAmount: number
 	description: string
 	employeeId: number
+	fuelSlipFlag: boolean
 }
 
 type ISlip = {
@@ -367,14 +385,15 @@ type ISlipHeader = {
 	slipType: string //전표유형 * 필수
 	slipTypeName?: string
 	slipStatus: string // 전표상태 * 필수
+	deductionTypeName?: string // 과세유형
 	// accountingYearMonth: Dayjs | undefined //회계년월 * 필수
-	accountingDate: Dayjs | undefined //회계일자 * 필수
-	evidenceDate: Dayjs | undefined //증빙일자 * 필수
-	slipEvidenceType: string //증빙유형(CARD, CARD_DIVISION, PERSONAL_EXPENSE, PERSONAL_EXPENSE_DIVISION..) * 필수
+	accountingDate: Dayjs | string | undefined //회계일자 * 필수
+	evidenceDate: Dayjs | string | undefined //증빙일자 * 필수
+	slipEvidenceType: string //증빙유형(CARD, CARD_DIVISION, PERSONAL, PERSONAL_DIVISION..) * 필수
 	slipRequestType: string //신청유형(ADVANCE, FRONT_MONEY)
 	slipCalculationType: string //정산유형(NOT, ADVANCE) * 필수
 	divisionSlipFlag: boolean //분할전표여부
-	taxCode: string //세금코드
+	taxType: string //세금코드
 	workplaceId: number | undefined //사업장 식별자
 	workplaceCode: string | number | undefined //사업장코드
 	workplaceCodes?: (string | number)[] //사업장코드 (화면용)
@@ -408,9 +427,10 @@ type ISlipHeader = {
 	osType: string //기기유형(WEB, IOS..)
 	taxInvoiceNumber: string //세금계산서번호
 	termsOfPaymentCode: string //지급조건코드
-	paymentDueDate: Dayjs | undefined //지급예정일
+	termsOfPaymentName: string //지급조건명
+	paymentDueDate: Dayjs | string | undefined //지급예정일
 	wroteAt: Dayjs | undefined //작성일시
-	accruedAccountCode: string //미지급계정코드
+	accruedAccountId: string //미지급계정코드
 	accruedSubAccountCode: string //미지급보조계정코드
 	representativeAccountCode: string //대표계정코드
 	fixedAssetFlag: boolean //고정자산여부 example: false
@@ -420,13 +440,17 @@ type ISlipHeader = {
 	description: string //헤더 설명
 	reference: { [key: string]: string }
 	writerId: number | undefined //작성자 - 직원 식별자
-	writer: Array<number> //작성자 - 직원 식별자(ui select-table type 객체)
+	// writer: Array<number> //작성자 - 직원 식별자(ui select-table type 객체)
 	approvalFinalEmployeeId: number | undefined //최종결재자 - 직원 식별자
 	employeeId: number | undefined //사용자 - 직원 식별자
+	employeeIds: Array<number> //사용자 - 직원 식별자(ui select-table type 객체)
 	// managementItems: ManagementItemType[] | []
 	slipStatusLabel: string
 	slipStatusName: string
 	storeName: string // 가맹점
+	writerName?: string //작성자 상세보기(read only)
+	accruedAccountName?: string //부채계정 상세보기(read only)
+	workplaceName?: string //사업장 상세보기(read only)
 }
 
 type ISlipCard = {
@@ -456,11 +480,11 @@ export const SlipField: ISlip = {
 		// accountingYearMonth: undefined, //회계년월
 		accountingDate: undefined, //회계일자
 		evidenceDate: undefined, //증빙일자
-		slipEvidenceType: "", //증빙유형(CARD, CARD_DIVISION, PERSONAL_EXPENSE, PERSONAL_EXPENSE_DIVISION..)
+		slipEvidenceType: "", //증빙유형(CARD, CARD_DIVISION, PERSONAL, PERSONAL_DIVISION..)
 		slipRequestType: "", //신청유형(ADVANCE, FRONT_MONEY)
 		slipCalculationType: "", //정산유형(NOT, ADVANCE)
 		divisionSlipFlag: false, //분할전표여부
-		taxCode: "", //세금코드
+		taxType: "", //세금코드
 		workplaceId: undefined, //사업장 식별자
 		workplaceCode: "", //사업장코드
 		evidenceVendorCode: "", //증빙거래처코드
@@ -491,9 +515,10 @@ export const SlipField: ISlip = {
 		osType: "", //기기유형(WEB, IOS..)
 		taxInvoiceNumber: "", //세금계산서번호
 		termsOfPaymentCode: "", //지급조건코드
+		termsOfPaymentName: "", //지급조건명
 		paymentDueDate: undefined, //지급예정일
 		wroteAt: undefined, //작성일시
-		accruedAccountCode: "", //미지급계정코드
+		accruedAccountId: "", //미지급계정코드
 		accruedSubAccountCode: "", //미지급보조계정코드
 		representativeAccountCode: "", //대표계정코드
 		fixedAssetFlag: false, //고정자산여부 example: false
@@ -503,13 +528,17 @@ export const SlipField: ISlip = {
 		description: "", //헤더 설명
 		reference: {},
 		writerId: undefined, //작성자 - 직원 식별자
-		writer: [], //작성자 - 직원 식별자(ui select-table type 객체)
+		// writer: [], //작성자 - 직원 식별자(ui select-table type 객체)
 		approvalFinalEmployeeId: undefined, //최종결재자 - 직원 식별자
 		employeeId: undefined, //사용자 - 직원 식별자
+		employeeIds: [],
 		// managementItems: [],
 		slipStatusLabel: "",
 		slipStatusName: "",
 		storeName: "",
+		writerName: "",
+		accruedAccountName: "",
+		workplaceName: "",
 	},
 	slipCard: {
 		id: "", //전표 식별자
@@ -545,7 +574,7 @@ export interface Slip {
 	documents: any
 	files: any
 	receiptFile: any
-	fuelSlipHeader: any
+	slipFuelHeaderDto: any
 }
 export class ExpenseBuilder {
 	private expense: Slip
@@ -558,7 +587,7 @@ export class ExpenseBuilder {
 			documents: [],
 			files: [],
 			receiptFile: [],
-			fuelSlipHeader: {},
+			slipFuelHeaderDto: {},
 		}
 	}
 
@@ -604,7 +633,14 @@ export class ExpenseBuilder {
 	setWriter(writer: number): ExpenseBuilder {
 		if (this.expense.slipHeader) {
 			this.expense.slipHeader.writerId = writer
-			this.expense.slipHeader.writer = [writer]
+			// this.expense.slipHeader.writer = [writer]
+		}
+		return this
+	}
+	setEmployee(employeeId: number): ExpenseBuilder {
+		if (this.expense.slipHeader) {
+			this.expense.slipHeader.employeeId = employeeId
+			this.expense.slipHeader.employeeIds = [employeeId]
 		}
 		return this
 	}
@@ -650,9 +686,30 @@ export class ExpenseBuilder {
 		return this
 	}
 
-	setAccruedAccountCode(accruedAccountCode: string): ExpenseBuilder {
+	setAccruedAccountCode(accruedAccountId: string): ExpenseBuilder {
 		if (this.expense.slipHeader) {
-			this.expense.slipHeader.accruedAccountCode = accruedAccountCode
+			this.expense.slipHeader.accruedAccountId = accruedAccountId
+		}
+		return this
+	}
+
+	setSupplyAmount(supplyAmount: number): ExpenseBuilder {
+		if (this.expense.slipHeader) {
+			this.expense.slipHeader.supplyAmount = supplyAmount
+		}
+		return this
+	}
+
+	setKrwSupplyAmount(krwSupplyAmount: number): ExpenseBuilder {
+		if (this.expense.slipHeader) {
+			this.expense.slipHeader.krwSupplyAmount = krwSupplyAmount
+		}
+		return this
+	}
+
+	setStoreName(storeName: string): ExpenseBuilder {
+		if (this.expense.slipHeader) {
+			this.expense.slipHeader.storeName = storeName
 		}
 		return this
 	}
@@ -690,15 +747,14 @@ export class ExpenseBuilder {
 				: [getDefaultSlipDetail(this.expense.slipHeader?.id)]
 
 		if (this.expense.slipDetails) {
-			const amounts = this.expense.slipDetails.map((x) => x.totalAmount || 0)
-			const vatAmounts = this.expense.slipDetails.map((x) => x.taxAmount || 0)
-
+			const supplyAmount = this.expense.slipDetails.map((x) => x.supplyAmount || 0)
+			const taxAmount = this.expense.slipDetails.map((x) => x.taxAmount || 0)
 			if (this.expense.slipHeader) {
-				this.expense.slipHeader.krwSupplyAmount = amounts.reduce(
+				this.expense.slipHeader.krwSupplyAmount = supplyAmount.reduce(
 					(acc, amount) => acc + amount,
 					0
 				)
-				this.expense.slipHeader.krwTaxAmount = vatAmounts.reduce(
+				this.expense.slipHeader.krwTaxAmount = taxAmount.reduce(
 					(acc, amount) => acc + amount,
 					0
 				)
@@ -719,7 +775,6 @@ export class ExpenseBuilder {
 const getDefaultSlipDetail = (headerId?: number | string): SlipDetails => {
 	return {
 		seq: 1,
-		taxCode: "A",
 		totalAmount: 0,
 		taxAmount: 0,
 		slipLineType: "ITEM",

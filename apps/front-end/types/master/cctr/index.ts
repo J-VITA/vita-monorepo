@@ -66,17 +66,57 @@ interface IEmployeeDetail {
 	costCenterId: number
 }
 
+export const initEmployeeDetail = {
+	id: 0,
+	employeeNumber: undefined,
+	name: undefined,
+	companyCode: undefined,
+	companyName: undefined,
+	departmentCode: undefined,
+	departmentName: undefined,
+	workplaceCode: undefined,
+	workplaceName: undefined,
+	upperDepartmentCode: undefined,
+	upperDepartmentName: undefined,
+	employeeDivisionCode: undefined,
+	employeeDivisionName: undefined,
+	gradeCode: undefined,
+	gradeName: undefined,
+	jobCode: undefined,
+	jobName: undefined,
+	joinedDate: undefined,
+	email: undefined,
+	phoneNumber: undefined,
+	mobileNumber: undefined,
+	costCenterId: 0,
+}
+
 export type CostItem = Partial<ICostItem>
 export type DataTable = Partial<ITable>
 export type AddRef = {
 	name: string
 	users: (string | number)[]
 	employeesInfo: IEmployeeDetail[]
-	authorityFlag?: boolean
+	searchFlag?: boolean
 }
 export type Employee = Partial<IEmployee>
 export type CostParams = Partial<ICostItem> & {
 	method?: "POST" | "PATCH"
+}
+
+export const initCostData: CostParams = {
+	companyId: undefined,
+	companyCode: "",
+	orderSeq: undefined,
+	depth: undefined,
+	used: true,
+	id: undefined,
+	name: "",
+	code: "",
+	description: "",
+	parentId: undefined,
+	workplaceId: undefined,
+	workplaceCode: undefined,
 }
 
 export type TreeItem = DataNode &

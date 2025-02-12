@@ -64,6 +64,7 @@ export const columns = createTableColumns<"CompletedList">([
 		title: "문서번호",
 		dataIndex: "approvalNumber",
 		resizable: true,
+		align: "center",
 		sorter: {
 			multiple: 1,
 		},
@@ -78,6 +79,7 @@ export const columns = createTableColumns<"CompletedList">([
 			multiple: 2,
 		},
 		align: "right",
+		className: "bold",
 		customRender: ({ text }) => formatCurrency(text, "KRW"),
 	},
 	{

@@ -13,7 +13,7 @@ export const CardUseStateColor: Record<string, string> = {
 	UNPROCESSED: "red",
 	IN_PROGRESS: "green",
 	COMPLETED: "#00000040",
-	PERSONAL_EXPENSE_PROCESSED: "purple",
+	PERSONAL_PROCESSED: "purple",
 } as const
 
 export const CardTypeColor: Record<string, string> = {

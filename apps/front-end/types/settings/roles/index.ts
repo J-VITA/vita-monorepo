@@ -55,6 +55,10 @@ export type RoleMenuItem = {
 	selectLevelTypeName?: string
 	selectLevelTypeLabel?: string
 	children?: RoleMenuItem[]
+	menuSelectLevelTypes?: {
+		selectLevelTypeName: string
+		selectLevelTypeLabel: string
+	}[]
 }
 
 /**

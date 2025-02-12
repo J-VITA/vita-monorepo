@@ -10,10 +10,11 @@ export const SelectLevelType = {
 	/** 전체조회 */
 	GLOBAL: "GLOBAL",
 }
+
 /**
  * 전표 폼 타입
  * @description 트리 쉐이킹 & 런타임 오버헤드 축소
- * @argument {string} [DISBURSEMENT_FORM: 지출결의서(통합), PERSONAL_EXPENSE_FORM : 개인경비신청서, CARD_FORM : 법인카드사용내역서]
+ * @argument {string} [DISBURSEMENT_FORM: 지출결의서(통합), PERSONAL_FORM : 개인경비신청서, CARD_FORM : 법인카드사용내역서]
  */
 export type SelectLevelType = (typeof SelectLevelType)[keyof typeof SelectLevelType]
 
@@ -41,6 +42,11 @@ export interface Menu {
 
 export type MenuManagement = Pick<Menu, "id">
 
+interface MenuSelectLevelType {
+	selectLevelTypeName: SelectLevelType
+	selectLevelTypeLabel: string
+}
+
 interface IMenu {
 	id: number
 	companyCode: string
@@ -53,8 +59,8 @@ interface IMenu {
 	depth: number
 	used: boolean
 	selectLevelUsed: boolean
+	menuSelectLevelTypes: Array<MenuSelectLevelType>
 }
-// children: IMenu[];
 
 export type MenuItem = Required<IMenu> & {
 	parentId?: number
@@ -65,6 +71,7 @@ export type MenuItem = Required<IMenu> & {
 export type MenuForm = Omit<IMenu, "id" | "relateImagePath"> & {
 	id?: number
 	parentId?: number
+	selectLevelTypes?: string[]
 }
 
 export const initMenuItem: MenuForm = {
@@ -77,4 +84,6 @@ export const initMenuItem: MenuForm = {
 	depth: 0,
 	used: false,
 	selectLevelUsed: false,
+	menuSelectLevelTypes: [],
+	selectLevelTypes: [],
 }

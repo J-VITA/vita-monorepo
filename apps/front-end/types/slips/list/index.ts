@@ -14,6 +14,8 @@ export const SlipActivityType = {
 	SLIPS_PROJECT: "PROJECT",
 	/** 법인카드 */
 	SLIPS_CARD: "CARD",
+	CONFIRM_LIST: "CONFIRM_LIST",
+	RESULT_LIST: "RESULT_LIST",
 }
 /**
  * 전표내역 관리 화면 탭
@@ -138,12 +140,12 @@ export type DataType = Partial<ISlipsDataType>
 
 export const options: Options = {
 	expense: [
-		{ label: "개인경비", value: "PERSONAL_EXPENSE", color: "orange" },
+		{ label: "개인경비", value: "PERSONAL", color: "orange" },
 		{ label: "법인카드", value: "CARD", color: "blue" },
-		{ label: "전자세금계산서", value: "E_TAX_INVOICE", color: "cyan" },
+		{ label: "전자세금계산서", value: "E_TAX", color: "cyan" },
 		{ label: "세금계산서", value: "TAX_INVOICE", color: "cyan" },
 		{ label: "경조금", value: "FAMILY_EVENT", color: "default" },
-		{ label: "선급금", value: "ADVANCE_PAYMENTS", color: "green" },
+		{ label: "선급금", value: "ADVANCE_PAYMENT", color: "green" },
 	],
 	state: [
 		{ label: "미처리", value: "UNPROCESSED", color: "purple" },
@@ -178,26 +180,13 @@ export const getRowStyle = (params: RowClassParams) => {
 	}
 }
 
-// API 연동 이후 삭제
-// export const getData: DataType[] = [
-// 	{
-// 		costCenter: "영업본부",
-// 		slipNo: "2021-BD-00001",
-// 		expenditureType: "Expenses",
-// 		useDate: "2024-05-03",
-// 		author: "김길동",
-// 		user: "김길동",
-// 		store: "다이소 마포점",
-// 		totalAmount: 22000,
-// 		supplyValue: 20000,
-// 		vat: 2000,
-// 		accountCostItem: "복리후생 > 식비",
-// 		status: "Progress",
-// 		description: "팀원과 점심식사",
-// 		paymentDocumentNo: "AP-20240710-0002",
-// 		cardApprovalDate: "2024-05-30",
-// 		cardApprovalNo: "2334-4343-3233-3333",
-// 		project: "해외사업 프로젝트",
-// 		projectCode: "PROJECT-1",
-// 	},
-// ]
+export const SlipRangePickerPresets = [
+	{
+		label: "전월",
+		value: [useMonth.lastFrom(), useMonth.lastTo()],
+	},
+	{
+		label: "당월",
+		value: [useMonth.from(), useMonth.to()],
+	},
+]

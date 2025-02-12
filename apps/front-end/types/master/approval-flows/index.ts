@@ -76,6 +76,8 @@ interface IApprovalRules {
 
 	agreementOptionType?: string
 	documentModifierType?: string
+
+	approverRequiredFlag?: boolean // 결재자 필수 포함 여부
 }
 
 export type ApprovalLines = Partial<IApprovalLines> | []

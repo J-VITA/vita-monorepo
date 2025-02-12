@@ -10,16 +10,16 @@ import {
 
 export interface ICardManagementListSearchParams {
 	companyCode?: string
-	issueDateFrom: string
-	issueDateTo: string
+	issueDateFrom?: string
+	issueDateTo?: string
 	number: string
 	name: string
-	ownerId: string | number
+	ownerId?: string | number
 	cardType: string
 	cardStatus: string
 	used: string
-	filterDate: [Dayjs, Dayjs]
-	ownerIds: (string | number)[]
+	filterDate?: [Dayjs, Dayjs]
+	ownerIds?: (string | number)[]
 }
 
 export type CardManagementListSearch = ExSearchParams<
@@ -44,14 +44,9 @@ export const useCardManagementListSearch = (
 			companyCode,
 			number: "",
 			name: "",
-			ownerId,
-			ownerIds: [ownerId],
 			cardType: "",
 			cardStatus: "",
 			used: "",
-			issueDateFrom: dayjs(useMonth.from()).format("YYYY-MM-DD"),
-			issueDateTo: dayjs(useMonth.to()).format("YYYY-MM-DD"),
-			filterDate: [useMonth.from(), useMonth.to()],
 		})
 	)
 
@@ -97,6 +92,7 @@ export const columns = createTableColumns<"CardManagementList">([
 	{
 		title: "카드소유자",
 		dataIndex: "ownerName",
+		align: "center",
 		sorter: {
 			multiple: 4,
 		},

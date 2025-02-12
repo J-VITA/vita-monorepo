@@ -1,54 +1,40 @@
 {
-  "globalDependencies": [".env", "tsconfig.json"],
-  "tasks": {
-    "build:self-hosted": {
-      "dependsOn": [],
-      "outputs": [
-        ".nuxt/**",
-        ".output/**",
-        "dist/**",
-        ".next/**",
-        "!.next/cache/**"
-      ]
-    },
-    "build:development": {
-      "dependsOn": [],
-      "outputs": [
-        ".nuxt/**",
-        ".output/**",
-        "dist/**",
-        ".next/**",
-        "!.next/cache/**"
-      ]
-    },
-    "build:production": {
-      "dependsOn": [],
-      "outputs": [
-        ".nuxt/**",
-        ".output/**",
-        "dist/**",
-        ".next/**",
-        "!.next/cache/**"
-      ]
-    },
-    "lint": {
-      "outputs": []
-    },
-    "dev:local": {
-      "cache": false,
-      "persistent": true
-    },
-    "dev:development": {
-      "cache": false,
-      "persistent": true
-    },
-    "dev:self-hosted": {
-      "cache": false,
-      "persistent": true
-    },
-    "test": {
-      "dependsOn": [],
-      "outputs": []
-    }
-  }
+	"globalDependencies": [".env", "tsconfig.json"],
+	"tasks": {
+		"build:development": {
+			"dependsOn": [],
+			"outputs": [".nuxt/**", ".output/**", "dist/**", ".next/**", "!.next/cache/**"]
+		},
+		"build:production": {
+			"dependsOn": [],
+			"outputs": [".nuxt/**", ".output/**", "dist/**", ".next/**", "!.next/cache/**"]
+		},
+		"build": {
+			"dependsOn": ["^build"],
+			"outputs": ["dist/**"]
+		},
+		"build:packages": {
+			"dependsOn": ["^build"],
+			"outputs": ["dist/**", "libs/**"]
+		},
+		"lint": {
+			"outputs": []
+		},
+		"dev": {
+			"cache": false,
+			"persistent": true
+		},
+		"dev:local": {
+			"cache": false,
+			"persistent": true
+		},
+		"dev:development": {
+			"cache": false,
+			"persistent": true
+		},
+		"test": {
+			"dependsOn": [],
+			"outputs": []
+		}
+	}
 }

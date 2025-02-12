@@ -17,7 +17,7 @@ export const cardUseState: StateType = {
 	UNPROCESSED: { color: "orange", text: "미처리" },
 	IN_PROGRESS: { color: "blue", text: "처리중" },
 	COMPLETED: { color: "#d5d5d5", text: "처리완료" },
-	PERSONAL_EXPENSE_PROCESSED: { color: "#d5d5d5", text: "사적비용처리" },
+	PERSONAL_PROCESSED: { color: "#d5d5d5", text: "사적비용처리" },
 }
 
 export const CardUseStateType = {
@@ -28,13 +28,13 @@ export const CardUseStateType = {
 	/** 처리완료 */
 	COMPLETED: "COMPLETED",
 	/** 사적비용처리 */
-	PERSONAL_EXPENSE_PROCESSED: "PERSONAL_EXPENSE_PROCESSED",
+	PERSONAL_PROCESSED: "PERSONAL_PROCESSED",
 }
 
 /**
  * 카드사용 상태 타입
  * @description 트리 쉐이킹 & 런타임 오버헤드 축소
- * @argument {string} [UNPROCESSED: 미처리, IN_PROGRESS : 처리중, COMPLETED : 처리완료, PERSONAL_EXPENSE_PROCESSED: 사적비용처리]
+ * @argument {string} [UNPROCESSED: 미처리, IN_PROGRESS : 처리중, COMPLETED : 처리완료, PERSONAL_PROCESSED: 사적비용처리]
  */
 export type CardUseStateType = (typeof CardUseStateType)[keyof typeof CardUseStateType]
 
@@ -212,7 +212,7 @@ export const cardHistoryColumns = createTableColumns<"CardHistory">([
 		sorter: {
 			multiple: 2,
 		},
-		width: 120,
+		width: 180,
 		align: "center",
 		customRender(opt) {
 			return `${dayjs(opt.value).format("YYYY-MM-DD")} ${dayjs(opt.record.approvalDateTime).format("HH:mm")}`
@@ -225,7 +225,7 @@ export const cardHistoryColumns = createTableColumns<"CardHistory">([
 		sorter: {
 			multiple: 3,
 		},
-		width: 120,
+		width: 180,
 		align: "center",
 		customRender(opt) {
 			return `${dayjs(opt.value).format("YYYY-MM-DD")} ${dayjs(opt.record.purchaseTime).format("HH:mm")}`
@@ -238,8 +238,8 @@ export const cardHistoryColumns = createTableColumns<"CardHistory">([
 		sorter: {
 			multiple: 4,
 		},
-		width: 150,
-		align: "left",
+		width: 160,
+		align: "center",
 	},
 	{
 		title: "업종",
@@ -248,7 +248,7 @@ export const cardHistoryColumns = createTableColumns<"CardHistory">([
 		sorter: {
 			multiple: 5,
 		},
-		width: 110,
+		width: 160,
 		align: "center",
 	},
 	{
@@ -398,7 +398,7 @@ export const validateCardUsageItems = (
 						return "처리중"
 					case "COMPLETED":
 						return "처리완료"
-					case "PERSONAL_EXPENSE_PROCESSED":
+					case "PERSONAL_PROCESSED":
 						return "사적비용처리"
 					default:
 						return type // 타입 안전성을 위해

@@ -89,7 +89,7 @@ export const SlipFormType = {
 	/** 지출결의서(통합) */
 	DISBURSEMENT_FORM: "DISBURSEMENT_FORM",
 	/** 개인경비신청서 */
-	PERSONAL_EXPENSE_FORM: "PERSONAL_EXPENSE_FORM",
+	PERSONAL_FORM: "PERSONAL_FORM",
 	/** 법인카드사용내역서 */
 	CARD_FORM: "CARD_FORM",
 	/** 세금계산서 작성내역서 */
@@ -104,32 +104,71 @@ export const SlipFormType = {
 	CARD_ISSUE: "CARD_ISSUE",
 	/** ERP전표 결재 요청서 */
 	ERP_SLIP: "ERP_SLIP",
+	/** 선급금 신청서 */
+	ADVANCE: "ADVANCE",
 }
 
 /**
  * 전표 폼 타입
  * @description 트리 쉐이킹 & 런타임 오버헤드 축소
- * @argument {string} [DISBURSEMENT_FORM: 지출결의서(통합), PERSONAL_EXPENSE_FORM : 개인경비신청서, CARD_FORM : 법인카드사용내역서]
+ * @argument {string} [DISBURSEMENT_FORM: 지출결의서(통합), PERSONAL_FORM : 개인경비신청서, CARD_FORM : 법인카드사용내역서]
  */
 export type SlipFormType = (typeof SlipFormType)[keyof typeof SlipFormType]
 
+/**
+ * 전표유형
+ */
 export const SlipType = {
 	/** 개인경비 */
-	PERSONAL_EXPENSE: "PERSONAL_EXPENSE",
-	/** 분할 개인경비 */
-	DIVISION_PERSONAL_EXPENSE: "DIVISION_PERSONAL_EXPENSE",
+	PERSONAL: "PERSONAL",
 	/** 법인카드사용내역서 */
 	CARD: "CARD",
 	/** 전자세금계산서 */
-	E_TAX_INVOICE: "E_TAX_INVOICE",
+	E_TAX: "E_TAX",
 	/** 수기세금계산서 */
-	TAX_INVOICE: "TAX_INVOICE",
+	HAND_TAX: "HAND_TAX",
+	/** 경조금 */
+	FAMILY_EVENT: "FAMILY_EVENT",
+	/** 선급금 */
+	ADVANCE: "ADVANCE",
+}
+
+/**
+ * 증빙유형
+ */
+export const SlipEvidenceType = {
+	/** 개인경비 */
+	PERSONAL: "PERSONAL",
+	/** 개인경비 분할 */
+	PERSONAL_DIVISION: "PERSONAL_DIVISION",
+	/** 법인카드사용내역서 */
+	CARD: "CARD",
+	/** 법인카드 분할 */
+	CARD_DIVISION: "CARD_DIVISION",
+	/** 전자세금계산서 */
+	E_TAX: "E_TAX",
+	/** 전자계산서 */
+	E_INVOICE: "E_INVOICE",
+	/** 전자영세율 */
+	E_ZERO_TAX_RATE_INVOICE: "E_ZERO_TAX_RATE_INVOICE",
+	/** 수기세금계산서 */
+	HAND_TAX: "HAND_TAX",
+	/** 수기 계산서 */
+	HAND_INVOICE: "HAND_INVOICE",
+	/** 수기 영세율 */
+	HAND_ZERO_TAX_RATE_INVOICE: "HAND_ZERO_TAX_RATE_INVOICE",
+	/** 출장비 */
+	BUSINESS_TRIP: "BUSINESS_TRIP",
+	/** 선급금 */
+	ADVANCE: "ADVANCE",
+	/** 유류비 */
+	OIL: "OIL",
 }
 
 /**
  * 전표 폼 타입
  * @description 트리 쉐이킹 & 런타임 오버헤드 축소
- * @argument {string} [PERSONAL_EXPENSE: 개인경비, DIVISION_PERSONAL_EXPENSE : 분할 개인경비, CARD : 법인카드사용내역서, E_TAX_INVOICE : 전자세금계산서, TAX_INVOICE : 수기세금계산서]
+ * @argument {string} [PERSONAL: 개인경비, PERSONAL_DIVISION : 분할 개인경비, CARD : 법인카드사용내역서, E_TAX : 전자세금계산서, TAX_INVOICE : 수기세금계산서]
  */
 export type SlipType = (typeof SlipType)[keyof typeof SlipType]
 
@@ -281,7 +320,7 @@ type EaccFileProps = {
 	id?: number
 	companyCode: string
 	name?: string
-	fileType: "SLIP" | "RECEIPT" | "APPROVAL" | "BOARD"
+	fileType: "SLIP" | "RECEIPT" | "APPROVAL" | "BOARD" | "CLAIM"
 	documentedNumber?: string
 	description?: string
 	seq?: number

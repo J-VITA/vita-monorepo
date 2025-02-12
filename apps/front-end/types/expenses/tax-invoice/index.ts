@@ -8,18 +8,53 @@ import {
 	RequestParams,
 } from "@/types"
 
+export const textSearchOptions = [
+	{ label: "공급거래처명", value: "vendorName" },
+	{ label: "담당자 이메일", value: "recipientEmail" },
+	{ label: "계산서 승인번호", value: "issueId" },
+]
+
+interface ITaxInvoiceList {
+	id?: number
+	companyCode: string
+	slipTypeName: string // 전표유형구분(PERSONAL, CARD, E_TAX...)
+	slipTypeLabel: string // 전표유형명(개인경비, 개인경비분할, 법인카드, 전자세금계산서....)
+	slipNumber: string // 전표번호
+	draftDate: string // 증빙일자
+	issueId: string // 세금계산서 승인번호
+	employeeName: string // 사용자명
+	vendorName: string // 거래처명
+	supplyAmount: number // 공급가액
+	taxAmount: number // 부가세액
+	totalAmount: number // 총금액
+	recipientEmail1: string // 담당자 이메일
+	taxDealStatusName: string // 처리상태(UNPROCESSED, IN_PROGRESS, COMPLETED)
+	taxDealStatusLabel: string // 처리상태(미처리, 처리중, 처리완료)
+	fileId: number
+	slipStatusName: string // 전표상태(DRAFT, APPROVED, REJECTED)
+	slipStatusLabel: string // 전표상태(임시저장, 승인, 반려)
+	approvalHeaderId: number // 결재 헤더 식별자
+	title: string // 결재제목
+	divisionSlipFlag: boolean // 분할전표여부
+}
+
+export type TaxInvoiceData = Required<ITaxInvoiceList>
+
 interface ITaxInvoiceListSearchParams {
 	companyCode?: string
 	employeeId?: number | string //사용자 식별자
+	employeeIds?: number[] //사용자 식별자
 	searchDateFrom: string //시작일
 	searchDateTo: string //종료일
 	filterDate: [Dayjs, Dayjs]
-	state?: string // 상태
-	taxInvoiceType?: string // 세금계산서 분류
-	titleItem?: string // 항목 선택
-	title?: string // 제목
-	writer?: string // 작성자
-	writerId?: number[] // 작성자 식별자
+	slipType?: string // 전표 유형
+	slipStatus?: string // 전표 상태
+	taxDealStatus?: string // 세금계산서 수신 상태
+	vendorName?: string // 거래처명
+	recipientEmail?: string // 공급받는자 담당자 이메일
+	issueId?: string // 세금계산서 승인번호
+	textSearchType: string // 항목 선택
+	text?: string // 검색텍스트
 }
 
 export type TaxInvoiceListSearch = ExSearchParams<
@@ -36,12 +71,10 @@ export const useTaxInvoiceListSearch = (companyCode: string) => {
 			last: true,
 			sort: [],
 			companyCode,
-			searchDateFrom: dayjs(useMonth.from()).format("YYYY-MM-DD"), //시작일
+			searchDateFrom: dayjs(useMonth.lastFrom(1)).format("YYYY-MM-DD"), //시작일
 			searchDateTo: dayjs(useMonth.to()).format("YYYY-MM-DD"), //종료일
-			filterDate: [useMonth.from(), useMonth.to()],
-			state: "",
-			taxInvoiceType: "",
-			titleItem: "SUPPLIER_NAME",
+			filterDate: [useMonth.lastFrom(1), useMonth.to()],
+			textSearchType: "vendorName",
 		})
 	)
 	return {
@@ -54,8 +87,8 @@ export const useTaxInvoiceListSearch = (companyCode: string) => {
 
 export const columns = createTableColumns<"TaxInvoiceList">([
 	{
-		title: "계산서 분류",
-		dataIndex: "taxInvoiceType",
+		title: "전표유형",
+		dataIndex: "slipTypeName",
 		align: "center",
 		sorter: {
 			multiple: 1,
@@ -69,20 +102,20 @@ export const columns = createTableColumns<"TaxInvoiceList">([
 		resizable: true,
 	},
 	{
-		title: "증빙일자",
-		dataIndex: "searchDate",
+		title: "공급일자",
+		dataIndex: "draftDate",
 		width: -1,
 		resizable: true,
 	},
 	{
 		title: "세금계산서 승인번호",
-		dataIndex: "taxInvoiceNumber",
+		dataIndex: "issueId",
 		width: -1,
 		resizable: true,
 	},
 	{
 		title: "작성자(처리자)",
-		dataIndex: "writer",
+		dataIndex: "employeeName",
 		width: -1,
 		resizable: true,
 	},
@@ -97,7 +130,7 @@ export const columns = createTableColumns<"TaxInvoiceList">([
 	},
 	{
 		title: "공급가액",
-		dataIndex: "amount",
+		dataIndex: "supplyAmount",
 		align: "right",
 		sorter: {
 			multiple: 3,
@@ -130,7 +163,7 @@ export const columns = createTableColumns<"TaxInvoiceList">([
 	},
 	{
 		title: "담당자 이메일",
-		dataIndex: "email",
+		dataIndex: "recipientEmail1",
 		sorter: {
 			multiple: 6,
 		},
@@ -138,8 +171,8 @@ export const columns = createTableColumns<"TaxInvoiceList">([
 		resizable: true,
 	},
 	{
-		title: "상태",
-		dataIndex: "state",
+		title: "전표상태",
+		dataIndex: "slipStatusName",
 		sorter: {
 			multiple: 7,
 		},

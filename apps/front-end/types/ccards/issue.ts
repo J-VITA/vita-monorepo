@@ -1,4 +1,4 @@
-import type { Dayjs } from "dayjs"
+import dayjs, { Dayjs } from "dayjs"
 import {
 	type Response,
 	createSearchParams,
@@ -50,12 +50,14 @@ export const columns = createTableColumns<"CreditCardIssueDetail">([
 		width: 180,
 	},
 	{
-		title: "카드불출일",
+		title: "불출일",
 		dataIndex: "issueDate",
 		sorter: {
 			multiple: 2,
 		},
 		width: -1,
+		align: "center",
+		customRender: ({ text }) => text && dayjs(text).format("YYYY-MM-DD HH:mm"),
 	},
 	{
 		title: "사용자",
@@ -64,6 +66,7 @@ export const columns = createTableColumns<"CreditCardIssueDetail">([
 			multiple: 3,
 		},
 		width: -1,
+		align: "center",
 	},
 	{
 		title: "수령확인자",
@@ -72,14 +75,17 @@ export const columns = createTableColumns<"CreditCardIssueDetail">([
 			multiple: 4,
 		},
 		width: -1,
+		align: "center",
 	},
 	{
-		title: "카드반납일",
+		title: "반납일",
 		dataIndex: "returnDate",
 		sorter: {
 			multiple: 5,
 		},
 		width: -1,
+		align: "center",
+		customRender: ({ text }) => text && dayjs(text).format("YYYY-MM-DD HH:mm"),
 	},
 	{
 		title: "반납자",
@@ -88,6 +94,7 @@ export const columns = createTableColumns<"CreditCardIssueDetail">([
 			multiple: 6,
 		},
 		width: -1,
+		align: "center",
 	},
 	{
 		title: "반납확인자",
@@ -96,6 +103,7 @@ export const columns = createTableColumns<"CreditCardIssueDetail">([
 			multiple: 7,
 		},
 		width: -1,
+		align: "center",
 	},
 	{
 		title: "결재문서",
@@ -103,13 +111,13 @@ export const columns = createTableColumns<"CreditCardIssueDetail">([
 		sorter: {
 			multiple: 8,
 		},
-		width: -1,
+		width: 60,
 		align: "center",
 	},
 	{
 		title: "기능",
 		dataIndex: "actions",
-		width: 120,
+		width: 80,
 	},
 ])
 
@@ -206,6 +214,7 @@ export type IssueFormState = {
 	userId?: number
 	approvedBy?: number
 	cardId?: number
+	approvedByIds: number[]
 }
 export type ReturnFormState = {
 	id?: number
@@ -213,4 +222,5 @@ export type ReturnFormState = {
 	returnedBy?: number
 	approvedBy?: number
 	cardId?: number
+	approvedByIds: number[]
 }
